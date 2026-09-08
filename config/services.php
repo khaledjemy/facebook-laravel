@@ -2,6 +2,9 @@
 
 return [
 
+    'websocket_url' => env('WEBSOCKET_URL', 'ws://127.0.0.1:8081'),
+    'websocket_secret' => env('WEBSOCKET_SECRET', env('APP_KEY')),
+
     /*
     |--------------------------------------------------------------------------
     | Third Party Services

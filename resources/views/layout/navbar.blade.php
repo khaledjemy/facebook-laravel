@@ -1,57 +1,151 @@
-<header>
-    <div id="header" class="nav-headerr app-header">
-            
-            <div class="row body">
-                <div class="col-lg-3">
-                    <div class="header_img">
-                        <a href="/">	
-                            <svg aria-label="Facebook logo" class="x1ujvgzy" role="img" viewBox="0 0 120 24" width="120">
-                            <path d="m109.202 14.864 4.404-7.03h4.746l-4.622 7.278 4.808 7.463h-4.746l-4.59-7.215v7.215h-4.467V.433l4.467-.402v14.833ZM98.596 14.524c0-1.951-.807-3.5-2.885-3.5s-2.885 1.549-2.885 3.5v1.363c0 1.95.807 3.499 2.885 3.499s2.885-1.549 2.885-3.5v-1.362ZM88.36 15.577v-.743c0-4.243 2.42-7.309 7.351-7.309s7.351 3.066 7.351 7.309v.743c0 4.242-2.42 7.308-7.351 7.308-4.932 0-7.351-3.066-7.351-7.308ZM82.406 14.524c0-1.951-.807-3.5-2.884-3.5-2.079 0-2.885 1.549-2.885 3.5v1.363c0 1.95.806 3.499 2.885 3.499 2.077 0 2.884-1.549 2.884-3.5v-1.362Zm-10.235 1.053v-.743c0-4.243 2.419-7.309 7.35-7.309 4.932 0 7.352 3.066 7.352 7.309v.743c0 4.242-2.42 7.308-7.352 7.308-4.931 0-7.35-3.066-7.35-7.308ZM66.216 14.648c0-2.075-.806-3.623-2.946-3.623-1.83 0-2.823 1.3-2.823 3.406v1.548c0 2.106.993 3.407 2.823 3.407 2.14 0 2.946-1.549 2.946-3.623v-1.115Zm4.467 1.022c0 4.118-1.985 7.215-6.08 7.215-2.233 0-3.783-1.115-4.404-2.539v2.23h-4.218V.434L60.447.03v9.848c.651-1.3 2.078-2.354 4.157-2.354 4.094 0 6.079 3.097 6.079 7.216v.929ZM44.723 13.843h5.397v-.372c0-1.61-.651-2.88-2.606-2.88-2.016 0-2.791 1.27-2.791 3.252m-4.466 1.92v-1.301c0-4.18 2.388-6.937 7.257-6.937 4.59 0 6.607 2.787 6.607 6.875v2.353h-9.398c.093 2.014.992 2.912 3.474 2.912 1.675 0 3.443-.341 4.745-.898l.807 3.065c-1.179.62-3.598 1.084-5.738 1.084-5.645 0-7.754-2.818-7.754-7.153M35.388 7.525c1.737 0 3.38.372 4.28.991l-.992 3.159c-.683-.34-1.8-.682-2.978-.682-2.42 0-3.474 1.394-3.474 3.778v.868c0 2.384 1.055 3.778 3.474 3.778 1.179 0 2.295-.34 2.978-.682l.992 3.16c-.9.618-2.543.99-4.28.99-5.242 0-7.63-2.818-7.63-7.34v-.68c0-4.522 2.388-7.34 7.63-7.34M15.973 15.732c0 2.198.806 3.654 2.884 3.654 1.83 0 2.76-1.332 2.76-3.438v-1.486c0-2.106-.93-3.437-2.76-3.437-2.078 0-2.884 1.455-2.884 3.654v1.053Zm-4.467-.991c0-4.119 1.954-7.216 6.049-7.216 2.233 0 3.598 1.146 4.249 2.57v-2.26h4.28v14.74h-4.28v-2.23c-.62 1.425-2.016 2.54-4.25 2.54-4.094 0-6.048-3.097-6.048-7.215v-.93ZM9.274 3.592c-1.396 0-1.8.62-1.8 1.982v2.26h3.723l-.372 3.655h-3.35v11.086H3.009V11.49H0V7.835h3.009V5.636C3.009 1.951 4.497 0 8.654 0c.9 0 1.954.062 2.605.155v3.437H9.274Z"></path></svg>
-                        </a>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="header_search">
-                        <input type="text" name="search" placeholder="       Search Khaled Gamal" />
-                        <div  class="search" title="search">
-                            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/></div> 
-                    </div>
-                </div>
-                <div class="col-lg-3">
-                    <div class="header_icons">
-                    <ul>
-                        <li>
-                            <a href="#">
-                                <svg viewBox="0 0 28 28" alt="" class="x1lliihq x1k90msu x2h7rmj x1qfuztq x198g3q0" fill="currentColor" height="20" width="20">
-                                                <path d="M14 2.042c6.76 0 12 4.952 12 11.64S20.76 25.322 14 25.322a13.091 13.091 0 0 1-3.474-.461.956 .956 0 0 0-.641.047L7.5 25.959a.961.961 0 0 1-1.348-.849l-.065-2.134a.957.957 0 0 0-.322-.684A11.389 11.389 0 0 1 2 13.682C2 6.994 7.24 2.042 14 2.042ZM6.794 17.086a.57.57 0 0 0 .827.758l3.786-2.874a.722.722 0 0 1 .868 0l2.8 2.1a1.8 1.8 0 0 0 2.6-.481l3.525-5.592a.57.57 0 0 0-.827-.758l-3.786 2.874a.722.722 0 0 1-.868 0l-2.8-2.1a1.8 1.8 0 0 0-2.6.481Z"></path>
-                                </svg>
-                        </a></li>
-                        <li class="message"><a href="#"><svg viewBox="0 0 28 28" alt="" class="x1lliihq x1k90msu x2h7rmj x1qfuztq x198g3q0" fill="currentColor" height="20" width="20">
-                <path d="M7.847 23.488C9.207 23.488 11.443 23.363 14.467 22.806 13.944 24.228 12.581 25.247 10.98 25.247 9.649 25.247 8.483 24.542 7.825 23.488L7.847 23.488ZM24.923 15.73C25.17 17.002 24.278 18.127 22.27 19.076 21.17 19.595 18.724 20.583 14.684 21.369 11.568 21.974 9.285 22.113 7.848 22.113 7.421 22.113 7.068 22.101 6.79 22.085 4.574 21.958 3.324 21.248 3.077 19.976 2.702 18.049 3.295 17.305 4.278 16.073L4.537 15.748C5.2 14.907 5.459 14.081 5.035 11.902 4.086 7.022 6.284 3.687 11.064 2.753 15.846 1.83 19.134 4.096 20.083 8.977 20.506 11.156 21.056 11.824 21.986 12.355L21.986 12.356 22.348 12.561C23.72 13.335 24.548 13.802 24.923 15.73Z"></path>
-                        </svg></a></li>
-                        <li>
-                            <a href="#" title="@if(Auth::check()) {{ Auth::user()->first_name }} {{ Auth::user()->last_name }} @endif">
-                                @if(Auth::check())
-                                    @if(isset($profile) && isset($profile['photopro']))
-                                    <img src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type)}}" alt=""/>
-                                    @endif
-                                @endif
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+
+
+<!-- النافبار العلوي (ثابت في الأعلى) -->
+<nav class="navbar navbar-expand fixed-top bg-white shadow-sm my-0 py-0" style="min-height:56px;">
+  <div class="container-fluid h-100 my-0 py-0">
+    <div class="row w-100 h-100 align-items-center flex-nowrap mb-0 pb-0">
+
+      <!-- الجزء الأيسر: اللوجو + البحث -->
+      <div class="col-3 navbar-brand-area d-flex align-items-center flex-shrink-0 p-0 m-0">
+        <a href="{{asset('/')}}" class="facebook-mark" aria-label="Facebook">
+          <svg viewBox="0 0 36 36" width="40" height="40" aria-hidden="true"><circle cx="18" cy="18" r="18" fill="#0866ff"/><path fill="#fff" d="M20.2 31V19.4h3.9l.6-4.5h-4.5V12c0-1.3.4-2.2 2.3-2.2h2.4v-4c-.4-.1-1.8-.2-3.5-.2-3.5 0-5.9 2.1-5.9 6.1v3.2h-4v4.5h4V31h4.7z"/></svg>
+        </a>
+        <form action="{{ url('/search') }}" method="GET" class="navbar-search-form"><i class="fa fa-search"></i><input type="search" name="q" value="{{ request('q') }}" class="form-control rounded-pill border-0" placeholder="{{ __('ui.search') }}"></form>
+      </div>
+
+      <!-- الجزء الأوسط: التبويبات (لشاشات الكمبيوتر فقط) -->
+      <div id="desktop-tabs" class="col-6 d-flex justify-content-center align-items-end desktop-tabs-col mb-0 pb-0">
+        <div class="row w-100 g-0 justify-content-center">
+          <div class="fb-nav-tab nav-item navlink text-center">
+            <a href="{{ url('/') }}" aria-label="{{ __('ui.home') }}" title="{{ __('ui.home') }}" class="nav-link text-secondary p-3 {{ request()->is('/') ? 'active' : '' }}">
+              <i class="fa fa-home fb-tab-fa"></i>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M9.464 1.286C10.294.803 11.092.5 12 .5c.908 0 1.707.303 2.537.786.795.462 1.7 1.142 2.815 1.977l2.232 1.675c1.391 1.042 2.359 1.766 2.888 2.826.53 1.059.53 2.268.528 4.006v4.3c0 1.355 0 2.471-.119 3.355-.124.928-.396 1.747-1.052 2.403-.657.657-1.476.928-2.404 1.053-.884.119-2 .119-3.354.119H7.93c-1.354 0-2.471 0-3.355-.119-.928-.125-1.747-.396-2.403-1.053-.656-.656-.928-1.475-1.053-2.403C1 18.541 1 17.425 1 16.07v-4.3c0-1.738-.002-2.947.528-4.006.53-1.06 1.497-1.784 2.888-2.826L6.65 3.263c1.114-.835 2.02-1.515 2.815-1.977zM10.5 13A1.5 1.5 0 0 0 9 14.5V21h6v-6.5a1.5 1.5 0 0 0-1.5-1.5h-3z"></path></svg>
+            </a>
+          </div>
+          <div class="fb-nav-tab nav-item navlink text-center">
+            <a href="{{ url('/watch') }}" aria-label="{{ __('ui.watch') }}" title="{{ __('ui.watch') }}" class="nav-link text-secondary p-3 {{ request()->is('watch*') ? 'active' : '' }}">
+              <i class="fa fa-tv fb-tab-fa"></i>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M10.996 8.132A1 1 0 0 0 9.5 9v4a1 1 0 0 0 1.496.868l3.5-2a1 1 0 0 0 0-1.736l-3.5-2z"></path><path d="M14.573 2H9.427c-1.824 0-3.293 0-4.45.155-1.2.162-2.21.507-3.013 1.31C1.162 4.266.817 5.277.655 6.477.5 7.634.5 9.103.5 10.927v.146c0 1.824 0 3.293.155 4.45.162 1.2.507 2.21 1.31 3.012.802.803 1.813 1.148 3.013 1.31C6.134 20 7.603 20 9.427 20h5.146c1.824 0 3.293 0 4.45-.155 1.2-.162 2.21-.507 3.012-1.31.803-.802 1.148-1.813 1.31-3.013.155-1.156.155-2.625.155-4.449v-.146c0-1.824 0-3.293-.155-4.45-.162-1.2-.507-2.21-1.31-3.013-.802-.802-1.813-1.147-3.013-1.309C17.866 2 16.397 2 14.573 2zM3.38 4.879c.369-.37.887-.61 1.865-.741C6.251 4.002 7.586 4 9.5 4h5c1.914 0 3.249.002 4.256.138.978.131 1.496.372 1.865.74.37.37.61.888.742 1.866.135 1.007.137 2.342.137 4.256 0 1.914-.002 3.249-.137 4.256-.132.978-.373 1.496-.742 1.865-.369.37-.887.61-1.865.742-1.007.135-2.342.137-4.256.137h-5c-1.914 0-3.249-.002-4.256-.137-.978-.132-1.496-.373-1.865-.742-.37-.369-.61-.887-.741-1.865C2.502 14.249 2.5 12.914 2.5 11c0-1.914.002-3.249.138-4.256.131-.978.372-1.496.74-1.865zM8 21.5a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2H8z"></path></svg>
+            </a>
+          </div>
+          <div class="fb-nav-tab nav-item navlink text-center">
+            <a href="{{ url('/groups') }}" aria-label="{{ __('ui.groups') }}" title="{{ __('ui.groups') }}" class="nav-link text-secondary p-3 {{ request()->is('groups*') ? 'active' : '' }}">
+              <i class="fa fa-user-group fb-tab-fa"></i>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 5a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-2 4a2 2 0 1 1 4 0 2 2 0 0 1-4 0z"></path><path d="M12 .5C5.649.5.5 5.649.5 12S5.649 23.5 12 23.5 23.5 18.351 23.5 12 18.351.5 12 .5zM2.5 12c0-.682.072-1.348.209-1.99a2 2 0 0 1 0 3.98A9.539 9.539 0 0 1 2.5 12zm4 0a4.001 4.001 0 0 0-3.16-3.912A9.502 9.502 0 0 1 12 2.5a9.502 9.502 0 0 1 8.66 5.588 4.001 4.001 0 0 0 0 7.824 9.514 9.514 0 0 1-1.755 2.613A5.002 5.002 0 0 0 14 14.5h-4a5.002 5.002 0 0 0-4.905 4.025 9.515 9.515 0 0 1-1.755-2.613A4.001 4.001 0 0 0 6.5 12zm13 0a2 2 0 0 1 1.791-1.99 9.538 9.538 0 0 1 0 3.98A2 2 0 0 1 19.5 12zm-2.51 8.086A9.455 9.455 0 0 1 12 21.5c-1.83 0-3.54-.517-4.99-1.414a1.004 1.004 0 0 1-.01-.148V19.5a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v.438a1 1 0 0 1-.01.148z"></path></svg>
+            </a>
+          </div>
+          <div class="fb-nav-tab nav-item navlink text-center">
+            <a href="{{ url('/pages') }}" aria-label="{{ __('ui.pages') }}" title="{{ __('ui.pages') }}" class="nav-link text-secondary p-3 {{ request()->is('pages*') ? 'active' : '' }}">
+              <i class="fa fa-flag fb-tab-fa"></i>
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 8a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2H9v2a1 1 0 1 1-2 0v-2H5a1 1 0 1 1 0-2h2V9a1 1 0 0 1 1-1zm8 2a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0zm-2 4a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0z"></path><path d="M.5 11a7 7 0 0 1 7-7h9a7 7 0 0 1 7 7v2a7 7 0 0 1-7 7h-9a7 7 0 0 1-7-7v-2zm7-5a5 5 0 0 0-5 5v2a5 5 0 0 0 5 5h9a5 5 0 0 0 5-5v-2a5 5 0 0 0-5-5h-9z"></path></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- الجزء الأيمن: الأيقونات + الصورة الشخصية -->
+      <div class="col-3 d-flex justify-content-end align-items-center p-0 m-0 navbar-right-layer" style="padding-right:0 !important;">
+        <div class="d-flex gap-2 align-items-center" style="margin-right: 10px;">
+          
+          <div class="icon-wrapper" id="notifications-icon">
+            <div class="widget-icon rounded-circle bg-light">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M3 9.5a9 9 0 1 1 18 0v2.927c0 1.69.475 3.345 1.37 4.778a1.5 1.5 0 0 1-1.272 2.295h-4.625a4.5 4.5 0 0 1-8.946 0H2.902a1.5 1.5 0 0 1-1.272-2.295A9.01 9.01 0 0 0 3 12.43V9.5zm6.55 10a2.5 2.5 0 0 0 4.9 0h-4.9z"></path></svg>
             </div>
+            <div id="notifications-popup" class="fb-popup">
+              <div class="popup-header">الإشعارات</div>
+              <div class="popup-list">
+                <div class="popup-item">📢 لا توجد إشعارات جديدة</div>
+              </div>
             </div>
           </div>
-            
-        
-           
-            
-  
-</header>
-    
 
+          <div class="icon-wrapper" id="chat-icon">
+            <div class="widget-icon rounded-circle bg-light">
+              <svg viewBox="0 0 12 13" width="20" height="20">
+                <g fill-rule="evenodd" transform="translate(-450 -1073)">
+                  <path d="m459.603 1077.948-1.762 2.851a.89.89 0 0 1-1.302.245l-1.402-1.072a.354.354 0 0 0-.433.001l-1.893 1.465c-.253.196-.583-.112-.414-.386l1.763-2.851a.89.89 0 0 1 1.301-.245l1.402 1.072a.354.354 0 0 0 .434-.001l1.893-1.465c.253-.196.582.112.413.386M456 1073.5c-3.38 0-6 2.476-6 5.82 0 1.75.717 3.26 1.884 4.305.099.087.158.21.162.342l.032 1.067a.48.48 0 0 0 .674.425l1.191-.526a.473.473 0 0 1 .32-.024c.548.151 1.13.231 1.737.231 3.38 0 6-2.476 6-5.82 0-3.344-2.62-5.82-6-5.82"></path></g></svg>
+            </div>
+            <div id="chat-popup" class="fb-popup">
+              <div class="popup-header">الدردشة</div>
+              <div class="popup-list">
+                @auth
+                  <a class="popup-item text-decoration-none" href="{{ url('/messanger') }}">💬 فتح الرسائل</a>
+                @else
+                  <a class="popup-item text-decoration-none" href="{{ route('login') }}">💬 تسجيل الدخول للمحادثة</a>
+                @endauth
+              </div>
+            </div>
+          </div>
 
+          <div class="icon-wrapper" id="menu-icon">
+            <div class="widget-icon rounded-circle bg-light">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path d="M18.5 1A1.5 1.5 0 0 0 17 2.5v3A1.5 1.5 0 0 0 18.5 7h3A1.5 1.5 0 0 0 23 5.5v-3A1.5 1.5 0 0 0 21.5 1h-3zm0 8a1.5 1.5 0 0 0-1.5 1.5v3a1.5 1.5 0 0 0 1.5 1.5h3a1.5 1.5 0 0 0 1.5-1.5v-3A1.5 1.5 0 0 0 21.5 9h-3zm-16 8A1.5 1.5 0 0 0 1 18.5v3A1.5 1.5 0 0 0 2.5 23h3A1.5 1.5 0 0 0 7 21.5v-3A1.5 1.5 0 0 0 5.5 17h-3zm8 0A1.5 1.5 0 0 0 9 18.5v3a1.5 1.5 0 0 0 1.5 1.5h3a1.5 1.5 0 0 0 1.5-1.5v-3a1.5 1.5 0 0 0-1.5-1.5h-3zm8 0a1.5 1.5 0 0 0-1.5 1.5v3a1.5 1.5 0 0 0 1.5 1.5h3a1.5 1.5 0 0 0 1.5-1.5v-3a1.5 1.5 0 0 0-1.5-1.5h-3zm-16-8A1.5 1.5 0 0 0 1 10.5v3A1.5 1.5 0 0 0 2.5 15h3A1.5 1.5 0 0 0 7 13.5v-3A1.5 1.5 0 0 0 5.5 9h-3zm0-8A1.5 1.5 0 0 0 1 2.5v3A1.5 1.5 0 0 0 2.5 7h3A1.5 1.5 0 0 0 7 5.5v-3A1.5 1.5 0 0 0 5.5 1h-3zm8 0A1.5 1.5 0 0 0 9 2.5v3A1.5 1.5 0 0 0 10.5 7h3A1.5 1.5 0 0 0 15 5.5v-3A1.5 1.5 0 0 0 13.5 1h-3zm0 8A1.5 1.5 0 0 0 9 10.5v3a1.5 1.5 0 0 0 1.5 1.5h3a1.5 1.5 0 0 0 1.5-1.5v-3A1.5 1.5 0 0 0 13.5 9h-3z"></path></svg>
+            </div>
+            <div id="menu-popup" class="fb-popup">
+              <div class="popup-header">القائمة</div>
+              <div class="popup-list">
+                @auth<a class="popup-item text-decoration-none" href="{{ url('/community') }}">👥 {{ __('ui.pages_groups') }}</a>@endauth
+                <a class="popup-item text-decoration-none" href="{{ route('language', app()->getLocale() === 'ar' ? 'en' : 'ar') }}">🌐 {{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}</a>
+                <div class="popup-item">⚙️ الإعدادات والخصوصية</div>
+                <div class="popup-item">❓ المساعدة والدعم</div>
+                <div class="popup-item">🌙 الوضع المظلم</div>
+              </div>
+            </div>
+          </div>
 
+          <!-- الصورة الشخصية -->
+          <div class="icon-wrapper" id="profile-icon">
+            <div class="widget-icon rounded-circle" style="padding:0;">
+              @if(Auth::check())
+                @if(isset($profile) && isset($profile['photopro']))
+                  <img class="rounded-circle" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" width="40" height="40" style="object-fit:cover;">
+                @else
+                  <img class="rounded-circle" src="{{ asset('img/Default_avatar_profile.jpg') }}" width="40" height="40">
+                @endif
+              @endif
+            </div>
+            <div id="profile-popup" class="profile-menu">
+              <div class="popup-list">
+                @auth<a class="popup-item text-decoration-none" href="{{ url('/profile/'.Auth::id()) }}">👤 ملفي الشخصي</a>@endauth
+                <div class="popup-item">🔒 الإعدادات</div>
+                <div class="popup-item">💬 مساعدة</div>
+                @auth
+                <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf<button type="submit" class="popup-item border-0 bg-transparent w-100 text-start">🚪 تسجيل الخروج</button></form>
+                @endauth
+              </div>
+            </div>
+          </div>
 
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
 
+<!-- الشريط السفلي الثابت للتبويبات (يظهر فقط في الموبايل) -->
+<div class="mobile-bottom-nav">
+  <div class="nav-tabs-bottom">
+    <div class="nav-item navlink text-center">
+      <a href="{{ url('/') }}" class="nav-link text-secondary active">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M9.464 1.286C10.294.803 11.092.5 12 .5c.908 0 1.707.303 2.537.786.795.462 1.7 1.142 2.815 1.977l2.232 1.675c1.391 1.042 2.359 1.766 2.888 2.826.53 1.059.53 2.268.528 4.006v4.3c0 1.355 0 2.471-.119 3.355-.124.928-.396 1.747-1.052 2.403-.657.657-1.476.928-2.404 1.053-.884.119-2 .119-3.354.119H7.93c-1.354 0-2.471 0-3.355-.119-.928-.125-1.747-.396-2.403-1.053-.656-.656-.928-1.475-1.053-2.403C1 18.541 1 17.425 1 16.07v-4.3c0-1.738-.002-2.947.528-4.006.53-1.06 1.497-1.784 2.888-2.826L6.65 3.263c1.114-.835 2.02-1.515 2.815-1.977zM10.5 13A1.5 1.5 0 0 0 9 14.5V21h6v-6.5a1.5 1.5 0 0 0-1.5-1.5h-3z"></path></svg>
+      </a>
+    </div>
+    <div class="nav-item navlink text-center">
+      <a href="{{ url('/') }}#allpost" class="nav-link text-secondary">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M10.996 8.132A1 1 0 0 0 9.5 9v4a1 1 0 0 0 1.496.868l3.5-2a1 1 0 0 0 0-1.736l-3.5-2z"></path><path d="M14.573 2H9.427c-1.824 0-3.293 0-4.45.155-1.2.162-2.21.507-3.013 1.31C1.162 4.266.817 5.277.655 6.477.5 7.634.5 9.103.5 10.927v.146c0 1.824 0 3.293.155 4.45.162 1.2.507 2.21 1.31 3.012.802.803 1.813 1.148 3.013 1.31C6.134 20 7.603 20 9.427 20h5.146c1.824 0 3.293 0 4.45-.155 1.2-.162 2.21-.507 3.012-1.31.803-.802 1.148-1.813 1.31-3.013.155-1.156.155-2.625.155-4.449v-.146c0-1.824 0-3.293-.155-4.45-.162-1.2-.507-2.21-1.31-3.013-.802-.802-1.813-1.147-3.013-1.309C17.866 2 16.397 2 14.573 2zM3.38 4.879c.369-.37.887-.61 1.865-.741C6.251 4.002 7.586 4 9.5 4h5c1.914 0 3.249.002 4.256.138.978.131 1.496.372 1.865.74.37.37.61.888.742 1.866.135 1.007.137 2.342.137 4.256 0 1.914-.002 3.249-.137 4.256-.132.978-.373 1.496-.742 1.865-.369.37-.887.61-1.865.742-1.007.135-2.342.137-4.256.137h-5c-1.914 0-3.249-.002-4.256-.137-.978-.132-1.496-.373-1.865-.742-.37-.369-.61-.887-.741-1.865C2.502 14.249 2.5 12.914 2.5 11c0-1.914.002-3.249.138-4.256.131-.978.372-1.496.74-1.865zM8 21.5a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2H8z"></path></svg>
+      </a>
+    </div>
+    <div class="nav-item navlink text-center">
+      <a href="@auth{{ url('/profile/'.Auth::id()) }}@else{{ url('/login') }}@endauth" class="nav-link text-secondary">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 5a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-2 4a2 2 0 1 1 4 0 2 2 0 0 1-4 0z"></path><path d="M12 .5C5.649.5.5 5.649.5 12S5.649 23.5 12 23.5 23.5 18.351 23.5 12 18.351.5 12 .5zM2.5 12c0-.682.072-1.348.209-1.99a2 2 0 0 1 0 3.98A9.539 9.539 0 0 1 2.5 12zm4 0a4.001 4.001 0 0 0-3.16-3.912A9.502 9.502 0 0 1 12 2.5a9.502 9.502 0 0 1 8.66 5.588 4.001 4.001 0 0 0 0 7.824 9.514 9.514 0 0 1-1.755 2.613A5.002 5.002 0 0 0 14 14.5h-4a5.002 5.002 0 0 0-4.905 4.025 9.515 9.515 0 0 1-1.755-2.613A4.001 4.001 0 0 0 6.5 12zm13 0a2 2 0 0 1 1.791-1.99 9.538 9.538 0 0 1 0 3.98A2 2 0 0 1 19.5 12zm-2.51 8.086A9.455 9.455 0 0 1 12 21.5c-1.83 0-3.54-.517-4.99-1.414a1.004 1.004 0 0 1-.01-.148V19.5a3 3 0 0 1 3-3h4a3 3 0 0 1 3 3v.438a1 1 0 0 1-.01.148z"></path></svg>
+      </a>
+    </div>
+    <div class="nav-item navlink text-center">
+      <a href="@auth{{ url('/messanger') }}@else{{ url('/login') }}@endauth" class="nav-link text-secondary">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M8 8a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2H9v2a1 1 0 1 1-2 0v-2H5a1 1 0 1 1 0-2h2V9a1 1 0 0 1 1-1zm8 2a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0zm-2 4a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0z"></path><path d="M.5 11a7 7 0 0 1 7-7h9a7 7 0 0 1 7 7v2a7 7 0 0 1-7 7h-9a7 7 0 0 1-7-7v-2zm7-5a5 5 0 0 0-5 5v2a5 5 0 0 0 5 5h9a5 5 0 0 0 5-5v-2a5 5 0 0 0-5-5h-9z"></path></svg>
+      </a>
+    </div>
+  </div>
+</div>

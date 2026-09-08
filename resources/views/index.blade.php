@@ -2,4 +2,5 @@
     @include('welcome')
 @else
     @include('layout.login')
+    
 @endif

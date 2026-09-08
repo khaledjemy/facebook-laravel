@@ -1,72 +1,81 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+# Social Network
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+تطبيق شبكة اجتماعية مبني بـ Laravel 11 وPHP 8.2 وjQuery. يوفر موجز منشورات قريبًا من تجربة فيسبوك، ملفات شخصية، تعليقات وردود، سبعة أنواع من التفاعلات، حفظ المنشورات، البحث، الصفحات والمجموعات، ودردشة فورية مع مكالمات صوت وفيديو.
 
-## About Laravel
+## المتطلبات
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2 أو أحدث مع SQLite أو MySQL
+- Composer
+- FFmpeg وFFprobe لمعالجة الفيديو
+- Node.js اختياري عند تعديل ملفات الواجهة المصدرية
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## التشغيل السريع
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-## Learning Laravel
+للتجربة السريعة استخدم SQLite، ثم أنشئ الملف `database/database.sqlite` وعدّل `.env`:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=/absolute/path/to/database/database.sqlite
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+بعدها شغّل:
 
-## Laravel Sponsors
+```bash
+php artisan migrate --seed
+php artisan serve
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+افتح `http://127.0.0.1:8000`. بيانات الحساب التجريبي:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
+- البريد: `demo@example.com`
+- كلمة المرور: `Demo@12345`
 
-## Contributing
+ينشئ Seeder مستخدمين إضافيين بنفس كلمة المرور حتى يمكن تجربة الدردشة والتفاعلات فورًا.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## الدردشة والمكالمات
 
-## Security Vulnerabilities
+ثبت مكتبات خادم WebSocket وشغّله في نافذة مستقلة:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+cd websocket-server
+composer install
+php server2.php
+```
 
-## License
+الإعداد الافتراضي هو `ws://127.0.0.1:8081`. يمكن تغييره عبر `WEBSOCKET_URL` و`WEBSOCKET_HOST` و`WEBSOCKET_PORT` في `.env`.
 
-The Laravel framework is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## معالجة الفيديو
+
+ضع مساري FFmpeg وFFprobe في `.env`، أو استخدم الملفات المرفقة في مجلد `bin`:
+
+```env
+FFMPEG_BINARIES=/absolute/path/to/bin/ffmpeg.exe
+FFPROBE_BINARIES=/absolute/path/to/bin/ffprobe.exe
+```
+
+تشغيل عامل الطابور مطلوب عند استخدام `QUEUE_CONNECTION=database` أو أي مشغل غير `sync`:
+
+```bash
+php artisan queue:work --tries=2 --timeout=3700
+```
+
+## الاختبارات
+
+```bash
+php artisan test
+```
+
+تغطي الاختبارات الحالية تسجيل الدخول إلى API، إنشاء المنشورات، الحماية بالتوكن، الحفظ، التفاعلات، حماية الصفحات وتبديل اللغة. GitHub Actions يشغّلها تلقائيًا عند كل رفع أو Pull Request.
+
+## API والنشر
+
+- تفاصيل API وأمثلة الطلبات في [API.md](API.md).
+- خطوات تجهيز بيئة الإنتاج في [DEPLOYMENT.md](DEPLOYMENT.md).
+
+لا ترفع ملف `.env` أو قاعدة البيانات المحلية أو مجلدات `vendor` إلى Git. استخدم HTTPS و`wss://` في الإنتاج، واضبط `APP_DEBUG=false`.

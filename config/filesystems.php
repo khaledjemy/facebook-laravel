@@ -12,6 +12,10 @@ return [
     | based disks are available to your application. Just store away!
     |
     */
+    'ffmpeg' => [
+        'ffmpeg.binaries' => env('FFMPEG_BIN_PATH', '/usr/bin/ffmpeg'),
+        'ffprobe.binaries' => env('FFPROBE_BIN_PATH', '/usr/bin/ffprobe'),
+    ],
 
     'default' => env('FILESYSTEM_DRIVER', 'local'),
 

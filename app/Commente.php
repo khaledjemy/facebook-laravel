@@ -28,5 +28,9 @@ class Commente extends Model
     {
         return $this->belongsTo(photo::class,'profile_photo_id');
     }
+    public function react()
+    {
+        return $this->hasMany(CommentReact::class,'comment_id');
+    }
    
 }

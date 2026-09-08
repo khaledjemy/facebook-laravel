@@ -1,56 +1,65 @@
 
-	@include('layout.header')
-	<!-- ================== END page-css ================== -->
+@extends('layout.profilemaster')
+@section('content')
+    <!-- About Section-->
 
-<body>
   
     <!-- BEGIN page-cover -->
 	<!-- END page-cover -->
 
-	@include('layout.navbar')
  
-	<div id="app" class="app app-header-fixed app-sidebar-fixed app-with-wide-sidebar">
-	
-		<!-- BEGIN #header -->
-		<!-- END #header -->
-		<!-- BEGIN #content -->
+	<div  class="row b-0 m-0">
 			<!-- BEGIN profile -->
-			<div class="profile bg-white   profile-bg">
-                <div class="container col-md-8" >
-				<div class="profile-header rounded-bottom">
-					<!-- BEGIN profile-header-cover -->
-					<div class="profile-header-cover"></div>
-					<!-- END profile-header-cover -->
-					<!-- BEGIN profile-header-content -->
-					<div class="profile-header-content  p_co mb-5" >
-						<div class="col-12">
-						<img style="height: 100%; width: 100%;" src="{{ asset($profile_page['coverpro']->path.$profile_page['coverpro']->id.$profile_page['coverpro']->type)}}" alt="" />
+			<div class="profile bg-white   ">
+                <div class="container w-75 px-0" >
+					<div class="profile-header rounded-bottom">
+						<!-- BEGIN profile-header-content -->
+						<div class="profile-header-content    p-0 rounded rounded-bottom" >
+							<div class="row p-0 m-0 p_co rounded-bottom ">
+								@if($profile_page->coverpro)
+                                <img id="profile-cover-preview" class="p-0 m-0 rounded-bottom profile-cover-image" src="{{ asset($profile_page->coverpro->path.$profile_page->coverpro->id.$profile_page->coverpro->type) }}" alt="{{ $profile_page->first_name }} cover"/>
+                                @else
+                                <div id="profile-cover-preview" class="profile-cover-image profile-cover-fallback"></div>
+                                @endif
+								@if(Auth::id() === $profile_page->id)
+								<label class="profile-photo-edit profile-cover-edit" title="{{ __('ui.change_cover') }}">
+									<i class="fa fa-camera"></i> <span>{{ __('ui.change_cover') }}</span>
+									<input type="file" class="profile-media-input" data-cover="1" accept="image/jpeg,image/png,image/webp" hidden>
+								</label>
+								@endif
+							</div>
 						</div>
+						<!-- END profile-header-content -->
 					</div>
-
-					<!-- END profile-header-content -->
-				</div>
-                <div class="profile  col-md-11 container" >
+                <div class="   container" >
                     <div class="row">
                         <div class="col-md-3">
                     	<!-- BEGIN profile-header-img -->
-						<div class="profile-header-img rounded-circle position-sticky mt-n4">
-							<img src="{{ asset($profile_page['photopro']->path.$profile_page['profile_photo_id'].$profile_page['photopro']->type)}}" alt="" style="height:168px;width:168px" class="img-thumbnail rounded-circle" />
-						</div>
+							<div class="profile-header-img rounded-circle position-sticky mt-n5">
+								@if($profile_page->photopro)
+                                <img id="profile-avatar-preview" class="img-thumbnail rounded-circle profile-avatar-image" src="{{ asset($profile_page->photopro->path.$profile_page->photopro->id.$profile_page->photopro->type) }}" alt="{{ $profile_page->first_name }}"/>
+                                @else
+                                <img id="profile-avatar-preview" class="img-thumbnail rounded-circle profile-avatar-image" src="{{ asset('img/Default_avatar_profile.jpg') }}" alt="{{ $profile_page->first_name }}"/>
+                                @endif
+								@if(Auth::id() === $profile_page->id)
+								<label class="profile-photo-edit profile-avatar-edit" title="{{ __('ui.change_profile_photo') }}">
+									<i class="fa fa-camera"></i>
+									<input type="file" class="profile-media-input" data-cover="0" accept="image/jpeg,image/png,image/webp" hidden>
+								</label>
+								@endif
+							</div>
 						<!-- END profile-header-img -->
                         </div>
                         <div class="col-md-4 pt-5">
 						<!-- BEGIN profile-header-info -->
 						<div class="profile-header-info">
 							<h4 class="mt-0 mb-1">{{$profile_page['first_name']}} {{$profile_page['last_name']}}</h4>
-							<p class="mb-2">UXUI + Frontend Developer</p>
-							<a href="#" class="btn btn-xs btn-yellow">Edit Profile</a>
 						</div>
                         </div>
 						<div class="col-md-4 pt-5">
 							@if($friends[0]==1)
                 <div class="btn-group">
-                    <a href="#" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown">friend
+                    <a href="javascript:;" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown">friend
                     <i class="fa fa-user-group"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <a href="javascript:;" class="dropdown-item">Action 1</a>
@@ -130,321 +139,420 @@
             </div>    
 			<!-- END profile -->
 			<!-- BEGIN profile-content -->
-            <div class="container col-md-10" >
-
-			<div class="profile-content">
+            <div class="container w-75 " >
 				<!-- BEGIN tab-content -->
-				<div class="tab-content p-0">
-					
+				<div class="row tab-content  panel-bg-0 justify-content-center mt-4 ">
 					<!-- BEGIN #profile-post tab -->
-					<div class="tab-pane fade show active" id="profile-post">
-
-						<div class="timeline row">
+					<div class="tab-pane fade active show " id="profile-post">
+						<div class="row  p-0">
 						<!-- BEGIN timeline -->
-						<div class="col-4 h-100">
-							<div class="row h-100">
-							<div class="col-12 bg-white rounded p-4 h-30">
-								<p p-4>jkkjkjkjk</p>
-								<hr>
-							<div>kjkjkjkjkjkkjk</div>
+							<div class="col-md-4 ">
+									<div class="row me-1 bg-white rounded ">
+										<p class="p-2 fw-bold mb-0">{{ __('ui.intro') }}</p>
+										<hr>
+										<div class="p-3 text-muted"><i class="fa fa-user me-2"></i>{{ $profile_page->first_name }} {{ $profile_page->last_name }}</div>
+									</div>
+									<div class="row me-1  bg-white rounded  mt-4 ">
+										<p class="p-2 fw-bold mb-0">{{ __('ui.photos') }}</p>
+										<hr>
+										<div class="p-3 text-muted">{{ count($allphoto) }} {{ __('ui.photos') }}</div>
+									</div>
 							</div>
-							<div class="col-12 bg-white rounded p-4 mt-4 h-50">
-								<p p-4>jkkjkjkjk</p>
-								<hr>
-							<div>kjkjkjkjkjkkjk</div>
-							</div>
-							<div class="col-12 h-100 mt-5">
-								<p p-4></p>
-							<div>
-							</div>	
-							</div>
-							</div>
-						</div>
-					<div class="col-8">
-						<div class="row">
-							<div class="inpput-postpro mb-4">
-								<form action="/posts" method="POST" enctype="multipart/form-data">
-									@csrf
-								<div>
-									<img src="{{asset('style/Screenshot 2023-03-09 180627.png')}}"/>
-								</div>
-								<input type="text" name="post_text" placeholder="What in your mind?" >
-								<hr>
-								<div class="omhassan">
-									<a href="#" ><img src="{{asset('style/c0dWho49-X3.png')}}" >
-										Live video
-									</a>
-									<a href="#">
-									   
-											<img src="{{asset('style/Ivw7nhRtXyo.png')}}" >
-											Photo/video
-									<input type="file" name="files[]" class="card-body opacity-0"  style="position: relative;padding: 0px;width: 200px;top: -35px;" multiple>
-											
-										
+							<div class="col-md-8 ">
+								<div class="row">
+									<div class="bg-0 ">
+										<div class="card bg-white rounded p-2">
+						<!-- #modal-dialog -->
+							<form action="/posts" id="myForm"  method="POST" enctype="multipart/form-data">
+								@csrf
+								<div class="row mt-2 ms-1" >
+									<div class="col-md-1 p-1 " >
+								@if(isset($profile) && isset($profile['photopro']))
+                                <img style="height:168px;width:168px" class="img-thumbnail rounded-circle"  src=" {{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}  " height="40" width="40" alt=""/>
+                                @else
+                                <img style="height:168px;width:168px" class="img-thumbnail rounded-circle"  src=" {{ asset('img/Default_avatar_profile.jpg') }}  " height="40" width="40" alt=""/>
+                                @endif
+									</div>
+									<div class="col-md-10 mx-2 p-1" >
+										<a href="#modal-dialog"  data-bs-toggle="modal">
+										<input type="text" class="ms-2 px-0 form-control rounded-pill bgr py-3  pb-1 inpotbox " name="post_text" placeholder="{{ __('ui.whats_on_your_mind') }}" >
 										</a>
-									<a href="#"><img src="{{asset('style/Y4mYLVOhTwq.png')}}" >Feeling/activity</a>
+									</div>
 								</div>
-								<button type="submit">Create</button>
-			
+								
+								<hr>
+								
+								<div class="btn-group btn-group-lg mx-2 border-0 text-decoration-none">
+									<button type="button" class="btn btn-white rounded m-1 border-0">
+											<a href="#" class="text-decoration-none text-muted p-1" ><img src="style/c0dWho49-X3.png" >Live video</a>
+									</button>
+									<button type="button" class="btn btn-white rounded m-1 border-0">
+											<a class="text-decoration-none text-muted" href="#"><img src="style/Ivw7nhRtXyo.png" >Photo/video
+												<input type="file" id="fileInput2" name="files[]" class="card-body opacity-0" accept="image/jpeg, image/jpg, image/png"  style="display:none;" multiple>
+											</a> 
+									</button>
+									<button type="button" class="btn btn-white rounded m-1 border-0">
+										<a class="text-decoration-none text-muted" href="#"><img src="style/Y4mYLVOhTwq.png" >Feeling/activity</a>
+
+									</button>
+								</div>
+
 								@error('post_content')
 								<div>{{ $message }}</div>
-												@enderror
-								</form>
-							</div>
-							
+								@enderror
+							</form>
+										</div>
+									</div>
+									
+									<div id="allpost" class="m-0 p-0">
+									@if(@empty($p_postes))
 
-							@if(@empty($p_postes))
-
-							@else
-                            @foreach ($p_postes as $post)
-                
-        <div class="col col-12 postespro">
-			
-                       <div class="col-12">
-                <div class="timeline text-dark bg-white col-12">
-                    <!-- BEGIN timeline-header -->
-                    <div class="timeline-header">
-                        <div class="userimage"><img src="{{asset('assets/img/user/user-1.jpg')}}" alt=""></div>
-                        <div class="username">
-                            <a href="/profile/{{$post->user['id']}}">{{$post->user['first_name']}}  {{$post->user['last_name']}}<i class="fa fa-check-circle text-blue ms-1"></i></a>
-                            <div class="text-muted fs-12px"><a href="post/{{$post->id}}"> 8 mins <i class="fa fa-globe-americas opacity-5 ms-1"></i></a></div>
-                        </div>
-                        <div>
-                            <a href="#" class="btn btn-lg border-0 rounded-pill w-40px h-40px p-0 d-flex align-items-center justify-content-center bg-transparent text-gray-500" data-bs-toggle="dropdown">
-                                <i class="fa fa-ellipsis-h"></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a href="#" class="dropdown-item d-flex align-items-center">
-                                    <i class="fa fa-fw fa-bookmark fa-lg"></i> 
-                                    <div class="flex-1 ps-1">
-                                        <div>Save Post</div>
-                                        <div class="mt-n1 text-gray-500"><small>Add this to your saved items</small></div>
-                                    </div>
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-edit fa-lg me-1"></i> Edit post</a>
-                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-user fa-lg me-1"></i> Edit audience</a>
-                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn off notifications for this post</a>
-                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-language fa-lg me-1"></i> Turn off translations</a>
-                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-calendar-alt fa-lg me-1"></i> Turn date</a>
-                                <div class="dropdown-divider"></div>
-                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-archive fa-lg me-1"></i> Move to archive</a>
-                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-trash-alt fa-lg me-1"></i> Move to Recycle bin</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- END timeline-header -->
-                
-                    <!-- BEGIN timeline-body -->
-                    <div class="timeline-body bg-white">
-                        <!-- timeline-post -->
-                        <div class="mb-3">
-                            <div class="mb-2">
-                                    {{$post->post_text}}
-                            </div>
-                            <div class="row gx-1 container">
-                                
-                                @if(count($imges[$post->id])==1)
-                                <div class="col-12">
-                                    <div class="ratio ratio-1x1">
-                                        <a href="{{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}})"></a>
-                                    </div>
-                                </div>
-
-                                @elseif(count($imges[$post->id])==2)
-                                <div class="col-6">
-                                    <div class="ratio ratio-1x1">
-                                        <a href="{{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}})"></a>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="ratio ratio-1x1">
-                                        <a href="{{asset($imges[$post->id][1][0]->path.'/'.$imges[$post->id][1][0]->id.$imges[$post->id][1][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][1][0]->path.'/'.$imges[$post->id][1][0]->id.$imges[$post->id][1][0]->type)}})"></a>
-                                    </div>
-                                </div>
-
-                                @elseif(count($imges[$post->id])==3)
-                                <div class="col-7">
-                                    <div class="ratio ratio-1x1">
-                                        <a href="{{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}})"></a>
-                                    </div>
-                                </div>
-                                <div class="col-5">
-                                    <div class="ratio ratio-4x3">
-                                        <a href="{{asset($imges[$post->id][1][0]->path.'/'.$imges[$post->id][1][0]->id.$imges[$post->id][1][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][1][0]->path.'/'.$imges[$post->id][1][0]->id.$imges[$post->id][1][0]->type)}})"></a>
-                                    </div>
-                                    <div class="ratio ratio-4x3">
-                                        <a href="{{asset($imges[$post->id][2][0]->path.'/'.$imges[$post->id][2][0]->id.$imges[$post->id][2][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][2][0]->path.'/'.$imges[$post->id][2][0]->id.$imges[$post->id][2][0]->type)}})"></a>
-                                    </div>
-                                </div>
-                                @elseif(count($imges[$post->id])==4)
-                                <div class="col-8">
-                                    <div class="ratio ratio-1x1">
-                                        <a href="{{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}})"></a>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="ratio ratio-16x9">
-                                        <a href="{{asset($imges[$post->id][1][0]->path.'/'.$imges[$post->id][1][0]->id.$imges[$post->id][1][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][1][0]->path.'/'.$imges[$post->id][1][0]->id.$imges[$post->id][1][0]->type)}})"></a>
-                                    </div>
-                                    <div class="ratio ratio-16x9">
-                                        <a href="{{asset($imges[$post->id][2][0]->path.'/'.$imges[$post->id][2][0]->id.$imges[$post->id][2][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][2][0]->path.'/'.$imges[$post->id][2][0]->id.$imges[$post->id][2][0]->type)}})"></a>
-                                    </div>
-                                    <div class="ratio ratio-16x9">
-                                        <a href="{{asset($imges[$post->id][3][0]->path.'/'.$imges[$post->id][3][0]->id.$imges[$post->id][3][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][3][0]->path.'/'.$imges[$post->id][3][0]->id.$imges[$post->id][3][0]->type)}})"></a>
-                                    </div>
-                                </div>
-                                @elseif(count($imges[$post->id])>4)
-                                <div class="col-7">
-                                    <div class="ratio ratio-4x3">
-                                        <a href="{{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}})"></a>
-                                    </div>
-                                    <div class="ratio ratio-4x3 mt-3px">
-                                        <a href="{{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][0][0]->path.'/'.$imges[$post->id][0][0]->id.$imges[$post->id][0][0]->type)}})"></a>
-                                    </div>
-                                </div>
-                                <div class="col-5">
-                                    <div class="ratio ratio-4x3">
-                                        <a href="{{asset($imges[$post->id][1][0]->path.'/'.$imges[$post->id][1][0]->id.$imges[$post->id][1][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][1][0]->path.'/'.$imges[$post->id][1][0]->id.$imges[$post->id][1][0]->type)}})"></a>
-                                    </div>
-                                    <div class="ratio ratio-4x3">
-                                        <a href="{{asset($imges[$post->id][2][0]->path.'/'.$imges[$post->id][2][0]->id.$imges[$post->id][2][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][2][0]->path.'/'.$imges[$post->id][2][0]->id.$imges[$post->id][2][0]->type)}})"></a>
-                                    </div>
-                                    <div class="ratio ratio-4x3">
-                                        <a href="{{asset($imges[$post->id][3][0]->path.'/'.$imges[$post->id][3][0]->id.$imges[$post->id][3][0]->type)}}" data-lity="" class="bg-size-cover bg-position-center" style="background-image: url({{asset($imges[$post->id][3][0]->path.'/'.$imges[$post->id][3][0]->id.$imges[$post->id][3][0]->type)}})"></a>
-                                    </div>
-                                </div>
-
-                                @endif
-
-                               
-                            </div>
-                        </div>
-                
-                        <!-- timeline-stats -->
-                        <div class="d-flex align-items-center  mb-2">
-							
-                            <div class="d-flex align-items-center">
-                                <span class="fa-stack fs-10px">
-                                    <i class="fa fa-circle fa-stack-2x text-danger"></i>
-                                    <i class="fa fa-heart fa-stack-1x fa-inverse fs-11px"></i>
-                                </span>
-                                <span class="fa-stack fs-10px">
-                                    <i class="fa fa-circle fa-stack-2x text-blue"></i>
-                                    <i class="fa fa-thumbs-up fa-stack-1x fa-inverse fs-11px bottom-0 mb-1px"></i>
-                                </span>
-                                <span class="ms-1">4.3k</span>
-                            </div>
-                            <div class="d-flex align-items-center ms-auto">
-                                <div>259 Shares</div>
-                                <div class="ms-3">21 Comments</div>
-                            </div>
-                        </div>
-                
-                        <!-- timeline-action -->
-                        <hr class="my-10px">
-                        <div class="d-flex align-items-center fw-bold">
-                            <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
-                                <i class="fa fa-thumbs-up fa-fw me-3px"></i> Like
-                            </a>
-                            <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
-                                <i class="fa fa-comments fa-fw me-3px"></i> Comment
-                            </a> 
-                            <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
-                                <i class="fa fa-share fa-fw me-3px"></i> Share
-                            </a>
-                        </div>
-                        <hr class="mt-10px mb-3">
-                        @foreach($post->commentes as $comment)
-                        <div class="d-flex mb-3">
-                            <a class="w-45px" href="javascript:;">
-                                <img src="{{asset('assets/img/user/user-5.jpg')}}" alt="" class="mw-100 rounded-pill">
-                            </a>
-                            <div class="flex-1 ps-3">
-                                <a href="/profile/{{$comment->user['id']}}" ><h5 class="mb-1">{{$comment->user['first_name']}} {{$comment->user['last_name']}}</h5></a>
-                                <p class="mb-2">{{$comment['text_co']}}.</p>
-                                <p class="mb-0">
-                                    <a href="javascript:;" class="btn btn-sm btn-link me-5px">Like</a>
-                                    <a href="javascript:;" class="btn btn-sm btn-link" onclick="openReplyBox()">Reply</a>
-                                    <div class="reply-box" style="display: none;">
-                                        <form action="/post-reply" method="POST">
-                                            @csrf
-                                            <div class="ps-2 flex-1">
-                                                <div class="position-relative ml-2">
-                                                    <textarea name="comment" class="form-control rounded-pill ps-3" placeholder="Write a reply...">{{ $comment->user['first_name'] }} {{ $comment->user['last_name'] }}</textarea>
-                                                    <input type="hidden" name="comment_id" value="{{ $comment->id }}">
-                                                    <input type="hidden" name="userreplay_id" value="{{ $comment->user['id'] }}">
-                                                    <button type="submit">reply</button>
-                                                    <div class="position-absolute end-0 top-0 bottom-0 d-flex align-items-center px-2">
-                                                        <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-smile fa-fw fa-lg d-block"></i></a>
-                                                        <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-camera fa-fw fa-lg d-block"></i></a>
-                                                        <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-film fa-fw fa-lg d-block"></i></a>
-                                                        <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-sticky-note fa-fw fa-lg d-block"></i></a>
+									@else
+									@foreach ($p_postes as $post)
+						
+						<div class="row  mx-0 p-0">
+                            <div class="row mx-0 mt-4">
+                                <div class="card text-dark bg-white m-0 rounded">
+                                    <!-- BEGIN timeline-header -->
+                                    <div class="card-header border-0 mt-1 bg-white">
+                                        <div class="row justify-content-between" >
+                                            <div class="col-md-1  " >
+                                                <div class="widget-icon rounded-circle bgr  text-white">
+                                                    @if(isset($post->user['photopro']['path']))
+                                                        <img src="{{asset($post->user['photopro']['path'].$post->user['photopro']['id'].$post->user['photopro']['type'])}}" class="rounded-circle" width="40" height="40" alt="">
+                                                    @else 
+                                                        <img src="" alt="">
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mx-2   text-start" >
+                                                <div class="row justify-content-start text-start fs-15px fw-bolder ">
+                                                    <a class="post-author text-dark text-decoration-none my-0" href="profile/{{$post->user['id']}}">{{$post->user['first_name']}}  {{$post->user['last_name']}}<i class="fa fa-check-circle text-blue ms-1"></i></a>
+                                                    <div class="text-muted ">
+                                                    <a class="post-time text-muted text-decoration-none" href="{{ url('/post/'.$post->id) }}">{{ $post->created_at?->diffForHumans() ?? 'just now' }} <i class="fa fa-globe-americas opacity-5 ms-1"></i></a>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </form>
-                                    </div>
-                                    <div>
-                                        @foreach ($comment['replie'] as $item)
-                                    <div class="ps-2 flex-2 row">
-                                        <div class="col-1" > 
-                                      <a class="w-30px" href="javascript:;">
-                                            <img src="{{asset('assets/img/user/user-5.jpg')}}" alt="" class="mw-100 rounded-pill">
-                                        </a></div>
-                                        <div class="position-relative ml-5 col">
-                                            <a href="/profile/{{$item->userreply['id']}}" ><h5 class="mb-1">{{$item->userreply['first_name']}} {{$item->userreply['last_name']}}</h5></a>
-                                            <p class="mb-2">{{$item->reply}}.</p>
-                                            <p class="mb-0">
-                                            <a href="javascript:;" class="btn btn-sm btn-link me-5px">Like</a>
-                                            <a href="javascript:;" class="btn btn-sm btn-link" onclick="openReplyBox()">Reply</a>
+                                            <div class="col-md offset-md-2 text-end" >
+                                            <div class=" row justify-content-end  text-end">
+                                                <a href="#" class="btn btn-lg border-0 rounded-pill w-40px h-40px p-0 d-flex align-items-center justify-content-center bg-transparent text-gray-500" data-bs-toggle="dropdown">
+                                                    <i class="fa fa-ellipsis-h"></i>
+                                                </a>
+                                                <div class="dropdown-menu dropdown-menu-end shadow">
+                                                    <a href="#" class="dropdown-item d-flex align-items-center">
+                                                        <i class="fa fa-fw fa-bookmark fa-lg"></i> 
+                                                        <div class="flex-1 ps-1">
+                                                            <div>{{ __('ui.save_post') }}</div>
+                                                            <div class="mt-n1 text-gray-500">
+                                                                <small>Add this to your saved items</small>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                    <div class="dropdown-divider"></div>
+													@if (isset(Auth::user()->id))
+														@if($post->user['id']==Auth::user()->id)
+															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-edit fa-lg me-1"></i> Edit post</a>
+															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-user fa-lg me-1"></i> Edit audience</a>
+															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn on notifications for this post</a>
+															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-language fa-lg me-1"></i> Turn off translations</a>
+															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-calendar-alt fa-lg me-1"></i> Turn date</a>
+															<div class="dropdown-divider"></div>
+															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-archive fa-lg me-1"></i> Move to archive</a>
+															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-trash-alt fa-lg me-1"></i> Move to Recycle bin</a>
+															@else 
+															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn off notifications for this post</a>
+														@endif
+													@endif
+                                                    
+                                                </div>
+                                        </div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <!-- END timeline-header -->
+                                    <!-- BEGIN timeline-body -->
+                                    <div class="card-body rounded bg-white p-0 m-0">
+                                        <!-- timeline-post -->
+                                        <div class="mb-3 mx-0">
+                                            <div class="m-2">
+                                                    {{$post->post_text}}
+                                            </div>
+                                            @php
+                                                   $i_videos = $videos[$post->id] ?? [];
+                                                    $i_images = $imges[$post->id] ?? [];
+                                                    $i_allMedia = array_merge($i_videos, $i_images);
+                                                    $i_totalItems = count($i_allMedia);
+                                                    $i_maxDisplay = min($i_totalItems, 4);
+                                                    $i_numVideos = count($i_videos); 
+                                                    $col_1=null;
+                                                    $col_2=null;
+                                                    if($i_totalItems==1){
+                                                        $col_1=12;
+                                                        $col_2=0;
+
+                                                    }elseif($i_totalItems==2){
+                                                        $col_1=6;
+                                                        $col_2=6;
+
+                                                    }elseif($i_totalItems>=3){
+                                                        $col_1=9;
+                                                        $col_2=3;
+                                                    
+                                                    }
+                                            @endphp
+                                            <div class="row gx-1 container p-0 m-0">
+                                                @for ($r=0;$r<$i_maxDisplay;$r++ )
+                                                        @if($r==2)
+                                                            @break
+                                                        @endif
+                                                    <div class="col-md-{{ ($r==0 )?$col_1:$col_2 }} p-0 m-0">
+                                                        @if($i_numVideos > 0)
+                                                            
+                                                            <div class="ratio ratio-1x1  p-0 m-0">  
+                                                                <a href="javascript:;" class="bg-size-cover bg-position-center" >   
+                                                                    <video class="video-js vjs-default-skin p-0 VDlol" id="video_{{$i_videos[$r][0]->id}}" 
+                                                                        controls 
+                                                                        preload="auto" 
+                                                                        poster="path_to_image.jpg" 
+                                                                        data-setup='{}' >
+                                                                        <source src="{{ asset($i_videos[$r][0]->path . $i_videos[$r][0]->id . '/playlist.m3u8') }}">
+                                                                    </video>
+                                                                </a>    
+                                                            </div>
+                                                            
+                                                            @if($col_2==3 && $r>0)
+                                                            @for ($r2=2;$r2<$i_maxDisplay;$r2++ )
+                                                            <div class="ratio ratio-1x1  p-0 m-0">  
+                                                                <a href="javascript:;" class="bg-size-cover bg-position-center" >   
+                                                                    <video class="video-js vjs-default-skin p-0 VDlol" id="video_{{ $i_videos[$r2][0]->id }}" 
+                                                                        controls 
+                                                                        preload="auto" 
+                                                                        poster="path_to_image.jpg" 
+                                                                        data-setup='{}' >
+                                                                        <source src="{{ asset($i_videos[$r2][0]->path . $i_videos[$r2][0]->id . '/playlist.m3u8') }}">
+                                                                    </video>
+                                                                </a>    
+                                                            </div>
+                                                            @endfor
+                                                            @endif
+                                                        @else
+                                                            <div class="ratio ratio-1x1 p-0 m-0">
+                                                                <a href="javascript:;" onclick="showphoto({{$i_images[$r][0]->id }})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ asset($i_images[$r][0]->path . '/' . $i_images[$r][0]->id . $i_images[$r][0]->type) }})"></a>
+                                                            </div>
+                                                            @if($col_2==3 && $r>0)
+                                                            @for ($r2=2;$r2<$i_maxDisplay;$r2++ )
+                                                            <div class="ratio ratio-1x1  p-0 m-0">
+                                                                <a href="javascript:;" onclick="showphoto({{$i_images[$r2][0]->id}})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ asset($i_images[$r2][0]->path . '/' . $i_images[$r2][0]->id . $i_images[$r2][0]->type) }})"></a>
+
+                                                            </div>
+                                                            @endfor
+                                                            @endif
+                                                        @endif
+                                                    </div>
+                                                @endfor
+
+                                            
+                                            </div>
+                                        </div>
+                                
+                                        <!-- timeline-stats -->
+                                        <div class="d-flex align-items-center  m-2">
+                                            <div class="d-flex align-items-center">
+                                                <span class="fa-stack fs-10px">
+                                                    <i class="fa fa-circle fa-stack-2x text-danger"></i>
+                                                    <i class="fa fa-heart fa-stack-1x fa-inverse fs-11px"></i>
+                                                </span>
+                                                <span class="fa-stack fs-10px">
+                                                    <i class="fa fa-circle fa-stack-2x text-blue"></i>
+                                                    <i class="fa fa-thumbs-up fa-stack-1x fa-inverse fs-11px bottom-0 mb-1px"></i>
+                                                </span>
+                                                <a href="#" class="ms-1 reaction-count" data-post-id="{{$post->id}}">{{count($post['react'])}}</a>
+                                            </div>
+                                            <div class="d-flex align-items-center ms-auto ">
+                                                <div>
+                                                    <p></p>
+                                                    </div>
+                                                <div class="ms-3">
+                                                    @if(count($post->commentes) > 0)
+                                                            <p>{{ count($post->commentes) }} <span>{{ __('ui.comments') }}</span></p>
+                                                        @else
+                                                            <p></p>
+                                                        @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- timeline-action -->
+                                        <hr class="my-10px">
+                                        <div class="d-flex align-items-center fw-bold"> 
+                                                @php $like = false; @endphp
+                                                @foreach($post['react'] as $react) 
+													@if(isset(Auth::user()->id))
+                                                @if(($react->user_id==Auth::user()->id) && ($post->id ==$react->post_id))
+                                            @php $like=   true;   @endphp
+                                            @break 
+                                                @endif
+												@endif
+                                                @endforeach
+                                            <a href="javascript:;"
+                                                class="flex-fill text-decoration-none text-center text-gray-400 like"
+                                                data-liked="{{$like}}" 
+                                                data-type_id='1' 
+                                                data-post_id='{{$post->id}}' 
+                                                data-user-id='@if(Auth::check()) {{ Auth::user()->id}} @endif ' >
+                                                <button  id="like" 
+                                                class="btn btn-link text-{{$like?'blue' : 'gray'}}-400 text-decoration-none"  >
+                                                <i class="fa fa-thumbs-up fa-fw me-3px"></i> {{ __('ui.like') }}</button>
+                                                <span class="reaction-picker" role="group" aria-label="{{ __('ui.reactions') }}">
+                                                    @foreach([1=>'👍',2=>'❤️',3=>'🤗',4=>'😂',5=>'😮',6=>'😢',7=>'😡'] as $reactionId => $reactionEmoji)
+                                                        <button type="button" class="reaction-option" data-type="{{$reactionId}}">{{$reactionEmoji}}</button>
+                                                    @endforeach
+                                                </span>
+                                            </a>
+                                            <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
+                                                <i class="fa fa-comments fa-fw me-3px"></i> {{ __('ui.comment') }}
+                                            </a> 
+                                            <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
+                                                <i class="fa fa-share fa-fw me-3px"></i> {{ __('ui.share') }}
+                                            </a>
+                                        </div>
+                                        <hr class="mt-10px mb-3">
+										<div id="comment_block_{{$post->id}}">
+                                        @if(count($post->commentes)>0)
+                                        @foreach($post->commentes as $comment)
+
+                                        <div class="d-flex m-3 flex-row comment" id="comment_{{$post->id}}_{{$comment->id}}">
+                                            <div class="col-md-1 col-1 my-3 p-0 d-flex justify-content-start " >
+                                                <a class="p-0 me-0 " href="javascript:;">
+                                                    <img id="comment_img_{{$comment->id}}" src="{{asset($comment['user']['photopro']['path'].$comment['user']['photopro']['id'].$comment['user']['photopro']['type'])}}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0 ">
+                                                </a>
+                                            </div>
+                                            <div id="father_cid_{{ $comment->id }}" class=" col-md-10 col-10 m-0 p-0">
+                                                <div class="my-0 py-1 me-2 ms-1 bg-gray-200 radius_30 mt-2" >
+                                                    <a id="user_link_{{$comment->user['id']}}" href="profile/{{$comment->user['id']}}" >
+                                                        <h5 class="mb-1 px-3" id="comment_name_{{$comment->id}}">{{$comment->user['first_name']}} {{$comment->user['last_name']}}</h5>
+                                                    </a>
+                                                    <p  class="  my-1 px-3" id="comment_text_{{$comment->id}}" >{{$comment['text_co']}}.</p>
+                                                </div>
+                                                <p class="my-0">
+                                                    <a href="javascript:;" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none ms-3  px-0">2 hr</a>
+                                                        @php $like_comment = false; @endphp
+                                                            @foreach($comment['react'] as $react) 
+                                                            @if(($react->user_id==Auth::user()->id) && ($comment->id ==$react->comment_id))
+                                                        @php $like_comment=   true;   @endphp
+                                                        @break 
+                                                        @endif
+                                                        @endforeach
+                                                    <a href="javascript:;" data-comment_liked="{{$like_comment}}"  data-type_id='1' data-comment_id='{{$comment->id}}' data-user-id='@if(Auth::check()) {{ Auth::user()->id}} @endif ' data-like_comment="{{$like_comment}}" class="btn btn-sm btn-link like_comment text-{{$like_comment?'blue' : 'gray'}}-600 fw-bolder text-decoration-none mx-1  px-0">Like</a>
+                                                    <a href="javascript:;" data-id_raplay_comment_="{{ $comment->id }}" id="id_raplay_comment_{{ $comment->id }}" class="id_raplay_comment_ btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none mx-1 px-0" >{{ __('ui.reply') }}</a>
+                                                </p>
+                                                    <div id="reply-box_{{$comment->id}}" style="display: none;">
+                                                            <div class="ps-2 flex-1 m-2">
+                                                                <div class="position-relative m-2">
+                                                                    <textarea id="commen_rplay_{{$comment->id}}" data-user_id="@if(Auth::check()) {{ Auth::user()->id??0}} @endif " data-cuser_id="{{ $comment->user['id'] }}"  name="comment" class="form-control rounded-pill ps-3" placeholder="Write a reply...">{{ $comment->user['first_name'] }} {{ $comment->user['last_name'] }}</textarea>
+                                                                        
+                                                                    <button id="replay_{{$comment->id}}" type="submit">reply</button>
+                                                                        <div class="position-absolute end-0 top-0 bottom-0 d-flex align-items-center px-2">
+                                                                            <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-smile fa-fw fa-lg d-block"></i></a>
+                                                                            <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-camera fa-fw fa-lg d-block"></i></a>
+                                                                            <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-film fa-fw fa-lg d-block"></i></a>
+                                                                            <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-sticky-note fa-fw fa-lg d-block"></i></a>
+                                                                        </div>
+                                                                </div>
+                                                            </div>
+                                                        
+                                                    </div>
+                                            
+                                                <div id="rid_{{ $comment->id }}">
+
+                                                        @foreach ($comment['replie'] as $item)
+                                                        <div  id="replay_id_{{ $item->id }}"class="ps-2 d-flex flex-row m-1 p-1 ">
+                                                            <div class="col-md-1 m-0" > 
+                                                                <a class="p-0 me-0 " href="javascript:;">
+                                                                    <img id="replay_photo_id_{{ $item->id  }}" src="{{asset($item['userreply']['photopro']['path'].$item['userreply']['photopro']['id'].$item['userreply']['photopro']['type'])}}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0 ">
+                                                                </a>
+                                                            </div>
+                                                            <div class="mx-1 col-md-11 bg-gray-200 radius_30">
+                                                                <a id="link_id_{{ $item->id  }}" href="/profile/{{$item->userreply['id']}}"  >
+                                                                    <h5 id="userdata_fl_{{ $item->id  }}" class="mb-1 mx-3">{{$item->userreply['first_name']}} {{$item->userreply['last_name']}}</h5></a>
+                                                                <p id="replay_comen_{{ $item->id }}"  class="mx-3 mb-2">{{$item->reply}}.</p>
+                                                            </div>
+                                                            <hr>
+                                                            </div>
+                                                            @endforeach
+                                                    </div>
+
+                                                
+                                            </div>
+                                            <div class="col-md-1 col-1 m-1 p-0 d-flex justify-content-end">
+                                               @if(isset(Auth::user()->id) && Auth::user()->id==$comment->user['id'])
+                                                <a href="javascript:;" class="opt_comment d-none btn btn-lg border-0 rounded-pill w-40px h-40px p-0 d-flex align-items-center justify-content-center bg-transparent text-gray-500" data-bs-toggle="dropdown">
+                                                    <i class="fa fa-ellipsis-h"></i>
+                                                </a>
+                                                @endif
+                                                <div class="dropdown-menu dropdown-menu-end shadow">
+                                                    <a id="comment_opt_{{$comment->id}}" href="javascript:;" onclick="Delete('comment','{{$comment->id}}')" class="dropdown-item d-flex align-items-center">
+                                                        <i class="fa fa-fw fa-trash fa-lg"></i> 
+                                                        <div class="flex-1 ps-1">
+                                                            <div>delete comment</div>
+                                                                <div class="mt-n1 text-gray-500">
+                                                                    <small>Add this to  delete comment</small>
+                                                                </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div> 
                                         @endforeach
-
-                                    </div>
-                            </div>
-                        </div> 
-                        @endforeach
-
-                                               <!-- timeline-input -->
-                        <form action="/comment"  method="POST" class="d-flex align-items-center">
-                            @csrf
-                            <div><img src="{{asset('assets/img/user/user-13.jpg')}}" height="35" class="rounded-pill"></div>
-                            <div class="ps-2 flex-1">
-                                <div class="position-relative">
-                                    <input type="text" name="comment" class="form-control rounded-pill ps-3 py-2 fs-13px" placeholder="Write a comment...">
-                                    <input type="hidden" name="post_id" value="{{$post->id}}" class="form-control rounded-pill ps-3 py-2 fs-13px" placeholder="Write a comment...">
-                                    <div class="position-absolute end-0 top-0 bottom-0 d-flex align-items-center px-2">
-                                        <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-smile fa-fw fa-lg d-block"></i></a>
-                                        <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-camera fa-fw fa-lg d-block"></i></a>
-                                        <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-film fa-fw fa-lg d-block"></i></a>
-                                        <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-sticky-note fa-fw fa-lg d-block"></i></a>
+                                        @endif
+										</div>
+                                <!-- timeline-input -->
+                                    <div class="row m-1 rounded" >                        
+                                       
+                                            <div class="col-md-1 my-3  d-flex align-items-center">
+                                                @if(isset($profile['photopro']->path))
+                                                <div class="d-flex align-items-center " >
+                                                    <a class="radius_30 d-flex align-items-center text-center justify-content-center" href="javascript:;">
+                                                        <img src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type)}}" width="30" height="30"  class="rounded-pill">
+                                                    </a>
+                                                </div>
+                                                @else
+                                                <div>
+                                                    <a class="w-30px" href="javascript:;">
+                                                        <img src="" height="35" class="rounded-pill">
+                                                    </a>
+                                                </div>
+                                                @endif
+                                            </div> 
+											<div class="col-md-11 ps-2 flex-1">
+                                                <div class="position-relative">
+                                                    <input type="text" data-post_id="{{$post->id}}" name="comment" class="form-control comment rounded-pill ps-3 py-2 fs-13px" placeholder="{{ __('ui.write_comment') }}">
+                                                        <div class="position-absolute end-0 top-0 bottom-0 d-flex align-items-center px-2">
+                                                            <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-smile fa-fw fa-lg d-block"></i></a>
+                                                            <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-camera fa-fw fa-lg d-block"></i></a>
+                                                            <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-film fa-fw fa-lg d-block"></i></a>
+                                                            <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-sticky-note fa-fw fa-lg d-block"></i></a>
+                                                        </div>
+                                                </div>
+                                            </div>
+                                        
                                     </div>
                                 </div>
+                              <!-- END timeline-body -->
                             </div>
-                        </form>
-                    </div>
-                    <!-- END timeline-body -->
-                </div>
-                        </div>  
+                            </div>
+                        </div>
 
-
-
-
-        </div>
-
-        @endforeach
-		@endif
-	</div>
-</div>
-
+									@endforeach
+									@endif
+									</div>
+								</div>
+							</div>
 						</div>
 						<!-- END timeline -->
 					</div>
 					<!-- END #profile-post tab -->
 					<!-- BEGIN #profile-about tab -->
-					<div class="tab-pane fade" id="profile-about">
+					<div class="tab-pane fade  " id="profile-about">
 						<!-- BEGIN table -->
 							<div class="row about bg-white rounded">
 								
@@ -478,25 +586,25 @@
 							<div class="col-8 p-5 ">
 							  <div class="tab-content panel p-3 rounded-0 rounded-bottom">
 								<div class="tab-pane fade active show" id="overview">
-								  	...1 overview
+								  	{{ __('ui.no_items') }}
 								</div>
 								<div class="tab-pane fade " id="work_and_education">
-									...2 work_and_education
+									{{ __('ui.no_items') }}
 								  </div>
 								  <div class="tab-pane fade " id="places_lived">
-									...3 places_lived
+									{{ __('ui.no_items') }}
 								  </div>
 								  <div class="tab-pane fade " id="contact_and_basic_info">
-									...4 contact_and_basic_info
+									{{ __('ui.no_items') }}
 								  </div>
 								  <div class="tab-pane fade " id="family_and_relationships">
-									...5 family_and_relationships
+									{{ __('ui.no_items') }}
 								  </div>
 								  <div class="tab-pane fade " id="details_about_you">
-									...6 details_about_you
+									{{ __('ui.no_items') }}
 								  </div>
 								  <div class="tab-pane fade " id="life_events">
-									...7 life_events
+									{{ __('ui.no_items') }}
 								  </div>
 							  </div>
 							</div>
@@ -561,11 +669,11 @@
 							</div>
 						</div>
 						<!-- END gallery-v2 -->
-					</div>
+					
 					<!-- END #profile-photos tab -->
 					<!-- BEGIN #profile-videos tab -->
 					<div class="tab-pane bg-white rounded fade" id="profile-videos">
-						<h4 class="mb-3">Videos (16)</h4>
+						<h4 class="mb-3">{{ __('ui.videos') }}</h4>
 						<!-- BEGIN row -->
 						<div class="row gx-1">
 							<!-- BEGIN col-3 -->
@@ -1004,28 +1112,40 @@
 				</div>
 				<!-- END tab-content -->
 			</div>
-			<!-- END profile-content -->
 		</div>
 
 		<!-- END #content -->
         </div>
 		<!-- BEGIN scroll-top-btn -->
-		<a href="javascript:;" class="btn btn-icon btn-circle btn-theme btn-scroll-to-top" data-toggle="scroll-to-top"><i class="fa fa-angle-up"></i></a>
 		<!-- END scroll-top-btn -->
 	</div>
 	<!-- END #app -->
-</body>
-@include('layout.js')
-	<!-- ================== END page-js ================== -->
+	@if(Auth::id() === $profile_page->id)
+	<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		document.querySelectorAll('.profile-media-input').forEach(function (input) {
+			input.addEventListener('change', async function () {
+				if (!this.files || !this.files[0]) return;
+				const label = this.closest('.profile-photo-edit');
+				label.classList.add('is-loading');
+				label.querySelector('i').className = 'fa fa-spinner fa-spin';
+				const data = new FormData();
+				data.append('files', this.files[0]);
+				data.append('cover', this.dataset.cover);
+				try {
+					const response = await fetch('{{ url('/make-profile-picture') }}', {
+						method: 'POST', headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json'}, body: data
+					});
+					if (!response.ok) throw new Error('upload failed');
+					window.location.reload();
+				} catch (error) {
+					alert(@json(__('ui.upload_failed')));
+					window.location.reload();
+				}
+			});
+		});
+	});
+	</script>
+	@endif
 
-</html>
-<script>
-    function openReplyBox() {
-      var replyBox = document.querySelector('.reply-box');
-      if (replyBox.style.display === 'none') {
-        replyBox.style.display = 'block';
-      } else {
-        replyBox.style.display = 'none';
-      }
-    }
-    </script>
+@endsection

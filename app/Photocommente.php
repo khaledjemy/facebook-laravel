@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Photocommente extends Model
 {
     //
+    protected $table = 'photocommentes';
     protected  $fillable   =   ['user_id','comment','photo_id'];
 
    

@@ -3,53 +3,74 @@
 namespace App\Http\Controllers;
 
 use App\Messanger;
-use App\React;
 use App\User;
 use Illuminate\Http\Request;
 
 class MessangerController extends Controller
 {
-    //
-    public function messangerlol(Request $request,$id)
+    public function inbox()
     {
-        
-       $text    = $request->input('text');
-       $me      = $request->input('me');
-        $me2    = auth()->id();
+        $contact = User::whereKeyNot(auth()->id())->orderBy('id')->first();
+        abort_unless($contact, 404, 'No contacts are available.');
 
-        $users  =   User::get();
-        $user_id=   User::where('id',$id)->firstOrFail();
-
-    if($text!=""){
-     
-      $message=  Messanger::create([
-                                    'message'=> $text,
-                                    'user_id'=> $user_id->id,
-                                    'my_id'=>$me ,
-                                    'read'=> 1
-                                ]);
-    $message->save();
-    return ;
+        return redirect('/messanger/'.$contact->id);
     }
-        if (auth()->check()) {
-            $profilee = new UsersController;
-            $profile = $profilee->profilenav();
-        } else {
-            $profile = null;
+
+    public function index(Request $request, $id)
+    {
+        $me = auth()->id();
+        abort_if((int) $id === (int) $me, 422, 'You cannot start a conversation with yourself.');
+        $user = User::findOrFail($id);
+        $users = User::whereKeyNot($me)->get();
+
+        // إرسال رسالة
+        if ($request->isMethod('post')) {
+            $data = $request->validate(['text' => 'required|string|max:2000']);
+
+            $message = Messanger::create([
+                'message'=> trim($data['text']),
+                'my_id'=> $me,
+                'user_id'  => $user->id,
+                'read'   => 0
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'id' => $message->id
+            ]);
         }
-        $viewmassege    = Messanger::with('user')
-        ->where(function ($query) use ($user_id, $me2) {
-            $query->where('user_id', $user_id->id)
-                  ->where('my_id', $me2);
-        })->orWhere(function ($query) use ($user_id, $me2) {
-            $query->where('user_id', $me2)
-                  ->where('my_id', $user_id->id);
-        })->orderBy('created_at', 'desc')->paginate(8, ['*'], 'page', $request->query('page', $request->page));
+
+        // جلب الرسائل
+        $messages = Messanger::with('sender.photopro')
+        ->where(function ($q) use ($user, $me) {
+            $q->where('my_id', $me)
+              ->where('user_id', $user->id);
+        })
+        ->orWhere(function ($q) use ($user, $me) {
+            $q->where('my_id', $user->id)
+              ->where('user_id', $me);
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10, ['*'], 'page', $request->query('page', 1));
 
         if ($request->ajax()) {
-            return  view('messanger',compact('profile', 'users', 'user_id','viewmassege'));
+            return response()->json($messages->getCollection()->reverse()->values());
         }
-        
-        return view('messanger',compact('profile','users','user_id','viewmassege'));
+
+        return view('messanger', compact('messages','users','user'));
+    }
+
+    // seen
+    public function seen($id)
+    {
+        $me = auth()->id();
+        User::findOrFail($id);
+
+        Messanger::where('my_id', $id)
+            ->where('user_id', $me)
+            ->where('read', 0)
+            ->update(['read' => 1]);
+
+        return response()->json(['status' => true]);
     }
 }

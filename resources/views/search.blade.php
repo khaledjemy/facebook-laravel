@@ -1,0 +1,7 @@
+@extends('layout.masterhome')
+@section('content')
+<main class="fb-explore container py-4"><h2 class="mb-4">{{ __('ui.results') }}</h2>
+<form action="{{ url('/search') }}" class="d-flex gap-2 mb-4"><input name="q" value="{{ $query }}" class="form-control rounded-pill" placeholder="{{ __('ui.search') }}"><button class="btn btn-primary rounded-pill px-4">{{ __('ui.search') }}</button></form>
+<div class="card border-0 shadow-sm mb-4"><div class="card-body"><h4>{{ __('ui.people') }}</h4>@forelse($users as $user)<a href="{{ url('/profile/'.$user->id) }}" class="d-flex align-items-center gap-3 text-dark text-decoration-none p-2 rounded search-result"><img src="{{ $user->photopro ? asset($user->photopro->path.$user->photopro->id.$user->photopro->type) : asset('img/Default_avatar_profile.jpg') }}" width="52" height="52" class="rounded-circle object-fit-cover"><div><strong>{{ $user->first_name }} {{ $user->last_name }}</strong><small class="d-block text-muted">{{ $user->email }}</small></div></a>@empty<p class="text-muted">{{ __('ui.no_items') }}</p>@endforelse</div></div>
+<div class="card border-0 shadow-sm"><div class="card-body"><h4>{{ __('ui.posts') }}</h4>@forelse($posts as $post)<a href="{{ url('/post/'.$post->id) }}" class="d-block text-dark text-decoration-none border-bottom p-3 search-result"><strong>{{ $post->user?->first_name }} {{ $post->user?->last_name }}</strong><p class="mb-0 mt-1">{{ $post->post_text }}</p></a>@empty<p class="text-muted">{{ __('ui.no_items') }}</p>@endforelse</div></div></main>
+@endsection

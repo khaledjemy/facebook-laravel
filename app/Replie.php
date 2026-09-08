@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Replie extends Model
 {
     //
+    protected $table = "replies";
     protected $fillable =   ['comment_id','user_id','userreply_id','reply'];
     function comment()
     {

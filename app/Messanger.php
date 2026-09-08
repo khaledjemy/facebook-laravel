@@ -1,16 +1,22 @@
 <?php
-
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
 class Messanger extends Model
 {
-    //
-    protected $fillable =   ['my_id','user_id','message','read'];
+    protected $fillable = [
+        'my_id',
+        'user_id',
+        'message',
+        'read'
+    ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class,'my_id');
+    public function sender(){
+        return $this->belongsTo(User::class, 'my_id');
+    }
+
+    public function receiver(){
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

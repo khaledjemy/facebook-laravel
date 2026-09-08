@@ -14,9 +14,7 @@ class photo extends Model
     }
     public function post()
     {
-
         return $this->belongsTo(Post::class);
-
     }
     public function users()
     {
@@ -24,7 +22,11 @@ class photo extends Model
     }
     public function photocommentes()
     {
-        return $this->hasMany(Photocommente::class);
+        return $this->hasMany(Photocommente::class,'photo_id');
+    }
+    public function reactphoto()
+    {
+        return $this->hasMany(PhotoReact::class,'photo_id');
     }
 
 }

@@ -3,10 +3,21 @@
 /public/storage
 /storage/*.key
 /vendor
+/websocket-server/vendor
 .env
 .env.backup
+.env.testing
+/database/*.sqlite
 .phpunit.result.cache
+.phpunit.cache
+phpunit.xml.bak
 Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+
+# Local binaries and generated user media
+/bin/*.exe
+/public/js/*.exe
+/public/images/users/
+/public/video/users/

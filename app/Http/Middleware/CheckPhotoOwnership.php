@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Controllers\PhotoController;
+use App\photo;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,12 +18,11 @@ class CheckPhotoOwnership
     public function handle($request, Closure $next)
     {
         $photoId = $request->route('id');
-        $photoController = new PhotoController;
-        $photoData = $photoController->photo($photoId);
         $isPhotoOwner = false; // تعيين القيمة الافتراضية
         if (auth()->check()) {
             $auth = Auth::user()->id;
-            if (!empty($auth) && ($auth == $photoData['photo']->user_id)) {
+            $photo = photo::find($photoId);
+            if ($photo && !empty($auth) && ($auth == $photo->user_id)) {
                 $isPhotoOwner = true; // تعيين القيمة إذا كان المستخدم مالك الصورة
             }
         }

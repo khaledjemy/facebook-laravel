@@ -7,6 +7,7 @@ use App\Friend;
 use App\Http\Controllers\PostController;
 use App\User;
 use App\photo;
+use App\Video;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,37 +16,48 @@ use Ramsey\Collection\Map\AssociativeArrayMap;
 class UsersController extends Controller
 {
     //
-    public function profile($id)
+    public function profile($id ,Request $request)
     {
     $allphoto       =   photo::where('user_id',$id)->get();
     $albums         =   Album::where('user_id',$id)->with('photos')->get();
     $friends        =   $this->friends($id);
     $profile_page   =   User::where('id',$id)->with('photopro','coverpro')->firstOrFail();
     $posts          =   new PostController;
-    $p_postes= $posts->profile_post($id);
+    $p_postes= $posts->profile_post($id,$request);
+
+    $imges = [];
+    $videos= [];
+
     if ($p_postes->isNotEmpty()) {
        // $imges  =Null;
        
         foreach ($p_postes as $post) {
            
             $imges[$post->id] = [];
-            
+            $videos[$post->id]= [];            
             $im_arr = json_decode($post->image, true);
-           
-            
-
-            foreach ($im_arr as $key=> $img) { 
-                
-                    $imgess = photo::where('user_id', $post->user_id)->where('id', $img)->get();
+            $vd_arr = json_decode($post->video, true);
+           if($post->image!=null){
+            if (is_array($im_arr)) { 
+                foreach ($im_arr as $key => $img) {
+                    $imgess = Photo::where('user_id', $post->user_id)->where('id', $img)->get();
                     if ($imgess->isNotEmpty()) {
-                        if(!is_countable($imgess) ){$imgess==0;}
                         $imges[$post->id][] = $imgess;
-
-                        
-                    }else {
-                        $imges[$post->id][] = "1233";
                     }
-                } 
+                }
+                }
+            }
+            if($post->video!=null){
+            if (is_array($vd_arr)) { 
+                foreach ($vd_arr as $key => $vid) {
+                    $videoss = Video::where('user_id', $post->user_id)->where('id', $vid)->get();
+                    if ($videoss->isNotEmpty()) {
+                        $videos[$post->id][] = $videoss;
+                    }
+                }
+            }
+            }
+          
  
               
             }
@@ -63,7 +75,7 @@ class UsersController extends Controller
         }
 
     
-        return view("profile",compact('profile_page','p_postes','friends','imges','allphoto','albums','profile'));
+        return view("profile",compact('profile_page','p_postes','friends','imges','videos','allphoto','albums','profile'));
     }
     public function profilenav()
     {
