@@ -82,62 +82,57 @@ parse_str($queryString ?? '', $query);
     // ===== call =====
 
     if(in_array($type, ['offer','answer','ice'], true)){
-    
-    $toUser = $data['to'] ?? null;
-
-    if(!$toUser) return;
-
-    if(isset($this->userConnections[$toUser])){
-        foreach ($this->userConnections[$toUser] as $client) {
-            $client->send(json_encode($data));
+        $toUser = $data['to'] ?? null;
+        if(!$toUser) return;
+        if(isset($this->userConnections[$toUser])){
+            foreach ($this->userConnections[$toUser] as $client) {
+                $client->send(json_encode($data));
+            }
         }
+        return;
     }
-
-    return;
-}
 
     // ===== seen =====
     if(isset($data['type']) && $data['type'] === 'seen'){
-
         $toUser = $data['to'] ?? null;
-
         if(!$toUser) return;
-
         $payload = json_encode($data);
-
         if(isset($this->userConnections[$toUser])){
             foreach ($this->userConnections[$toUser] as $client) {
                 $client->send($payload);
             }
         }
-
         return;
     }
 
     // ===== typing =====
-if(isset($data['type']) && $data['type'] === 'typing'){
-
-    $toUser = $data['to'] ?? null;
-
-    if(!$toUser) return;
-
-    $payload = json_encode($data);
-
-    if(isset($this->userConnections[$toUser])){
-        foreach ($this->userConnections[$toUser] as $client) {
-            $client->send($payload);
+    if(isset($data['type']) && $data['type'] === 'typing'){
+        $toUser = $data['to'] ?? null;
+        if(!$toUser) return;
+        $payload = json_encode($data);
+        if(isset($this->userConnections[$toUser])){
+            foreach ($this->userConnections[$toUser] as $client) {
+                $client->send($payload);
+            }
         }
+        return;
     }
 
-    return;
-}
+    // ===== notification =====
+    if(isset($data['type']) && $data['type'] === 'notification'){
+        $toUser = $data['to'] ?? null;
+        if(!$toUser) return;
+        $payload = json_encode($data);
+        if(isset($this->userConnections[$toUser])){
+            foreach ($this->userConnections[$toUser] as $client) {
+                $client->send($payload);
+            }
+        }
+        return;
+    }
 
     // ===== message =====
     $fromUser = $authenticatedUser;
-    $toUser   = $data['to'] ?? null;
-
-    if (!$fromUser || !$toUser) return;
-
     $payload = json_encode($data);
 
     foreach (array_unique([$fromUser, $toUser]) as $uid) {

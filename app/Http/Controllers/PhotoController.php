@@ -24,8 +24,8 @@ class PhotoController extends Controller
     {
         
         $allowedTypes = [
-            'image/jpeg','image/jpg','image/png','image/gif','image/webp','video/mp4','video/avi',
-            'video/mkv','video/mov','video/quicktime','video/wmv','video/flv','video/webm','video/mpeg','video/3gpp',
+            'image/jpeg','image/jpg','image/png','image/gif','image/webp','video/mp4','video/avi','video/x-msvideo',
+            'video/mkv','video/x-matroska','video/mov','video/quicktime','video/wmv','video/flv','video/webm','video/mpeg','video/3gpp',
         ];
         $maxSizeInBytes = 200 * 1024 * 1024;
 
@@ -160,7 +160,10 @@ class PhotoController extends Controller
 
             $img[$key]=array($video->id);
         // $this->ffmpegpro($video->path,$video->id,$type);
-         ProcessVideoJob::dispatch($video->path, $video->id, $type);
+         ProcessVideoJob::dispatch(
+             $video->path.$video->id.$type,
+             $video->path.$video->id,
+         );
 
         }
        
@@ -179,8 +182,8 @@ class PhotoController extends Controller
             'video/mp4' => 'mp4',
             'video/webm' => 'webm',
             'video/quicktime', 'video/mov' => 'mov',
-            'video/avi' => 'avi',
-            'video/mkv' => 'mkv',
+            'video/avi', 'video/x-msvideo' => 'avi',
+            'video/mkv', 'video/x-matroska' => 'mkv',
             'video/wmv' => 'wmv',
             'video/flv' => 'flv',
             'video/mpeg' => 'mpeg',
@@ -263,12 +266,7 @@ class PhotoController extends Controller
     {
         $photo  =   photo::where('id',$id)->with('user','photocommentes','reactphoto')->firstOrFail();
         $commente=   Photocommente::where('photo_id',$id)->with('user','reply')->get();
-        if (auth()->check()) {
-            $profilee = new UsersController;
-            $profile = $profilee->profilenav();
-        } else {
-            $profile = null;
-        }
+        $profile = auth()->check() ? auth()->user()->loadMissing('photopro', 'coverpro') : null;
         return view('/photo',compact('photo','commente','profile'));
 
     }

@@ -10,15 +10,17 @@
             <div class="row m-0 p-0">
                 <div class="col-md-12 m-0 p-0">
                     <div class="row w-100 m-0 p-0">
+                        @include('partials.stories_tray')
                         <div class="row w-100 m-0 p-0">
                             <div class="card bg-white  m-0 shadow-sm" style="border-radius: 15px;">
                             <!-- #modal-dialog -->
                                 <form action="/posts" id="myForm"  method="POST" enctype="multipart/form-data">
                                     @csrf
+                                    <input type="hidden" name="visibility" class="post-visibility-input" value="{{ auth()->check() ? (auth()->user()->default_post_visibility ?? 'public') : 'public' }}">
                                     <div class="row  p-2" >
                                         <div class="col-1 p-0 m-0 " >
                                             @if(isset($profile) && isset($profile['photopro']))
-                                            <img class="rounded-circle " src=" {{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}  " height="40" width="40" alt=""/>
+                                            <img class="rounded-circle " src=" {{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}  " height="40" width="40" alt="" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';"/>
                                             @else
                                             <img class="rounded-circle" src=" {{ asset('img/Default_avatar_profile.jpg') }}  " height="40" width="40" alt=""/>
                                             @endif
@@ -38,7 +40,7 @@
                                                 <button type="button" class="btn btn-0  rounded  border-0 col-4">
                                                         <a class="text-decoration-none text-muted p-0 m-0" href="#">
                                                             <img src="style/Ivw7nhRtXyo.png" width="23" height="23" >
-                                                            <input type="file" id="fileInput2" name="files[]" class="card-body opacity-0" accept="image/jpeg, image/jpg, image/png"  style="display:none;" multiple>
+                                                            <input type="file" id="fileInput2" name="files[]" class="card-body opacity-0" accept="image/*,video/*,.mkv,.avi,.mov,.webm,.mp4,.mpeg,.3gp" style="display:none;" multiple>
                                                         </a>
                                                 </button>
                                                 <button type="button" class="btn btn-0  rounded  border-0 col-4">
@@ -63,31 +65,31 @@
                                     {{-- {{ $posts->links() }} --}}
                                     {{-- @dd($posts) --}}
                                     @foreach ($posts as $post)
-                                <div class="m-0 p-0 postes">
+                                <div class="m-0 p-0 postes post-card-container-{{ $post->id }}">
                                     <div class="col mt-3">
-                                        <div class="card text-dark bg-white  rounded">
+                                        <div class="card text-dark bg-white rounded">
                                             <!-- BEGIN timeline-header -->
                                             <div class="card-header border-0 mt-1 bg-white">
                                                 <div class="row justify-content-between" >
-                                                    <div class="col-md-1  " >
-                                                        <div class="widget-icon rounded-circle bgr  text-white">
+                                                    <div class="col-md-1" >
+                                                        <div class="widget-icon rounded-circle bgr text-white">
                                                             @if(isset($post->user['photopro']['path']))
-                                                                <img src="{{asset($post->user['photopro']['path'].$post->user['photopro']['id'].$post->user['photopro']['type'])}}" class="rounded-circle" width="40" height="40" alt="">
+                                                                <img src="{{asset($post->user['photopro']['path'].$post->user['photopro']['id'].$post->user['photopro']['type'])}}" class="rounded-circle" width="40" height="40" alt="" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
                                                             @else
                                                                 <img src="{{ asset('img/Default_avatar_profile.jpg') }}" class="rounded-circle" width="40" height="40" alt="">
                                                             @endif
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-4 mx-2   text-start" >
+                                                    <div class="col-md-4 mx-2 text-start" >
                                                         <div class="row justify-content-start text-start fs-15px fw-bolder ">
-                                                            <a class="post-author text-dark text-decoration-none my-0" href="profile/{{$post->user['id']}}">{{$post->user['first_name']}}  {{$post->user['last_name']}}<i class="fa fa-check-circle text-blue ms-1"></i></a>
+                                                            <a class="post-author text-dark text-decoration-none my-0" href="profile/{{$post->user['id']}}">{{$post->user['first_name']}} {{$post->user['last_name']}}<i class="fa fa-check-circle text-blue ms-1"></i></a>
                                                             <div class="text-muted ">
-                                                            <a class="post-time text-muted text-decoration-none" href="post/{{$post->id}}">{{ $post->created_at?->diffForHumans() ?? 'just now' }} <i class="fa fa-globe-americas opacity-5 ms-1"></i></a>
+                                                            <a class="post-time text-muted text-decoration-none" href="post/{{$post->id}}"><time class="js-relative-time" datetime="{{ $post->created_at?->toIso8601String() }}">{{ $post->created_at?->diffForHumans() ?? 'just now' }}</time> <i class="fa {{ $post->visibility === 'only_me' ? 'fa-lock' : ($post->visibility === 'friends' ? 'fa-user-friends' : 'fa-globe-americas') }} opacity-5 ms-1 post-visibility-icon-{{ $post->id }}" title="{{ ucfirst(str_replace('_', ' ', $post->visibility ?? 'public')) }}"></i></a>
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="col-md offset-md-2 text-end" >
-                                                    <div class=" row justify-content-end  text-end">
+                                                    <div class=" row justify-content-end text-end">
                                                         <a href="#" class="btn btn-lg border-0 rounded-pill w-40px h-40px p-0 d-flex align-items-center justify-content-center bg-transparent text-gray-500" data-bs-toggle="dropdown">
                                                             <i class="fa fa-ellipsis-h"></i>
                                                         </a>
@@ -103,16 +105,15 @@
                                                             </a>
                                                             <div class="dropdown-divider"></div>
                                                             @if(Auth::check() && $post->user['id']==Auth::id())
-                                                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-edit fa-lg me-1"></i> Edit post</a>
-                                                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-user fa-lg me-1"></i> Edit audience</a>
-                                                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn on notifications for this post</a>
-                                                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-language fa-lg me-1"></i> Turn off translations</a>
-                                                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-calendar-alt fa-lg me-1"></i> Turn date</a>
+                                                                <a href="javascript:;" class="dropdown-item btn-edit-post" data-post-id="{{ $post->id }}" data-post-text="{{ $post->post_text }}" data-visibility="{{ $post->visibility ?? 'public' }}"><i class="fa fa-fw fa-edit fa-lg me-1"></i> {{ app()->getLocale() === 'ar' ? 'تعديل المنشور' : 'Edit post' }}</a>
                                                                 <div class="dropdown-divider"></div>
-                                                                    <a href="#" class="dropdown-item"><i class="fa fa-fw fa-archive fa-lg me-1"></i> Move to archive</a>
-                                                                    <a href="#" class="dropdown-item"><i class="fa fa-fw fa-trash-alt fa-lg me-1"></i> Move to Recycle bin</a>
-                                                                @else
+                                                                <a href="javascript:;" class="dropdown-item text-danger btn-delete-post" data-post-id="{{ $post->id }}"><i class="fa fa-fw fa-trash-alt fa-lg me-1"></i> {{ app()->getLocale() === 'ar' ? 'حذف المنشور' : 'Delete post' }}</a>
+                                                            @else
                                                                 <a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn off notifications for this post</a>
+                                                                <div class="dropdown-divider"></div>
+                                                                <a href="javascript:;" class="dropdown-item text-danger btn-block-user" data-user-id="{{ $post->user['id'] }}" data-user-name="{{ $post->user['first_name'] }} {{ $post->user['last_name'] }}">
+                                                                    <i class="fa fa-fw fa-ban fa-lg me-1"></i> حظر {{ $post->user['first_name'] }}
+                                                                </a>
                                                             @endif
                                                         </div>
                                                 </div>
@@ -125,9 +126,53 @@
 
                                                 <!-- timeline-post -->
                                                 <div class="mb-3">
-                                                    <div class="m-2">
+                                                    <div class="m-2 post-text-content-{{ $post->id }}">
                                                             {{$post->post_text}}
                                                     </div>
+                                                    @if($post->shared_post_id && $post->sharedPost)
+                                                        <div class="shared-post-card border rounded m-2 p-2 bg-light">
+                                                            <div class="d-flex align-items-center mb-2">
+                                                                <img src="{{ $post->sharedPost->user?->avatar_url ?? asset('img/Default_avatar_profile.jpg') }}" class="rounded-circle me-2" width="35" height="35" alt="">
+                                                                <div>
+                                                                    <a href="{{ url('profile/' . $post->sharedPost->user_id) }}" class="fw-bold text-dark text-decoration-none">
+                                                                        {{ $post->sharedPost->user?->first_name }} {{ $post->sharedPost->user?->last_name }}
+                                                                    </a>
+                                                                    <div class="text-muted small">
+                                                                        {{ $post->sharedPost->created_at?->diffForHumans() }}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="shared-post-text mb-2 text-dark">
+                                                                {{ $post->sharedPost->post_text }}
+                                                            </div>
+                                                            @php
+                                                                $s_images = $imges[$post->sharedPost->id] ?? [];
+                                                                $s_videos = $videos[$post->sharedPost->id] ?? [];
+                                                            @endphp
+                                                            @if(!empty($s_images))
+                                                                <div class="row gx-1 p-0 m-0">
+                                                                    @foreach($s_images as $sImgGroup)
+                                                                        @foreach($sImgGroup as $sImg)
+                                                                            <div class="col-12 mb-1">
+                                                                                <img src="{{ asset($sImg->path . '/' . $sImg->id . $sImg->type) }}" class="img-fluid rounded w-100" alt="">
+                                                                            </div>
+                                                                        @endforeach
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
+                                                            @if(!empty($s_videos))
+                                                                @foreach($s_videos as $sVidGroup)
+                                                                    @foreach($sVidGroup as $sVid)
+                                                                        <div class="col-12 mb-1">
+                                                                            <video class="w-100 rounded" controls preload="metadata">
+                                                                                <source src="{{ asset($sVid->path . $sVid->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
+                                                                            </video>
+                                                                        </div>
+                                                                    @endforeach
+                                                                @endforeach
+                                                            @endif
+                                                        </div>
+                                                    @endif
                                                     @php
                                                         $i_videos = $videos[$post->id] ?? [];
                                                             $i_images = $imges[$post->id] ?? [];
@@ -166,7 +211,7 @@
                                                                                 preload="auto"
                                                                                 poster="path_to_image.jpg"
                                                                                 data-setup='{}' >
-                                                                                <source src="{{ asset($i_videos[$r][0]->path . $i_videos[$r][0]->id . '/playlist.m3u8') }}">
+                                                                                <source src="{{ asset($i_videos[$r][0]->path . $i_videos[$r][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
                                                                             </video>
                                                                         </a>
                                                                     </div>
@@ -180,7 +225,7 @@
                                                                                 preload="auto"
                                                                                 poster="path_to_image.jpg"
                                                                                 data-setup='{}' >
-                                                                                <source src="{{ asset($i_videos[$r2][0]->path . $i_videos[$r2][0]->id . '/playlist.m3u8') }}">
+                                                                                <source src="{{ asset($i_videos[$r2][0]->path . $i_videos[$r2][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
                                                                             </video>
                                                                         </a>
                                                                     </div>
@@ -207,29 +252,7 @@
                                                 </div>
 
                                                 <!-- timeline-stats -->
-                                                <div class="d-flex align-items-center  m-2">
-                                                    <div class="d-flex align-items-center">
-                                                        <span class="fa-stack fs-10px">
-                                                            <i class="fa fa-circle fa-stack-2x text-danger"></i>
-                                                            <i class="fa fa-heart fa-stack-1x fa-inverse fs-11px"></i>
-                                                        </span>
-                                                        <span class="fa-stack fs-10px">
-                                                            <i class="fa fa-circle fa-stack-2x text-blue"></i>
-                                                            <i class="fa fa-thumbs-up fa-stack-1x fa-inverse fs-11px bottom-0 mb-1px"></i>
-                                                        </span>
-                                                        <a href="#" class="ms-1 reaction-count text-dark text-decoration-none" data-post-id="{{$post->id}}">{{count($post['react'])}}</a>
-                                                    </div>
-                                                    <div class="d-flex align-items-center ms-auto ">
-                                                        <div></div>
-                                                        <div class="ms-3">
-                                                            @if(count($post->commentes) > 0)
-                                                                    <p>{{ count($post->commentes) }} <span>{{ __('ui.comments') }}</span></p>
-                                                                @else
-                                                                    <p></p>
-                                                                @endif
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                @include('partials.post-engagement-summary', ['post' => $post])
                                                 <!-- timeline-action -->
                                                 <hr class="my-10px">
                                                 <div class="d-flex align-items-center fw-bold">
@@ -258,7 +281,10 @@
                                                     <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
                                                         <i class="fa fa-comments fa-fw me-3px"></i> {{ __('ui.comment') }}
                                                     </a>
-                                                    <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
+                                                    <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400 btn-share-post"
+                                                       data-post-id="{{$post->id}}"
+                                                       data-author="{{$post->user['first_name']}} {{$post->user['last_name']}}"
+                                                       data-snippet="{{ Str::limit($post->post_text, 80) }}">
                                                         <i class="fa fa-share fa-fw me-3px"></i> {{ __('ui.share') }}
                                                     </a>
                                                 </div>
@@ -269,7 +295,8 @@
                                                     <div class="d-flex m-3 flex-row comment" id="comment_{{$post->id}}_{{$comment->id}}">
                                                     <div class="col-md-1 col-1 my-3 p-0 d-flex justify-content-start " >
                                                         <a class="p-0 me-0 " href="javascript:;">
-                                                            <img id="comment_img_{{$comment->id}}" src="{{asset($comment['user']['photopro']['path'].$comment['user']['photopro']['id'].$comment['user']['photopro']['type'])}}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0 ">
+                                                            @php $commentPhoto = $comment->user?->photopro; @endphp
+                                                            <img id="comment_img_{{$comment->id}}" src="{{ $commentPhoto ? asset($commentPhoto->path.$commentPhoto->id.$commentPhoto->type) : asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
                                                         </a>
                                                     </div>
                                                     <div id="father_cid_{{ $comment->id }}" class=" col-md-10 col-10 m-0 p-0">
@@ -277,10 +304,13 @@
                                                             <a id="user_link_{{$comment->user['id']}}" href="profile/{{$comment->user['id']}}" >
                                                                 <h5 class="mb-1 px-3" id="comment_name_{{$comment->id}}">{{$comment->user['first_name']}} {{$comment->user['last_name']}}</h5>
                                                             </a>
-                                                            <p  class="  my-1 px-3" id="comment_text_{{$comment->id}}" >{{$comment['text_co']}}.</p>
+                                                            <p class="my-1 px-3" id="comment_text_{{$comment->id}}">{{$comment['text_co']}}</p>
+                                                            @if($comment->media_path)
+                                                                @if($comment->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ asset($comment->media_path) }}" @if(str_ends_with($comment->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ asset($comment->media_path) }}" alt="">@endif
+                                                            @endif
                                                         </div>
                                                         <p class="my-0">
-                                                            <a href="javascript:;" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none ms-3  px-0">2 hr</a>
+                                                            <time class="comment-time js-relative-time" datetime="{{ $comment->created_at?->toIso8601String() }}">{{ $comment->created_at?->diffForHumans(short: true) ?? 'now' }}</time>
                                                                 @php $like_comment = false; @endphp
                                                                     @foreach($comment['react'] as $react)
                                                                     @if(Auth::check() && ($react->user_id==Auth::id()) && ($comment->id ==$react->comment_id))
@@ -296,7 +326,7 @@
                                                                         <div class="position-relative m-2">
                                                                             <textarea id="commen_rplay_{{$comment->id}}" data-user_id="@if(Auth::check()) {{ Auth::user()->id??0}} @endif " data-cuser_id="{{ $comment->user['id'] }}"  name="comment" class="form-control rounded-pill ps-3" placeholder="Write a reply...">{{ $comment->user['first_name'] }} {{ $comment->user['last_name'] }}</textarea>
 
-                                                                            <button id="replay_{{$comment->id}}" type="submit">reply</button>
+                                                                            <button id="replay_{{$comment->id}}" class="reply-send" type="submit" aria-label="{{ __('ui.reply') }}"><i class="fa fa-paper-plane"></i></button>
                                                                                 <div class="position-absolute end-0 top-0 bottom-0 d-flex align-items-center px-2">
                                                                                     <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-smile fa-fw fa-lg d-block"></i></a>
                                                                                     <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-camera fa-fw fa-lg d-block"></i></a>
@@ -314,13 +344,20 @@
                                                                 <div  id="replay_id_{{ $item->id }}"class="ps-2 d-flex flex-row m-1 p-1 ">
                                                                     <div class="col-md-1 m-0" >
                                                                         <a class="p-0 me-0 " href="javascript:;">
-                                                                            <img id="replay_photo_id_{{ $item->id  }}" src="{{asset($item['userreply']['photopro']['path'].$item['userreply']['photopro']['id'].$item['userreply']['photopro']['type'])}}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0 ">
+                                                                            @php $replyPhoto = $item->userreply?->photopro; @endphp
+                                                                            <img id="replay_photo_id_{{ $item->id  }}" src="{{ $replyPhoto ? asset($replyPhoto->path.$replyPhoto->id.$replyPhoto->type) : asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
                                                                         </a>
                                                                     </div>
-                                                                    <div class="mx-1 col-md-11 bg-gray-200 radius_30">
+                                                                    <div class="mx-1 col-md-11 reply-content">
+                                                                        <div class="reply-bubble">
                                                                         <a id="link_id_{{ $item->id  }}" href="/profile/{{$item->userreply['id']}}"  >
                                                                             <h5 id="userdata_fl_{{ $item->id  }}" class="mb-1 mx-3">{{$item->userreply['first_name']}} {{$item->userreply['last_name']}}</h5></a>
-                                                                        <p id="replay_comen_{{ $item->id }}"  class="mx-3 mb-2">{{$item->reply}}.</p>
+                                                                        <p id="replay_comen_{{ $item->id }}" class="mx-3 mb-1">{{$item->reply}}.</p>
+                                                                        @if($item->media_path)
+                                                                            @if($item->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ asset($item->media_path) }}" @if(str_ends_with($item->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ asset($item->media_path) }}" alt="">@endif
+                                                                        @endif
+                                                                        </div>
+                                                                        <time class="reply-time js-relative-time" datetime="{{ $item->created_at?->toIso8601String() }}">{{ $item->created_at?->diffForHumans(short: true) ?? 'now' }}</time>
                                                                     </div>
                                                                     <hr>
                                                                     </div>
@@ -364,7 +401,7 @@
                                                         @else
                                                         <div>
                                                             <a class="w-30px" href="javascript:;">
-                                                                <img src="" height="35" class="rounded-pill">
+                                                                <img src="{{ asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" class="rounded-pill" alt="avatar">
                                                             </a>
                                                         </div>
                                                         @endif
@@ -416,4 +453,6 @@
 
 
 
+@include('partials.share_modal')
+@include('partials.edit_post_modal')
 @endsection

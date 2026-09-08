@@ -44,4 +44,12 @@ return [
     'home' => 'Home',
     'groups' => 'Groups',
     'pages' => 'Pages',
+    'public' => 'Public',
+    'public_desc' => 'Anyone on or off Facebook',
+    'friends_desc' => 'Your friends on Facebook',
+    'only_me' => 'Only me',
+    'only_me_desc' => 'Only you can see this post',
+    'post' => 'Post',
+    'create_post' => 'Create post',
+    'add_to_your_post' => 'Add to your post',
 ];

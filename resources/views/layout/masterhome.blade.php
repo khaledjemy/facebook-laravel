@@ -15,8 +15,8 @@
         <div class=" fade">
                 @include('layout.footer')
         </div>
-    <div style="display: none" id="loading">
-        @include('layout.post_skeleton')
+    <div style="display: none" id="loading" data-loading-type="post">
+        @include('layout.media_skeleton', ['type' => 'post'])
     </div>
 
 </body>

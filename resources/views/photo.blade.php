@@ -98,11 +98,10 @@
                                 <i class="fa fa-circle fa-stack-2x text-blue"></i>
                                 <i class="fa fa-thumbs-up fa-stack-1x fa-inverse fs-11px bottom-0 mb-1px"></i>
                             </span>
-                            <span class="ms-1">4.3k</span>
+                            <span class="ms-1" id="photo_reaction_count_{{$photo->id}}">{{$photo->reactphoto->count()}}</span>
                         </div>
                         <div class="d-flex align-items-center ms-auto">
-                            <div>259 Shares</div>
-                            <div class="ms-3">21 Comments</div>
+                            <div>{{$photo->photocommentes->count()}} Comments</div>
                         </div>
                     </div>
             
@@ -151,12 +150,12 @@
                                 <p  class="  my-1 px-3" id="photocomment_text_{{$comment->id}}" >{{$comment['comment']}}.</p>
                             </div>
                             <p class="my-0">
-                                <a href="javascript:;" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none ms-3  px-0">2 hr</a>
+                                <span class="btn btn-sm text-gray-600 ms-3 px-0">{{optional($comment->created_at)->diffForHumans()}}</span>
                                 <a href="javascript:;" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none mx-1  px-0">Like</a>
                                 <a href="javascript:;" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none mx-1 px-0" onclick="ReplyBox()">Reply</a>
                                 </p>
                                 <div class="reply-box" style="display: none;">
-                                    <form action="/post-reply" method="POST">
+                                    <form action="/photo-reply" method="POST">
                                         @csrf
                                         <div class="ps-2 flex-1 m-2">
                                             <div class="position-relative m-2">
@@ -330,7 +329,7 @@
         var photoId = $(this).data('photo-id');
         var csrfToken = "{{ csrf_token() }}";
         $.ajax({
-            url: "{{ url('/make-profile-picture') }}",
+            url: "/make-profile-picture",
             method: 'POST',
             data: {
                 userId: userId,

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Block;
+use App\Friend;
 use App\Messanger;
 use App\User;
 use Illuminate\Http\Request;
@@ -10,7 +12,34 @@ class MessangerController extends Controller
 {
     public function inbox()
     {
-        $contact = User::whereKeyNot(auth()->id())->orderBy('id')->first();
+        $me = auth()->id();
+
+        $blockedIds = Block::where('user_id', $me)->pluck('blocked_id')
+            ->merge(Block::where('blocked_id', $me)->pluck('user_id'))
+            ->unique()
+            ->values();
+
+        $latestMessage = Messanger::where(function ($q) use ($me) {
+                $q->where('my_id', $me)->orWhere('user_id', $me);
+            })
+            ->when($blockedIds->isNotEmpty(), function ($q) use ($blockedIds) {
+                $q->whereNotIn('my_id', $blockedIds)->whereNotIn('user_id', $blockedIds);
+            })
+            ->latest('id')
+            ->first();
+
+        if ($latestMessage) {
+            $contactId = (int) $latestMessage->my_id === (int) $me
+                ? $latestMessage->user_id
+                : $latestMessage->my_id;
+
+            return redirect('/messanger/'.$contactId);
+        }
+
+        $contact = User::whereKeyNot($me)
+            ->when($blockedIds->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $blockedIds))
+            ->orderBy('id')
+            ->first();
         abort_unless($contact, 404, 'No contacts are available.');
 
         return redirect('/messanger/'.$contact->id);
@@ -21,22 +50,110 @@ class MessangerController extends Controller
         $me = auth()->id();
         abort_if((int) $id === (int) $me, 422, 'You cannot start a conversation with yourself.');
         $user = User::findOrFail($id);
-        $users = User::whereKeyNot($me)->get();
+
+        $isBlocked = Block::where(function ($q) use ($me, $id) {
+            $q->where('user_id', $me)->where('blocked_id', $id);
+        })->orWhere(function ($q) use ($me, $id) {
+            $q->where('user_id', $id)->where('blocked_id', $me);
+        })->exists();
+
+        abort_if($isBlocked, 403, 'Communication is blocked with this user.');
+
+        $blockedIds = Block::where('user_id', $me)->pluck('blocked_id')
+            ->merge(Block::where('blocked_id', $me)->pluck('user_id'))
+            ->unique()
+            ->values();
+
+        $recentContactIds = Messanger::where('my_id', $me)
+            ->orWhere('user_id', $me)
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get(['my_id', 'user_id'])
+            ->map(fn ($m) => (int) ($m->my_id == $me ? $m->user_id : $m->my_id))
+            ->reject(fn ($cId) => $blockedIds->contains($cId))
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!in_array((int) $user->id, $recentContactIds, true)) {
+            array_unshift($recentContactIds, (int) $user->id);
+        }
+
+        $friendIds = Friend::where('state', 1)
+            ->where(fn ($q) => $q->where('user_id', $me)->orWhere('friends_id', $me))
+            ->limit(20)
+            ->get(['user_id', 'friends_id'])
+            ->map(fn ($f) => (int) ($f->user_id == $me ? $f->friends_id : $f->user_id))
+            ->reject(fn ($fId) => $blockedIds->contains($fId))
+            ->all();
+
+        $contactIds = array_values(array_unique(array_merge($recentContactIds, $friendIds)));
+
+        if (count($contactIds) < 10) {
+            $fallbackIds = User::whereKeyNot($me)
+                ->whereNotIn('id', array_merge($contactIds, $blockedIds->all()))
+                ->limit(10)
+                ->pluck('id')
+                ->all();
+            $contactIds = array_merge($contactIds, $fallbackIds);
+        }
+
+        $users = User::with('photopro')->whereIn('id', $contactIds)->get();
 
         // إرسال رسالة
         if ($request->isMethod('post')) {
-            $data = $request->validate(['text' => 'required|string|max:2000']);
+            $data = $request->validate([
+                'text' => 'nullable|string|max:2000',
+                'attachment' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,mp3,wav,ogg,pdf|max:10240',
+            ]);
+
+            $text = trim($data['text'] ?? '');
+            if ($text === '' && !$request->hasFile('attachment')) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Message or attachment is required.'
+                ], 422);
+            }
+
+            $attachmentPath = null;
+            $attachmentType = null;
+
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+                $mime = (string) $file->getMimeType();
+                if (str_starts_with($mime, 'image/')) {
+                    $attachmentType = 'image';
+                } elseif (str_starts_with($mime, 'audio/')) {
+                    $attachmentType = 'audio';
+                } else {
+                    $attachmentType = 'file';
+                }
+
+                $ext = $file->getClientOriginalExtension() ?: 'bin';
+                $filename = uniqid('chat_', true) . '.' . $ext;
+                $dest = public_path('chat_attachments/' . $me);
+                if (!is_dir($dest)) {
+                    mkdir($dest, 0755, true);
+                }
+                $file->move($dest, $filename);
+                $attachmentPath = 'chat_attachments/' . $me . '/' . $filename;
+            }
 
             $message = Messanger::create([
-                'message'=> trim($data['text']),
-                'my_id'=> $me,
-                'user_id'  => $user->id,
-                'read'   => 0
+                'message' => $text,
+                'attachment' => $attachmentPath,
+                'attachment_type' => $attachmentType,
+                'my_id' => $me,
+                'user_id' => $user->id,
+                'read' => 0
             ]);
 
             return response()->json([
                 'status' => true,
-                'id' => $message->id
+                'id' => $message->id,
+                'message' => $message->message,
+                'attachment' => $message->attachment ? asset($message->attachment) : null,
+                'attachment_type' => $message->attachment_type,
             ]);
         }
 
@@ -53,8 +170,16 @@ class MessangerController extends Controller
         ->orderBy('created_at', 'desc')
         ->paginate(10, ['*'], 'page', $request->query('page', 1));
 
-        if ($request->ajax()) {
-            return response()->json($messages->getCollection()->reverse()->values());
+        if ($request->query('format') === 'json') {
+            return response()->json(
+                $messages->getCollection()->reverse()->values()->map(function ($message) {
+                    if ($message->attachment) {
+                        $message->attachment = asset($message->attachment);
+                    }
+
+                    return $message;
+                })
+            );
         }
 
         return view('messanger', compact('messages','users','user'));

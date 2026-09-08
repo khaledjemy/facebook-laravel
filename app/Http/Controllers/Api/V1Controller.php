@@ -24,15 +24,16 @@ class V1Controller extends Controller
 
     public function me(Request $request) { return response()->json($request->user()->load('photopro')); }
     public function logout(Request $request) { $request->attributes->get('apiToken')->delete(); return response()->json(['message'=>'Token revoked.']); }
-    public function createPost(Request $request) { $data=$request->validate(['post_text'=>'required|string|max:255']); return response()->json(Post::create(['user_id'=>$request->user()->id,'post_text'=>$data['post_text'],'status'=>1]),201); }
+    public function createPost(Request $request) { $data=$request->validate(['post_text'=>'required|string|max:255','visibility'=>'sometimes|in:public,friends,only_me']); return response()->json(Post::create(['user_id'=>$request->user()->id,'post_text'=>$data['post_text'],'status'=>1,'visibility'=>$data['visibility'] ?? 'public']),201); }
     public function feed(Request $request)
     {
         $limit = min(max((int) $request->query('limit', 10), 1), 50);
-        return response()->json(Post::with(['user.photopro','react.user'])->latest()->paginate($limit));
+        return response()->json(Post::visibleTo($request->user())->with(['user.photopro','react.user'])->latest()->paginate($limit));
     }
 
     public function post(Post $post)
     {
+        abort_unless(Post::visibleTo(request()->user())->whereKey($post->id)->exists(), 404);
         return response()->json($post->load(['user.photopro','commentes.user.photopro','react.user']));
     }
 

@@ -17,7 +17,7 @@
 						<div class="profile-header-content    p-0 rounded rounded-bottom" >
 							<div class="row p-0 m-0 p_co rounded-bottom ">
 								@if($profile_page->coverpro)
-                                <img id="profile-cover-preview" class="p-0 m-0 rounded-bottom profile-cover-image" src="{{ asset($profile_page->coverpro->path.$profile_page->coverpro->id.$profile_page->coverpro->type) }}" alt="{{ $profile_page->first_name }} cover"/>
+                                <img id="profile-cover-preview" role="button" tabindex="0" data-profile-photo-id="{{ $profile_page->coverpro->id }}" class="p-0 m-0 rounded-bottom profile-cover-image profile-media-view-trigger" src="{{ asset($profile_page->coverpro->path.$profile_page->coverpro->id.$profile_page->coverpro->type) }}" alt="{{ $profile_page->first_name }} cover"/>
                                 @else
                                 <div id="profile-cover-preview" class="profile-cover-image profile-cover-fallback"></div>
                                 @endif
@@ -37,7 +37,7 @@
                     	<!-- BEGIN profile-header-img -->
 							<div class="profile-header-img rounded-circle position-sticky mt-n5">
 								@if($profile_page->photopro)
-                                <img id="profile-avatar-preview" class="img-thumbnail rounded-circle profile-avatar-image" src="{{ asset($profile_page->photopro->path.$profile_page->photopro->id.$profile_page->photopro->type) }}" alt="{{ $profile_page->first_name }}"/>
+                                <img id="profile-avatar-preview" role="button" tabindex="0" data-profile-photo-id="{{ $profile_page->photopro->id }}" class="img-thumbnail rounded-circle profile-avatar-image profile-media-view-trigger" src="{{ asset($profile_page->photopro->path.$profile_page->photopro->id.$profile_page->photopro->type) }}" alt="{{ $profile_page->first_name }}"/>
                                 @else
                                 <img id="profile-avatar-preview" class="img-thumbnail rounded-circle profile-avatar-image" src="{{ asset('img/Default_avatar_profile.jpg') }}" alt="{{ $profile_page->first_name }}"/>
                                 @endif
@@ -165,35 +165,27 @@
 						<!-- #modal-dialog -->
 							<form action="/posts" id="myForm"  method="POST" enctype="multipart/form-data">
 								@csrf
-								<div class="row mt-2 ms-1" >
-									<div class="col-md-1 p-1 " >
-								@if(isset($profile) && isset($profile['photopro']))
-                                <img style="height:168px;width:168px" class="img-thumbnail rounded-circle"  src=" {{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}  " height="40" width="40" alt=""/>
-                                @else
-                                <img style="height:168px;width:168px" class="img-thumbnail rounded-circle"  src=" {{ asset('img/Default_avatar_profile.jpg') }}  " height="40" width="40" alt=""/>
-                                @endif
-									</div>
-									<div class="col-md-10 mx-2 p-1" >
-										<a href="#modal-dialog"  data-bs-toggle="modal">
-										<input type="text" class="ms-2 px-0 form-control rounded-pill bgr py-3  pb-1 inpotbox " name="post_text" placeholder="{{ __('ui.whats_on_your_mind') }}" >
-										</a>
-									</div>
+								<input type="hidden" name="visibility" class="post-visibility-input" value="{{ auth()->check() ? (auth()->user()->default_post_visibility ?? 'public') : 'public' }}">
+								<input type="hidden" name="post_text" class="inpotbox">
+								<div class="profile-composer-top">
+									@if(isset($profile) && isset($profile['photopro']))
+                                        <img class="profile-composer-avatar" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt="">
+                                    @else
+                                        <img class="profile-composer-avatar" src="{{ asset('img/Default_avatar_profile.jpg') }}" alt="">
+                                    @endif
+									<a href="#modal-dialog" class="profile-composer-prompt" data-bs-toggle="modal">{{ __('ui.whats_on_your_mind') }}</a>
 								</div>
-								
-								<hr>
-								
-								<div class="btn-group btn-group-lg mx-2 border-0 text-decoration-none">
-									<button type="button" class="btn btn-white rounded m-1 border-0">
-											<a href="#" class="text-decoration-none text-muted p-1" ><img src="style/c0dWho49-X3.png" >Live video</a>
-									</button>
-									<button type="button" class="btn btn-white rounded m-1 border-0">
-											<a class="text-decoration-none text-muted" href="#"><img src="style/Ivw7nhRtXyo.png" >Photo/video
-												<input type="file" id="fileInput2" name="files[]" class="card-body opacity-0" accept="image/jpeg, image/jpg, image/png"  style="display:none;" multiple>
-											</a> 
-									</button>
-									<button type="button" class="btn btn-white rounded m-1 border-0">
-										<a class="text-decoration-none text-muted" href="#"><img src="style/Y4mYLVOhTwq.png" >Feeling/activity</a>
 
+								<div class="profile-composer-actions">
+									<button type="button" class="profile-composer-action" data-bs-toggle="modal" data-bs-target="#modal-dialog">
+										<i class="fa fa-video text-danger"></i><span>Live video</span>
+									</button>
+									<label for="fileInput2" class="profile-composer-action">
+										<i class="fa fa-images text-success"></i><span>Photo/video</span>
+									</label>
+									<input type="file" id="fileInput2" name="files[]" accept="image/*,video/*,.mkv,.avi,.mov,.webm,.mp4,.mpeg,.3gp" hidden multiple>
+									<button type="button" class="profile-composer-action" data-bs-toggle="modal" data-bs-target="#modal-dialog">
+										<i class="far fa-smile text-warning"></i><span>Feeling/activity</span>
 									</button>
 								</div>
 
@@ -229,7 +221,7 @@
                                                 <div class="row justify-content-start text-start fs-15px fw-bolder ">
                                                     <a class="post-author text-dark text-decoration-none my-0" href="profile/{{$post->user['id']}}">{{$post->user['first_name']}}  {{$post->user['last_name']}}<i class="fa fa-check-circle text-blue ms-1"></i></a>
                                                     <div class="text-muted ">
-                                                    <a class="post-time text-muted text-decoration-none" href="{{ url('/post/'.$post->id) }}">{{ $post->created_at?->diffForHumans() ?? 'just now' }} <i class="fa fa-globe-americas opacity-5 ms-1"></i></a>
+                                                    <a class="post-time text-muted text-decoration-none" href="{{ url('/post/'.$post->id) }}"><time class="js-relative-time" datetime="{{ $post->created_at?->toIso8601String() }}">{{ $post->created_at?->diffForHumans() ?? 'just now' }}</time> <i class="fa {{ $post->visibility === 'only_me' ? 'fa-lock' : ($post->visibility === 'friends' ? 'fa-user-friends' : 'fa-globe-americas') }} opacity-5 ms-1" title="{{ ucfirst(str_replace('_', ' ', $post->visibility ?? 'public')) }}"></i></a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -315,7 +307,7 @@
                                                                         preload="auto" 
                                                                         poster="path_to_image.jpg" 
                                                                         data-setup='{}' >
-                                                                        <source src="{{ asset($i_videos[$r][0]->path . $i_videos[$r][0]->id . '/playlist.m3u8') }}">
+                                                                        <source src="{{ asset($i_videos[$r][0]->path . $i_videos[$r][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
                                                                     </video>
                                                                 </a>    
                                                             </div>
@@ -329,7 +321,7 @@
                                                                         preload="auto" 
                                                                         poster="path_to_image.jpg" 
                                                                         data-setup='{}' >
-                                                                        <source src="{{ asset($i_videos[$r2][0]->path . $i_videos[$r2][0]->id . '/playlist.m3u8') }}">
+                                                                        <source src="{{ asset($i_videos[$r2][0]->path . $i_videos[$r2][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
                                                                     </video>
                                                                 </a>    
                                                             </div>
@@ -356,31 +348,7 @@
                                         </div>
                                 
                                         <!-- timeline-stats -->
-                                        <div class="d-flex align-items-center  m-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="fa-stack fs-10px">
-                                                    <i class="fa fa-circle fa-stack-2x text-danger"></i>
-                                                    <i class="fa fa-heart fa-stack-1x fa-inverse fs-11px"></i>
-                                                </span>
-                                                <span class="fa-stack fs-10px">
-                                                    <i class="fa fa-circle fa-stack-2x text-blue"></i>
-                                                    <i class="fa fa-thumbs-up fa-stack-1x fa-inverse fs-11px bottom-0 mb-1px"></i>
-                                                </span>
-                                                <a href="#" class="ms-1 reaction-count" data-post-id="{{$post->id}}">{{count($post['react'])}}</a>
-                                            </div>
-                                            <div class="d-flex align-items-center ms-auto ">
-                                                <div>
-                                                    <p></p>
-                                                    </div>
-                                                <div class="ms-3">
-                                                    @if(count($post->commentes) > 0)
-                                                            <p>{{ count($post->commentes) }} <span>{{ __('ui.comments') }}</span></p>
-                                                        @else
-                                                            <p></p>
-                                                        @endif
-                                                </div>
-                                            </div>
-                                        </div>
+                                        @include('partials.post-engagement-summary', ['post' => $post])
                                         <!-- timeline-action -->
                                         <hr class="my-10px">
                                         <div class="d-flex align-items-center fw-bold"> 
@@ -423,7 +391,8 @@
                                         <div class="d-flex m-3 flex-row comment" id="comment_{{$post->id}}_{{$comment->id}}">
                                             <div class="col-md-1 col-1 my-3 p-0 d-flex justify-content-start " >
                                                 <a class="p-0 me-0 " href="javascript:;">
-                                                    <img id="comment_img_{{$comment->id}}" src="{{asset($comment['user']['photopro']['path'].$comment['user']['photopro']['id'].$comment['user']['photopro']['type'])}}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0 ">
+                                                    @php $commentPhoto = $comment->user?->photopro; @endphp
+                                                    <img id="comment_img_{{$comment->id}}" src="{{ $commentPhoto ? asset($commentPhoto->path.$commentPhoto->id.$commentPhoto->type) : asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
                                                 </a>
                                             </div>
                                             <div id="father_cid_{{ $comment->id }}" class=" col-md-10 col-10 m-0 p-0">
@@ -431,10 +400,13 @@
                                                     <a id="user_link_{{$comment->user['id']}}" href="profile/{{$comment->user['id']}}" >
                                                         <h5 class="mb-1 px-3" id="comment_name_{{$comment->id}}">{{$comment->user['first_name']}} {{$comment->user['last_name']}}</h5>
                                                     </a>
-                                                    <p  class="  my-1 px-3" id="comment_text_{{$comment->id}}" >{{$comment['text_co']}}.</p>
+                                                    <p class="my-1 px-3" id="comment_text_{{$comment->id}}">{{$comment['text_co']}}</p>
+                                                    @if($comment->media_path)
+                                                        @if($comment->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ asset($comment->media_path) }}" @if(str_ends_with($comment->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ asset($comment->media_path) }}" alt="">@endif
+                                                    @endif
                                                 </div>
                                                 <p class="my-0">
-                                                    <a href="javascript:;" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none ms-3  px-0">2 hr</a>
+                                                    <time class="comment-time js-relative-time" datetime="{{ $comment->created_at?->toIso8601String() }}">{{ $comment->created_at?->diffForHumans(short: true) ?? 'now' }}</time>
                                                         @php $like_comment = false; @endphp
                                                             @foreach($comment['react'] as $react) 
                                                             @if(($react->user_id==Auth::user()->id) && ($comment->id ==$react->comment_id))
@@ -450,7 +422,7 @@
                                                                 <div class="position-relative m-2">
                                                                     <textarea id="commen_rplay_{{$comment->id}}" data-user_id="@if(Auth::check()) {{ Auth::user()->id??0}} @endif " data-cuser_id="{{ $comment->user['id'] }}"  name="comment" class="form-control rounded-pill ps-3" placeholder="Write a reply...">{{ $comment->user['first_name'] }} {{ $comment->user['last_name'] }}</textarea>
                                                                         
-                                                                    <button id="replay_{{$comment->id}}" type="submit">reply</button>
+                                                                    <button id="replay_{{$comment->id}}" class="reply-send" type="submit" aria-label="{{ __('ui.reply') }}"><i class="fa fa-paper-plane"></i></button>
                                                                         <div class="position-absolute end-0 top-0 bottom-0 d-flex align-items-center px-2">
                                                                             <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-smile fa-fw fa-lg d-block"></i></a>
                                                                             <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-camera fa-fw fa-lg d-block"></i></a>
@@ -468,13 +440,20 @@
                                                         <div  id="replay_id_{{ $item->id }}"class="ps-2 d-flex flex-row m-1 p-1 ">
                                                             <div class="col-md-1 m-0" > 
                                                                 <a class="p-0 me-0 " href="javascript:;">
-                                                                    <img id="replay_photo_id_{{ $item->id  }}" src="{{asset($item['userreply']['photopro']['path'].$item['userreply']['photopro']['id'].$item['userreply']['photopro']['type'])}}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0 ">
+                                                                    @php $replyPhoto = $item->userreply?->photopro; @endphp
+                                                                    <img id="replay_photo_id_{{ $item->id  }}" src="{{ $replyPhoto ? asset($replyPhoto->path.$replyPhoto->id.$replyPhoto->type) : asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
                                                                 </a>
                                                             </div>
-                                                            <div class="mx-1 col-md-11 bg-gray-200 radius_30">
+                                                            <div class="mx-1 col-md-11 reply-content">
+                                                                <div class="reply-bubble">
                                                                 <a id="link_id_{{ $item->id  }}" href="/profile/{{$item->userreply['id']}}"  >
                                                                     <h5 id="userdata_fl_{{ $item->id  }}" class="mb-1 mx-3">{{$item->userreply['first_name']}} {{$item->userreply['last_name']}}</h5></a>
-                                                                <p id="replay_comen_{{ $item->id }}"  class="mx-3 mb-2">{{$item->reply}}.</p>
+                                                                <p id="replay_comen_{{ $item->id }}" class="mx-3 mb-1">{{$item->reply}}.</p>
+                                                                @if($item->media_path)
+                                                                    @if($item->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ asset($item->media_path) }}" @if(str_ends_with($item->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ asset($item->media_path) }}" alt="">@endif
+                                                                @endif
+                                                                </div>
+                                                                <time class="reply-time js-relative-time" datetime="{{ $item->created_at?->toIso8601String() }}">{{ $item->created_at?->diffForHumans(short: true) ?? 'now' }}</time>
                                                             </div>
                                                             <hr>
                                                             </div>
@@ -518,7 +497,7 @@
                                                 @else
                                                 <div>
                                                     <a class="w-30px" href="javascript:;">
-                                                        <img src="" height="35" class="rounded-pill">
+                                                        <img src="{{ asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" class="rounded-pill" alt="avatar">
                                                     </a>
                                                 </div>
                                                 @endif
@@ -673,8 +652,26 @@
 					<!-- END #profile-photos tab -->
 					<!-- BEGIN #profile-videos tab -->
 					<div class="tab-pane bg-white rounded fade" id="profile-videos">
-						<h4 class="mb-3">{{ __('ui.videos') }}</h4>
-						<!-- BEGIN row -->
+						<div class="d-flex align-items-center justify-content-between p-3 pb-2">
+							<h4 class="mb-0">{{ __('ui.videos') }}</h4>
+							<span class="text-muted">{{ $allvideo->count() }}</span>
+						</div>
+						<div class="row g-3 p-3 pt-1">
+							@forelse($allvideo as $profileVideo)
+								<div class="col-xl-4 col-md-6">
+									<div class="profile-video-card">
+										<video class="video-js vjs-default-skin profile-gallery-video" controls preload="metadata" data-setup='{}'>
+											<source src="{{ asset($profileVideo->path.$profileVideo->id.'/playlist.m3u8') }}" type="application/x-mpegURL">
+										</video>
+									</div>
+								</div>
+							@empty
+								<div class="col-12 py-5 text-center text-muted">
+									<i class="fa fa-video fa-2x mb-3 d-block"></i>{{ __('ui.no_items') }}
+								</div>
+							@endforelse
+						</div>
+						{{--
 						<div class="row gx-1">
 							<!-- BEGIN col-3 -->
 							<div class="col-md-3 col-sm-4 mb-1">
@@ -789,6 +786,7 @@
 							</div>
 							<!-- END col-3 -->
 						</div>
+						--}}
 						<!-- END row -->
 					</div>
 					<!-- END #profile-videos tab -->
@@ -1121,28 +1119,114 @@
 	</div>
 	<!-- END #app -->
 	@if(Auth::id() === $profile_page->id)
+	<div class="modal fade" id="profileCropModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg">
+			<div class="modal-content profile-crop-modal">
+				<div class="modal-header border-0">
+					<h5 class="modal-title" id="profileCropTitle">ضبط الصورة</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body pt-0">
+					<div class="profile-crop-stage"><img id="profileCropImage" alt="معاينة الصورة"></div>
+					<div class="profile-crop-tools">
+						<button type="button" class="btn btn-light rounded-circle" id="cropRotateLeft" title="تدوير لليسار"><i class="fa fa-rotate-left"></i></button>
+						<button type="button" class="btn btn-light rounded-circle" id="cropZoomOut" title="تصغير"><i class="fa fa-minus"></i></button>
+						<button type="button" class="btn btn-light rounded-circle" id="cropZoomIn" title="تكبير"><i class="fa fa-plus"></i></button>
+						<button type="button" class="btn btn-light rounded-circle" id="cropRotateRight" title="تدوير لليمين"><i class="fa fa-rotate-right"></i></button>
+					</div>
+				</div>
+				<div class="modal-footer border-0">
+					<button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">إلغاء</button>
+					<button type="button" class="btn btn-primary px-4" id="saveProfileCrop"><i class="fa fa-check me-2"></i>حفظ الصورة</button>
+				</div>
+			</div>
+		</div>
+	</div>
 	<script>
 	document.addEventListener('DOMContentLoaded', function () {
+		document.querySelectorAll('.profile-media-view-trigger').forEach(function (image) {
+			function openProfileMedia(event) {
+				if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+				event.preventDefault();
+				showphoto(image.dataset.profilePhotoId);
+			}
+			image.addEventListener('click', openProfileMedia);
+			image.addEventListener('keydown', openProfileMedia);
+		});
+		const modalElement = document.getElementById('profileCropModal');
+		const cropModal = new bootstrap.Modal(modalElement);
+		const cropImage = document.getElementById('profileCropImage');
+		const saveButton = document.getElementById('saveProfileCrop');
+		let cropper = null;
+		let selectedInput = null;
+		let objectUrl = null;
+
 		document.querySelectorAll('.profile-media-input').forEach(function (input) {
-			input.addEventListener('change', async function () {
+			input.addEventListener('change', function () {
 				if (!this.files || !this.files[0]) return;
-				const label = this.closest('.profile-photo-edit');
-				label.classList.add('is-loading');
-				label.querySelector('i').className = 'fa fa-spinner fa-spin';
+				selectedInput = this;
+				objectUrl = URL.createObjectURL(this.files[0]);
+				cropImage.src = objectUrl;
+				document.getElementById('profileCropTitle').textContent = this.dataset.cover === '1' ? 'ضبط صورة الغلاف' : 'ضبط صورة الحساب';
+				cropModal.show();
+			});
+		});
+
+		modalElement.addEventListener('shown.bs.modal', function () {
+			if (cropper) cropper.destroy();
+			const isCover = selectedInput && selectedInput.dataset.cover === '1';
+			cropper = new Cropper(cropImage, {
+				aspectRatio: isCover ? 16 / 6 : 1,
+				viewMode: 1,
+				dragMode: 'move',
+				autoCropArea: isCover ? 0.92 : 0.82,
+				responsive: true,
+				background: false,
+				guides: true,
+				center: true,
+				cropBoxMovable: true,
+				cropBoxResizable: true,
+			});
+		});
+
+		modalElement.addEventListener('hidden.bs.modal', function () {
+			if (cropper) { cropper.destroy(); cropper = null; }
+			if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+			if (selectedInput) selectedInput.value = '';
+		});
+
+		document.getElementById('cropRotateLeft').addEventListener('click', function () { if (cropper) cropper.rotate(-90); });
+		document.getElementById('cropRotateRight').addEventListener('click', function () { if (cropper) cropper.rotate(90); });
+		document.getElementById('cropZoomOut').addEventListener('click', function () { if (cropper) cropper.zoom(-0.1); });
+		document.getElementById('cropZoomIn').addEventListener('click', function () { if (cropper) cropper.zoom(0.1); });
+
+		saveButton.addEventListener('click', function () {
+			if (!cropper || !selectedInput) return;
+			const isCover = selectedInput.dataset.cover === '1';
+			saveButton.disabled = true;
+			saveButton.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i>جارٍ الحفظ';
+			const canvas = cropper.getCroppedCanvas({
+				width: isCover ? 1600 : 800,
+				height: isCover ? 600 : 800,
+				imageSmoothingEnabled: true,
+				imageSmoothingQuality: 'high',
+			});
+			canvas.toBlob(async function (blob) {
 				const data = new FormData();
-				data.append('files', this.files[0]);
-				data.append('cover', this.dataset.cover);
+				data.append('files', blob, 'cropped-profile.jpg');
+				data.append('cover', isCover ? '1' : '0');
 				try {
-					const response = await fetch('{{ url('/make-profile-picture') }}', {
+					const response = await fetch('/make-profile-picture', {
 						method: 'POST', headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json'}, body: data
 					});
 					if (!response.ok) throw new Error('upload failed');
 					window.location.reload();
 				} catch (error) {
 					alert(@json(__('ui.upload_failed')));
-					window.location.reload();
+					saveButton.disabled = false;
+					saveButton.innerHTML = '<i class="fa fa-check me-2"></i>حفظ الصورة';
 				}
-			});
+			}, 'image/jpeg', 0.9);
 		});
 	});
 	</script>

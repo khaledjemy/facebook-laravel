@@ -24,6 +24,8 @@
 
 
 
+use App\Http\Controllers\BlockController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StoryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
@@ -38,6 +40,7 @@ use App\Http\Controllers\VideoController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ExploreController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('postowner');
 Route::get('/language/{locale}', function ($locale) { abort_unless(in_array($locale, ['en','ar'], true), 404); session(['locale'=>$locale]); return back(); })->name('language');
@@ -48,6 +51,21 @@ Route::get('/saved', [ExploreController::class, 'saved'])->middleware('auth');
 Route::post('/saved/{post}', [ExploreController::class, 'toggleSaved'])->middleware('auth');
 Route::get('/memories', [ExploreController::class, 'memories'])->middleware('auth');
 Route::get('/search', [ExploreController::class, 'search'])->middleware('auth');
+Route::get('/notifications', [NotificationController::class, 'index'])->middleware('auth');
+Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->middleware('auth');
+Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->middleware('auth');
+Route::get('/stories', [StoryController::class, 'index'])->middleware('auth');
+Route::post('/stories', [StoryController::class, 'store'])->middleware('auth');
+Route::delete('/stories/{id}', [StoryController::class, 'destroy'])->middleware('auth');
+Route::post('/post/{id}/share', [PostController::class, 'share'])->middleware('auth');
+Route::get('/blocked-users', [BlockController::class, 'index'])->middleware('auth');
+Route::post('/users/{id}/block', [BlockController::class, 'block'])->middleware('auth');
+Route::post('/users/{id}/unblock', [BlockController::class, 'unblock'])->middleware('auth');
+Route::get('/settings', [SettingsController::class, 'index'])->name('settings')->middleware('auth');
+Route::post('/settings/account', [SettingsController::class, 'updateAccount'])->name('settings.account')->middleware('auth');
+Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password')->middleware('auth');
+Route::post('/settings/privacy', [SettingsController::class, 'updatePrivacy'])->name('settings.privacy')->middleware('auth');
+Route::post('/settings/preferences', [SettingsController::class, 'updatePreferences'])->name('settings.preferences')->middleware('auth');
 Route::get('/websocket-ticket', function () {
     $expires = now()->addMinute()->timestamp;
     $userId = (string) auth()->id();
@@ -74,6 +92,8 @@ Route::post('/regi', [RegisterController::class, 'reg']);
 
 Route::post('posts', [PostController::class, 'store'])->middleware('auth');
 Route::get('/post/{id}', [PostController::class, 'index1']);
+Route::post('/postdelete', [PostController::class, 'delete_post'])->middleware('auth');
+Route::post('/post/{id}/update', [PostController::class, 'update'])->middleware('auth');
 
 
 Route::post('comment', [CommentController::class, 'store'])->middleware('auth');
@@ -83,12 +103,14 @@ Route::post('commentdelete', [CommentController::class, 'delete_comment'])->midd
 
 
 Route::post('commentphoto', [CommentController::class, 'photocommentstore'])->middleware('auth');
+Route::post('commentvideo', [CommentController::class, 'videocommentstore'])->middleware('auth');
 Route::post('post-reply', [CommentController::class, 'reply_store'])->middleware('auth');
 Route::post('photo-reply', [CommentController::class, 'photo_reply_store'])->middleware('auth');
 Route::post('photocommentdelete', [CommentController::class, 'delete_photocomment'])->middleware('auth');
 
 
 Route::get('profile/{id}', [UsersController::class, 'profile']);
+Route::get('users/{id}/hover-card', [UsersController::class, 'hoverCard'])->middleware('auth');
 Route::post('/f_action', [UsersController::class, 'friend_action'])->middleware('auth');
 
 
@@ -103,6 +125,7 @@ Route::get('post/{post}/reactions', [ReactController::class, 'postReactions']);
 Route::post('profile/like', [ReactController::class, 'react'])->middleware('auth');
 Route::post('post/like', [ReactController::class, 'react'])->middleware('auth');
 Route::post('photo/like', [ReactController::class, 'react_photo'])->middleware('auth');
+Route::post('video/like', [ReactController::class, 'react_video'])->middleware('auth');
 Route::post('likecomment', [ReactController::class, 'react_comment'])->middleware('auth');
 
 

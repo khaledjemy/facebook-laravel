@@ -47,15 +47,19 @@
       <div class="col-3 d-flex justify-content-end align-items-center p-0 m-0 navbar-right-layer" style="padding-right:0 !important;">
         <div class="d-flex gap-2 align-items-center" style="margin-right: 10px;">
           
-          <div class="icon-wrapper" id="notifications-icon">
-            <div class="widget-icon rounded-circle bg-light">
+          <div class="icon-wrapper position-relative" id="notifications-icon">
+            <div class="widget-icon rounded-circle bg-light position-relative">
               <svg viewBox="0 0 24 24" width="20" height="20">
                 <path d="M3 9.5a9 9 0 1 1 18 0v2.927c0 1.69.475 3.345 1.37 4.778a1.5 1.5 0 0 1-1.272 2.295h-4.625a4.5 4.5 0 0 1-8.946 0H2.902a1.5 1.5 0 0 1-1.272-2.295A9.01 9.01 0 0 0 3 12.43V9.5zm6.55 10a2.5 2.5 0 0 0 4.9 0h-4.9z"></path></svg>
+              <span id="notification-badge" class="badge rounded-pill bg-danger position-absolute" style="display:none; font-size: 10px; top: -2px; right: -2px; padding: 3px 6px;">0</span>
             </div>
             <div id="notifications-popup" class="fb-popup">
-              <div class="popup-header">الإشعارات</div>
-              <div class="popup-list">
-                <div class="popup-item">📢 لا توجد إشعارات جديدة</div>
+              <div class="popup-header d-flex justify-content-between align-items-center">
+                <span>الإشعارات</span>
+                <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 text-primary" id="mark-all-notifications-read" style="display:none; font-size: 12px;">تحديد الكل كمقروء</button>
+              </div>
+              <div class="popup-list" id="notifications-list" style="max-height: 360px; overflow-y: auto;">
+                <div class="popup-item text-muted"><span class="popup-item-icon"><i class="far fa-bell"></i></span><span>لا توجد إشعارات جديدة</span></div>
               </div>
             </div>
           </div>
@@ -70,9 +74,9 @@
               <div class="popup-header">الدردشة</div>
               <div class="popup-list">
                 @auth
-                  <a class="popup-item text-decoration-none" href="{{ url('/messanger') }}">💬 فتح الرسائل</a>
+                  <a class="popup-item text-decoration-none" href="{{ url('/messanger') }}"><span class="popup-item-icon"><i class="fab fa-facebook-messenger"></i></span><span>فتح الرسائل</span></a>
                 @else
-                  <a class="popup-item text-decoration-none" href="{{ route('login') }}">💬 تسجيل الدخول للمحادثة</a>
+                  <a class="popup-item text-decoration-none" href="{{ route('login') }}"><span class="popup-item-icon"><i class="fab fa-facebook-messenger"></i></span><span>تسجيل الدخول للمحادثة</span></a>
                 @endauth
               </div>
             </div>
@@ -86,11 +90,11 @@
             <div id="menu-popup" class="fb-popup">
               <div class="popup-header">القائمة</div>
               <div class="popup-list">
-                @auth<a class="popup-item text-decoration-none" href="{{ url('/community') }}">👥 {{ __('ui.pages_groups') }}</a>@endauth
-                <a class="popup-item text-decoration-none" href="{{ route('language', app()->getLocale() === 'ar' ? 'en' : 'ar') }}">🌐 {{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}</a>
-                <div class="popup-item">⚙️ الإعدادات والخصوصية</div>
-                <div class="popup-item">❓ المساعدة والدعم</div>
-                <div class="popup-item">🌙 الوضع المظلم</div>
+                @auth<a class="popup-item text-decoration-none" href="{{ url('/community') }}"><span class="popup-item-icon"><i class="fa fa-users"></i></span><span>{{ __('ui.pages_groups') }}</span></a>@endauth
+                <a class="popup-item text-decoration-none" href="{{ route('language', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"><span class="popup-item-icon"><i class="fa fa-globe"></i></span><span>{{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}</span></a>
+                <a class="popup-item text-decoration-none" href="{{ route('settings') }}"><span class="popup-item-icon"><i class="fa fa-cog"></i></span><span>الإعدادات والخصوصية</span></a>
+                <div class="popup-item"><span class="popup-item-icon"><i class="far fa-question-circle"></i></span><span>المساعدة والدعم</span></div>
+                <div class="popup-item" id="nav-toggle-dark-mode" style="cursor: pointer;"><span class="popup-item-icon"><i class="far fa-moon"></i></span><span>الوضع المظلم</span><span class="badge bg-secondary ms-auto small" id="nav-dark-mode-status">إيقاف</span></div>
               </div>
             </div>
           </div>
@@ -100,7 +104,7 @@
             <div class="widget-icon rounded-circle" style="padding:0;">
               @if(Auth::check())
                 @if(isset($profile) && isset($profile['photopro']))
-                  <img class="rounded-circle" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" width="40" height="40" style="object-fit:cover;">
+                  <img class="rounded-circle" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" width="40" height="40" style="object-fit:cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
                 @else
                   <img class="rounded-circle" src="{{ asset('img/Default_avatar_profile.jpg') }}" width="40" height="40">
                 @endif
@@ -108,11 +112,11 @@
             </div>
             <div id="profile-popup" class="profile-menu">
               <div class="popup-list">
-                @auth<a class="popup-item text-decoration-none" href="{{ url('/profile/'.Auth::id()) }}">👤 ملفي الشخصي</a>@endauth
-                <div class="popup-item">🔒 الإعدادات</div>
-                <div class="popup-item">💬 مساعدة</div>
+                @auth<a class="popup-item text-decoration-none" href="{{ url('/profile/'.Auth::id()) }}"><span class="popup-item-icon"><i class="fa fa-user"></i></span><span>ملفي الشخصي</span></a>@endauth
+                <a class="popup-item text-decoration-none" href="{{ route('settings') }}"><span class="popup-item-icon"><i class="fa fa-cog"></i></span><span>الإعدادات والخصوصية</span></a>
+                <div class="popup-item"><span class="popup-item-icon"><i class="far fa-question-circle"></i></span><span>مساعدة</span></div>
                 @auth
-                <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf<button type="submit" class="popup-item border-0 bg-transparent w-100 text-start">🚪 تسجيل الخروج</button></form>
+                <form method="POST" action="{{ route('logout') }}" class="m-0">@csrf<button type="submit" class="popup-item border-0 bg-transparent w-100 text-start"><span class="popup-item-icon"><i class="fa fa-sign-out-alt"></i></span><span>تسجيل الخروج</span></button></form>
                 @endauth
               </div>
             </div>

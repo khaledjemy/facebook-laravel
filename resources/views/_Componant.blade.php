@@ -1,146 +1,262 @@
-    <div class="modal fade"  id="modal-dialog2">
-        <div class="modal-dialog dropzoneDiv" >
-            <div class="modal-content" style="width: 600px;">
-                <div class="modal-header">
-                    <h3 class="modal-title">Create Posts </h3>
-                    
-                        <a href="#modal-dialog" class="bg-gray rounded-circle  btn"  data-bs-toggle="modal"><-  </a>
-                    
+@php
+    $currentVisibility = auth()->check() ? (auth()->user()->default_post_visibility ?? 'public') : 'public';
+    $visibilityConfig = [
+        'public' => ['icon' => 'fa-globe-americas', 'color' => 'text-primary', 'label' => __('ui.public'), 'desc' => __('ui.public_desc')],
+        'friends' => ['icon' => 'fa-user-friends', 'color' => 'text-success', 'label' => __('ui.friends'), 'desc' => __('ui.friends_desc')],
+        'only_me' => ['icon' => 'fa-lock', 'color' => 'text-secondary', 'label' => __('ui.only_me'), 'desc' => __('ui.only_me_desc')],
+    ];
+    $activeVis = $visibilityConfig[$currentVisibility] ?? $visibilityConfig['public'];
+    $authorName = auth()->check() ? (auth()->user()->first_name . ' ' . auth()->user()->last_name) : 'User';
+@endphp
+
+    <!-- Modal 2: Create Post with Media/Dropzone -->
+    <div class="modal fade" id="modal-dialog2" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 580px;">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 16px;">
+                <div class="modal-header border-bottom position-relative py-3">
+                    <h5 class="modal-title fw-bold text-center w-100 mb-0">{{ __('ui.create_post') }}</h5>
+                    <a href="#modal-dialog" class="btn btn-light rounded-circle position-absolute start-0 ms-3 d-flex align-items-center justify-content-center" data-bs-toggle="modal" style="width: 36px; height: 36px;" title="Back">
+                        <i class="fa fa-arrow-left text-muted"></i>
+                    </a>
                 </div>
-                <div class="modal-body " >
-                <div id="progressWrapper" style="width: 100%; background-color: #f3f3f3; border: 1px solid #ccc; height: 30px; display: none;">
-                    <div id="progressBar" style="width: 0%; height: 100%; background-color: #4caf50;"></div>
-                </div>
-                <div id="percentage">0%</div>
-                    <div class="row">
-                        <div class="col-2 meny-pro-pic">
-                          @if(isset($profile) && isset($profile['photopro']))
-                        <img class="rounded-circle" src=" {{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}  " height="40" width="40" alt=""/>
-                        @else
-                          <img class="rounded-circle" src=" {{ asset('img/Default_avatar_profile.jpg') }}  " height="40" width="40" alt=""/>
-                        @endif
-                                            </div>
-                        <div class="col-10 overflow-auto">
-                            <div class="row m-1">
-                                <div class="col-3">
-                                    <span><h5>khaled jemy</h5></span>
-                                    <div class="btn-group">
-                                        <a href="#" class="btn btn-default">Dropdown</a>
-                                        <a href="#" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i class="fa fa-caret-down"></i>
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                        ...
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="col-9">
-                                    <textarea class="wysihtml5" placeholder="Enter text ..."></textarea>
-                                    <input type="hidden" name="example[]" id="fileInput" />
-                                </div>
-                            </div>
-                            <div id="myDropzone" class="position-relative">
-                                <div class="dropzoneDiv w-100 h-100 bg-gray " id="previewDiv">
-                                    Drop files here or click to upload
-                                </div>
-                                <button id="sendButton">Send</button>
-                            </div>
+                <div class="modal-body p-3">
+                    <div id="progressWrapper" style="width: 100%; background-color: #f3f3f3; border: 1px solid #ccc; height: 24px; border-radius: 12px; overflow: hidden; display: none;" class="mb-2">
+                        <div id="progressBar" style="width: 0%; height: 100%; background-color: #1877f2; transition: width 0.3s;"></div>
+                    </div>
+                    <div id="percentage" class="text-center small fw-bold text-muted mb-2 d-none">0%</div>
+
+                    <!-- Author Info & Audience Selector -->
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-2">
+                            @if(isset($profile) && isset($profile['photopro']))
+                                <img class="rounded-circle border" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
+                            @elseif(Auth::check() && Auth::user()->avatar_url)
+                                <img class="rounded-circle border" src="{{ Auth::user()->avatar_url }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
+                            @else
+                                <img class="rounded-circle border" src="{{ asset('img/Default_avatar_profile.jpg') }}" height="44" width="44" style="object-fit: cover;" alt=""/>
+                            @endif
                         </div>
-                        <div class="row rounded border p-3 mx-1">
-                            <div class="col-md-4">add to your post</div>
-                            <div class="col-md-8" >
-                                <ul class="nav nav-pills">
-                                    <li class="nav-item mx-2 rounded-circle">
-                                        <a href="#modal-dialog" data-bs-toggle="modal" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/Ivw7nhRtXyo.png')}}"></a>
+                        <div>
+                            <h6 class="mb-1 fw-bold text-dark">{{ $authorName }}</h6>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border rounded-pill px-2 py-0 dropdown-toggle small d-inline-flex align-items-center gap-1 post-audience-btn shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #e4e6eb; font-size: 13px; font-weight: 600; color: #050505;">
+                                    <i class="fa {{ $activeVis['icon'] }} {{ $activeVis['color'] }} post-audience-current-icon" style="font-size: 12px;"></i>
+                                    <span class="post-audience-current-label">{{ $activeVis['label'] }}</span>
+                                </button>
+                                <ul class="dropdown-menu shadow-lg border-0 rounded-3 py-1 post-audience-menu" style="min-width: 270px; z-index: 1060;">
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2 select-post-audience {{ $currentVisibility === 'public' ? 'active bg-light text-dark' : '' }}" href="javascript:;" data-val="public" data-icon="fa-globe-americas" data-color="text-primary" data-label="{{ __('ui.public') }}">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                                <i class="fa fa-globe-americas text-primary fs-5"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold" style="font-size: 14px;">{{ __('ui.public') }} (Public)</div>
+                                                <small class="text-muted d-block" style="font-size: 11px;">{{ __('ui.public_desc') }}</small>
+                                            </div>
+                                            <i class="fa fa-check text-primary check-audience {{ $currentVisibility === 'public' ? '' : 'd-none' }}" data-val="public"></i>
+                                        </a>
                                     </li>
-                                    <li class="nav-item">
-                                        <a href="#modal-dialog2" data-bs-toggle="tab" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/b37mHA1PjfK.png')}}"></a>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2 select-post-audience {{ $currentVisibility === 'friends' ? 'active bg-light text-dark' : '' }}" href="javascript:;" data-val="friends" data-icon="fa-user-friends" data-color="text-success" data-label="{{ __('ui.friends') }}">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                                <i class="fa fa-user-friends text-success fs-5"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold" style="font-size: 14px;">{{ __('ui.friends') }} (Friends)</div>
+                                                <small class="text-muted d-block" style="font-size: 11px;">{{ __('ui.friends_desc') }}</small>
+                                            </div>
+                                            <i class="fa fa-check text-primary check-audience {{ $currentVisibility === 'friends' ? '' : 'd-none' }}" data-val="friends"></i>
+                                        </a>
                                     </li>
-                                    <li class="nav-item">
-                                        <a href="#default-tab-1" data-bs-toggle="tab" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/Y4mYLVOhTwq.png')}}"></a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="#default-tab-1" data-bs-toggle="tab" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/8zlaieBcZ72.png')}}"></a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="#default-tab-1" data-bs-toggle="tab" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/h_kj6ECZ7Ii.png')}}"></a>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2 select-post-audience {{ $currentVisibility === 'only_me' ? 'active bg-light text-dark' : '' }}" href="javascript:;" data-val="only_me" data-icon="fa-lock" data-color="text-secondary" data-label="{{ __('ui.only_me') }}">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                                <i class="fa fa-lock text-secondary fs-5"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold" style="font-size: 14px;">{{ __('ui.only_me') }} (Only Me)</div>
+                                                <small class="text-muted d-block" style="font-size: 11px;">{{ __('ui.only_me_desc') }}</small>
+                                            </div>
+                                            <i class="fa fa-check text-primary check-audience {{ $currentVisibility === 'only_me' ? '' : 'd-none' }}" data-val="only_me"></i>
+                                        </a>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    <div class="row-mx-2  modal-footer px-4">
-                        <button type="button" id="PostSubmit"  href="javascript:;" id="post" class="col-12 btn btn-primary ">POST</button>
+
+                    <!-- Textarea -->
+                    <div class="mb-3">
+                        <textarea class="post-composer-text form-control border-0 shadow-none fs-5 p-1" placeholder="{{ __('ui.whats_on_your_mind') }}" style="min-height: 110px; resize: none;"></textarea>
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div id="myDropzone" class="position-relative mb-3">
+                        <div class="dropzoneDiv w-100 bg-light rounded-3 border-2 border-dashed p-4 text-center text-muted" id="previewDiv" style="cursor: pointer; min-height: 120px;">
+                            <i class="fa fa-cloud-upload-alt fs-2 mb-2 d-block text-primary"></i>
+                            <span>Drop files here or click to upload</span>
+                        </div>
+                        <button id="sendButton" class="d-none">Send</button>
+                    </div>
+
+                    <!-- Add to your post -->
+                    <div class="rounded-3 border p-2 mb-3 d-flex justify-content-between align-items-center">
+                        <div class="fw-bold text-dark px-2 small">{{ __('ui.add_to_your_post') }}</div>
+                        <div>
+                            <ul class="nav nav-pills align-items-center">
+                                <li class="nav-item mx-1">
+                                    <a href="#modal-dialog" data-bs-toggle="modal" class="btn btn-sm btn-light rounded-circle p-1" title="Write Text">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/Ivw7nhRtXyo.png') }}" alt="">
+                                    </a>
+                                </li>
+                                <li class="nav-item mx-1">
+                                    <a href="#modal-dialog2" data-bs-toggle="tab" class="btn btn-sm btn-light rounded-circle p-1" title="Tag People">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/b37mHA1PjfK.png') }}" alt="">
+                                    </a>
+                                </li>
+                                <li class="nav-item mx-1">
+                                    <a href="#default-tab-1" data-bs-toggle="tab" class="btn btn-sm btn-light rounded-circle p-1" title="Feeling/Activity">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/Y4mYLVOhTwq.png') }}" alt="">
+                                    </a>
+                                </li>
+                                <li class="nav-item mx-1">
+                                    <a href="#default-tab-1" data-bs-toggle="tab" class="btn btn-sm btn-light rounded-circle p-1" title="Check in">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/8zlaieBcZ72.png') }}" alt="">
+                                    </a>
+                                </li>
+                                <li class="nav-item mx-1">
+                                    <a href="#default-tab-1" data-bs-toggle="tab" class="btn btn-sm btn-light rounded-circle p-1" title="More">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/h_kj6ECZ7Ii.png') }}" alt="">
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="modal-footer border-0 p-0">
+                        <button type="button" id="PostSubmit" class="col-12 btn btn-primary rounded-3 fw-bold py-2 fs-6">{{ __('ui.post') }}</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="modal fade "  id="modal-dialog">
-        <div class="modal-dialog dropzoneDiv" >
-            <div class="modal-content" style="width: 600px;">
-                <div class="modal-header">
-                    <h3 class="modal-title">Create Posts </h3>
-                    <button type="button" class="btn-close bg-gray rounded-circle p-3" data-bs-dismiss="modal" aria-hidden="true"></button>
+
+    <!-- Modal 1: Create Post (Text Main Composer) -->
+    <div class="modal fade" id="modal-dialog" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 580px;">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 16px;">
+                <div class="modal-header border-bottom position-relative py-3">
+                    <h5 class="modal-title fw-bold text-center w-100 mb-0">{{ __('ui.create_post') }}</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body ">
-                
-                    <div class="row">
-                        <div class="col-md-1 meny-pro-pic">
+                <div class="modal-body p-3">
+                    <!-- Author Info & Audience Selector -->
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-2">
                             @if(isset($profile) && isset($profile['photopro']))
-                            <img class="rounded-circle" src=" {{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}  " height="40" width="40" alt=""/>
+                                <img class="rounded-circle border" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
+                            @elseif(Auth::check() && Auth::user()->avatar_url)
+                                <img class="rounded-circle border" src="{{ Auth::user()->avatar_url }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
                             @else
-                            <img class="rounded-circle" src=" {{ asset('img/Default_avatar_profile.jpg') }}  " height="40" width="40" alt=""/>
+                                <img class="rounded-circle border" src="{{ asset('img/Default_avatar_profile.jpg') }}" height="44" width="44" style="object-fit: cover;" alt=""/>
                             @endif
                         </div>
-                    <div class="col-md-11 ">
-                        <div class="row m-1">
-                            <div class="col-md-3">
-                                <span>
-                                    <h5>khaled jemy</h5>
-                                </span>
-                                <div class="btn-group">
-                                    <a href="#" class="btn btn-default">Dropdown</a>
-                                    <a href="#" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i class="fa fa-caret-down"></i>
-                                    </a>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li>public</li>
-                                        <li>freinds</li>
-                                        <li>only me</li>
-                                    </ul>
-                                </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold text-dark">{{ $authorName }}</h6>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light border rounded-pill px-2 py-0 dropdown-toggle small d-inline-flex align-items-center gap-1 post-audience-btn shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: #e4e6eb; font-size: 13px; font-weight: 600; color: #050505;">
+                                    <i class="fa {{ $activeVis['icon'] }} {{ $activeVis['color'] }} post-audience-current-icon" style="font-size: 12px;"></i>
+                                    <span class="post-audience-current-label">{{ $activeVis['label'] }}</span>
+                                </button>
+                                <ul class="dropdown-menu shadow-lg border-0 rounded-3 py-1 post-audience-menu" style="min-width: 270px; z-index: 1060;">
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2 select-post-audience {{ $currentVisibility === 'public' ? 'active bg-light text-dark' : '' }}" href="javascript:;" data-val="public" data-icon="fa-globe-americas" data-color="text-primary" data-label="{{ __('ui.public') }}">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                                <i class="fa fa-globe-americas text-primary fs-5"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold" style="font-size: 14px;">{{ __('ui.public') }} (Public)</div>
+                                                <small class="text-muted d-block" style="font-size: 11px;">{{ __('ui.public_desc') }}</small>
+                                            </div>
+                                            <i class="fa fa-check text-primary check-audience {{ $currentVisibility === 'public' ? '' : 'd-none' }}" data-val="public"></i>
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2 select-post-audience {{ $currentVisibility === 'friends' ? 'active bg-light text-dark' : '' }}" href="javascript:;" data-val="friends" data-icon="fa-user-friends" data-color="text-success" data-label="{{ __('ui.friends') }}">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                                <i class="fa fa-user-friends text-success fs-5"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold" style="font-size: 14px;">{{ __('ui.friends') }} (Friends)</div>
+                                                <small class="text-muted d-block" style="font-size: 11px;">{{ __('ui.friends_desc') }}</small>
+                                            </div>
+                                            <i class="fa fa-check text-primary check-audience {{ $currentVisibility === 'friends' ? '' : 'd-none' }}" data-val="friends"></i>
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider my-1"></li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2 select-post-audience {{ $currentVisibility === 'only_me' ? 'active bg-light text-dark' : '' }}" href="javascript:;" data-val="only_me" data-icon="fa-lock" data-color="text-secondary" data-label="{{ __('ui.only_me') }}">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; min-width: 36px;">
+                                                <i class="fa fa-lock text-secondary fs-5"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold" style="font-size: 14px;">{{ __('ui.only_me') }} (Only Me)</div>
+                                                <small class="text-muted d-block" style="font-size: 11px;">{{ __('ui.only_me_desc') }}</small>
+                                            </div>
+                                            <i class="fa fa-check text-primary check-audience {{ $currentVisibility === 'only_me' ? '' : 'd-none' }}" data-val="only_me"></i>
+                                        </a>
+                                    </li>
+                                </ul>
                             </div>
-                            <div class="col-9">
-                                <textarea class="wysihtml5" id='wysihtml5' placeholder="Enter text ..."></textarea>
-                            </div>                 
                         </div>
                     </div>
-                    <div class="row rounded border p-3 mx-1">
-                        <div class="col-md-4">add to your post</div>
-                        <div class="col-md-8" >
-                            <ul class="nav nav-pills">
-                                <li class="nav-item mx-2 rounded-circle">
-                                    <a href="#modal-dialog2" data-bs-toggle="modal" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/Ivw7nhRtXyo.png')}}"></a>
+
+                    <!-- Textarea -->
+                    <div class="mb-3">
+                        <textarea class="post-composer-text form-control border-0 shadow-none fs-5 p-1" id="postComposerText" placeholder="{{ __('ui.whats_on_your_mind') }}" style="min-height: 120px; resize: none;"></textarea>
+                    </div>
+
+                    <!-- Add to your post -->
+                    <div class="rounded-3 border p-2 mb-3 d-flex justify-content-between align-items-center">
+                        <div class="fw-bold text-dark px-2 small">{{ __('ui.add_to_your_post') }}</div>
+                        <div>
+                            <ul class="nav nav-pills align-items-center">
+                                <li class="nav-item mx-1">
+                                    <a href="#modal-dialog2" data-bs-toggle="modal" class="btn btn-sm btn-light rounded-circle p-1" title="Photo/Video">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/Ivw7nhRtXyo.png') }}" alt="">
+                                    </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="#modal-dialog2" data-bs-toggle="tab" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/b37mHA1PjfK.png')}}"></a>
+                                <li class="nav-item mx-1">
+                                    <a href="#modal-dialog2" data-bs-toggle="tab" class="btn btn-sm btn-light rounded-circle p-1" title="Tag People">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/b37mHA1PjfK.png') }}" alt="">
+                                    </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="#default-tab-1" data-bs-toggle="tab" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/Y4mYLVOhTwq.png')}}"></a>
+                                <li class="nav-item mx-1">
+                                    <a href="#default-tab-1" data-bs-toggle="tab" class="btn btn-sm btn-light rounded-circle p-1" title="Feeling/Activity">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/Y4mYLVOhTwq.png') }}" alt="">
+                                    </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="#default-tab-1" data-bs-toggle="tab" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/8zlaieBcZ72.png')}}"></a>
+                                <li class="nav-item mx-1">
+                                    <a href="#default-tab-1" data-bs-toggle="tab" class="btn btn-sm btn-light rounded-circle p-1" title="Check in">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/8zlaieBcZ72.png') }}" alt="">
+                                    </a>
                                 </li>
-                                <li class="nav-item">
-                                    <a href="#default-tab-1" data-bs-toggle="tab" class=" "><img class="rounded img-fluid w-25px h-25px"  src="{{asset('style/h_kj6ECZ7Ii.png')}}"></a>
+                                <li class="nav-item mx-1">
+                                    <a href="#default-tab-1" data-bs-toggle="tab" class="btn btn-sm btn-light rounded-circle p-1" title="More">
+                                        <img class="rounded img-fluid" style="width: 24px; height: 24px;" src="{{ asset('style/h_kj6ECZ7Ii.png') }}" alt="">
+                                    </a>
                                 </li>
                             </ul>
                         </div>
                     </div>
-                    </div>
-                    <div class="row-mx-2  modal-footer px-4">
-                        <button type="button" id="PostSubmit2"  href="javascript:;" class="col-12 btn btn-primary ">Next</button>
+
+                    <!-- Submit Button -->
+                    <div class="modal-footer border-0 p-0">
+                        <button type="button" id="PostSubmit2" class="col-12 btn btn-primary rounded-3 fw-bold py-2 fs-6">{{ __('ui.post') }}</button>
                     </div>
                 </div>
             </div>

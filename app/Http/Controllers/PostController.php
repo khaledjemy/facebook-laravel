@@ -7,15 +7,16 @@ use App\Post;
 use App\User;
 use App\Photo;
 use App\Video;
-use Dom\Comment;
+use App\Services\MediaUploadService;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
     public function index(Request $request)
     {
-        $posts = Post::with('user.photopro', 'commentes.replie.userreply.photopro','commentes.react', 'react', 'commentes.user.photopro')
-            ->orderBy('created_at', 'desc')->paginate(2, ['*'], 'page', $request->query('page', $request->page));
+        $posts = Post::visibleTo(auth()->user())
+            ->with('user.photopro', 'sharedPost.user.photopro', 'commentes.replie.userreply.photopro','commentes.react', 'react', 'commentes.user.photopro')
+            ->orderBy('created_at', 'desc')->paginate(10, ['*'], 'page', $request->query('page', $request->page));
         
         $imges = []; 
         $videos= [];
@@ -44,115 +45,115 @@ class PostController extends Controller
                         }
                     }
                 }
-            }
-        }
 
-       
-        foreach ($posts as $post) {
-            if ($post->user && !$post->user->profile_photo_id) {
-                $post->user->setRelation('photopro', Photo::find(3));
-            }
-            foreach ($post->commentes as $comment) {
-                if ($comment->user && !$comment->user->profile_photo_id) {
-                    $comment->user->setRelation('photopro', Photo::find(3));
+                // If this is a shared post, also load original post media
+                if ($post->shared_post_id && $post->sharedPost) {
+                    $sPost = $post->sharedPost;
+                    if (!isset($imges[$sPost->id])) {
+                        $imges[$sPost->id] = [];
+                        $s_im_arr = json_decode($sPost->image, true);
+                        if (is_array($s_im_arr)) {
+                            foreach ($s_im_arr as $img) {
+                                $sImg = Photo::where('user_id', $sPost->user_id)->where('id', $img)->get();
+                                if ($sImg->isNotEmpty()) {
+                                    $imges[$sPost->id][] = $sImg;
+                                }
+                            }
+                        }
+                    }
+                    if (!isset($videos[$sPost->id])) {
+                        $videos[$sPost->id] = [];
+                        $s_vd_arr = json_decode($sPost->video, true);
+                        if (is_array($s_vd_arr)) {
+                            foreach ($s_vd_arr as $vid) {
+                                $sVid = Video::where('user_id', $sPost->user_id)->where('id', $vid)->get();
+                                if ($sVid->isNotEmpty()) {
+                                    $videos[$sPost->id][] = $sVid;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-       
-      //dd($posts);
-        if (auth()->check()) {
-            $profilee = new UsersController;
-            $profile = $profilee->profilenav();
-        } else {
-            $profile = null;
-        }
+
+        $profile = auth()->check() ? auth()->user()->loadMissing('photopro', 'coverpro') : null;
 
         if ($request->ajax()) {
-            
             return view('index', compact('posts', 'imges','videos', 'profile'));
         }
 
         return view('index', compact('posts', 'imges','videos', 'profile'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ?MediaUploadService $uploadService = null)
     {
-    //  echo'<pre>'; print_r($request); echo'</pre>';
-    // return;
-        $data = $request->all();
-        $photo = new PhotoController;
+        $uploadService = $uploadService ?: app(MediaUploadService::class);
         $photos = $request->hasFile('files') ? $request->file('files') : null;
 
         $validatedData = $request->validate([
             'post_text'  => 'nullable|required_without:files|max:255',
             'files'      => 'nullable|array|max:10',
-            'files.*'    => 'file|max:204800|mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime',
+            'files.*'    => 'file|max:204800|mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/x-matroska,video/avi,video/x-msvideo,video/mpeg,video/3gpp',
+            'visibility' => 'sometimes|in:public,friends,only_me',
         ]);
 
-        if($photos!=null){
-            $imageResult = $photo->img($photos);
-            $lol = $imageResult->original;
-           // return response()->json(data: ['success' => "error", 'data' => $lol['details']['photo']]);
-                if(isset($lol['error']) && $lol['error'] == "failed"){
-                    $res1= $lol['error'];
-                    $res2= json_decode($lol['details']) ;
-                }else if(isset($lol['status']) && $lol['status'] == "ok"){
+        $userId = auth()->id();
+        $status = true;
 
-                    $userId = auth()->id();
-                    $status = true;
-                    $type = $lol["type"];
-                    $post = Post::create([
-                        'post_text'    => $validatedData['post_text'] ?? '',
-                        'user_id'      => $userId, // Assign the temporary user id
-                        'status'       => $status,
-                        'image'        => (isset($lol['details']['photo']))?$lol['details']['photo']:null,
-                        "video"        => (isset($lol['details']['video']))?$lol['details']['video']:null
-                    ]);
-                    $res1= $lol['status'];
-                    $res2=$post;
+        if ($photos != null) {
+            $uploadResult = $uploadService->processUploads($photos);
 
-                }
-                
-        }else{
-            $userId = auth()->id();
-            $status = true;
+            if (isset($uploadResult['error']) && $uploadResult['error'] === 'failed') {
+                return response()->json(['success' => 'failed', 'data' => $uploadResult['details']]);
+            }
+
             $post = Post::create([
-                'post_text'    => $validatedData['post_text'] ?? '',
-                'user_id'      => $userId, // Assign the temporary user id
-                'status'       => $status,
-                'image'        => null,
-                "video"        => null
+                'post_text'  => $validatedData['post_text'] ?? '',
+                'user_id'    => $userId,
+                'status'     => $status,
+                'image'      => $uploadResult['details']['photo'] ?? null,
+                'video'      => $uploadResult['details']['video'] ?? null,
+                'visibility' => $validatedData['visibility'] ?? 'public',
             ]);
-            $res1="ok";
-            $res2=$post;
+
+            return response()->json(['success' => 'ok', 'data' => $post]);
         }
-            return response()->json(['success' => $res1, 'data' => $res2]);
-      
+
+        $post = Post::create([
+            'post_text'  => $validatedData['post_text'] ?? '',
+            'user_id'    => $userId,
+            'status'     => $status,
+            'image'      => null,
+            'video'      => null,
+            'visibility' => $validatedData['visibility'] ?? 'public',
+        ]);
+
+        return response()->json(['success' => 'ok', 'data' => $post]);
     }
 
     public function index1($id)
     {
-        $post = Post::where('id', $id)->with('user.photopro', 'commentes.replie.userreply.photopro', 'commentes.react','react', 'commentes.user.photopro')->firstOrFail();
-       // DD($post);
+        $post = Post::visibleTo(auth()->user())->where('id', $id)->with('user.photopro', 'commentes.replie.userreply.photopro', 'commentes.react','react', 'commentes.user.photopro')->firstOrFail();
         $user = User::where('id', $post->user_id)->firstOrFail();
         $imges = []; 
         $videos=[];
-       // $comments = $user->commentes;
+
         if ($post) {
             $im_arr = json_decode($post->image, true);
-            $vd_arr=json_decode($post->video, true);
-            if($post->image!=null){
+            $vd_arr = json_decode($post->video, true);
+            if ($post->image != null) {
                 if (is_array($im_arr)) { 
                     foreach ($im_arr as $key => $img) {
                         $imgess = Photo::where('user_id', $post->user_id)->where('id', $img)->get();
 
-                        if ($imgess->isNotEmpty() ) {
+                        if ($imgess->isNotEmpty()) {
                             $imges[$post->id][] = $imgess;
                         }
                     }
                 }
-            }else{
-                $imges[$post->id]=null;
+            } else {
+                $imges[$post->id] = null;
                 if (is_array($vd_arr)) { 
                     foreach ($vd_arr as $key => $vid) {
                         $videoss = Video::where('user_id', $post->user_id)->where('id', $vid)->get();
@@ -162,16 +163,9 @@ class PostController extends Controller
                     }
                 }
             }
-                
         }
 
-        if (auth()->check()) {
-            $profilee = new UsersController;
-            $profile = $profilee->profilenav();
-            //dd($profile);
-        } else {
-            $profile = null;
-        }
+        $profile = auth()->check() ? auth()->user()->loadMissing('photopro', 'coverpro') : null;
 
         return view('post', compact('post', 'user', 'profile', 'imges','videos'));
     }
@@ -179,20 +173,94 @@ class PostController extends Controller
     public function profile_post($id,Request $request)
     {
         $page = $request->query('page', 1);
-        $posts = Post::where('user_id', $id)
+        $posts = Post::visibleTo(auth()->user())->where('user_id', $id)
         ->with('user.photopro','commentes.react', 'commentes.replie.userreply.photopro', 'react', 'commentes.user.photopro')
         ->orderBy('created_at', 'desc')
         ->paginate(2, ['*'], 'page', $page);
         return $posts;
     }
-public function delete_post(Request  $request)
+
+    public function delete_post(Request $request)
     {
-        $post = Post::find($request->id);
-        if ($post) {
-            $post->delete();
-            return response()->json(['success' => 'Post deleted successfully']);
-        } else {
-            return response()->json(['error' => 'Post not found'], 404);
+        $validatedData = $request->validate([
+            'id' => 'required|integer|exists:posts,id',
+        ]);
+
+        $post = Post::findOrFail($validatedData['id']);
+
+        if ((int) $post->user_id !== (int) auth()->id()) {
+            return response()->json(['error' => 'Unauthorized action. You cannot delete this post.'], 403);
         }
+
+        $post->delete();
+
+        return response()->json(['success' => 'Post deleted successfully']);
+    }
+
+    public function share(Request $request, $id)
+    {
+        $me = auth()->user();
+        $originalPost = Post::findOrFail($id);
+
+        $canSee = Post::whereKey($id)->visibleTo($me)->exists();
+        abort_unless($canSee, 403, 'You are not allowed to view or share this post.');
+
+        $data = $request->validate([
+            'post_text' => 'nullable|string|max:1000',
+            'visibility' => 'nullable|string|in:public,friends,only_me',
+        ]);
+
+        $sharedPost = Post::create([
+            'user_id' => $me->id,
+            'post_text' => $data['post_text'] ?? null,
+            'shared_post_id' => $originalPost->id,
+            'visibility' => $data['visibility'] ?? 'public',
+            'status' => 1,
+        ]);
+
+        if ((int) $originalPost->user_id !== (int) $me->id) {
+            $originalOwner = User::find($originalPost->user_id);
+            if ($originalOwner) {
+                $originalOwner->notify(new \App\Notifications\PostSharedNotification($me, $originalPost, $sharedPost));
+            }
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Post shared successfully!',
+                'post' => $sharedPost->load('user.photopro', 'sharedPost.user.photopro'),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Post shared successfully!');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $post = Post::findOrFail($id);
+        if ((int) $post->user_id !== (int) auth()->id()) {
+            abort(403, 'Unauthorized. You cannot edit this post.');
+        }
+
+        $validated = $request->validate([
+            'post_text' => 'nullable|string|max:1000',
+            'visibility' => 'sometimes|in:public,friends,only_me',
+        ]);
+
+        $post->update([
+            'post_text' => $validated['post_text'] ?? $post->post_text,
+            'visibility' => $validated['visibility'] ?? $post->visibility,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => true,
+                'message' => 'تم تحديث المنشور بنجاح.',
+                'post' => $post,
+            ]);
+        }
+
+        return back()->with('success', 'تم تحديث المنشور بنجاح.');
     }
 }

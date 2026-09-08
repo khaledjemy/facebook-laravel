@@ -147,13 +147,14 @@
                                         <img
                                             class="ms-sidebar-avatar"
                                             src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}"
-                                            alt="avatar"
+                                            alt=""
+                                            onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';"
                                         >
                                     @else
                                         <img
                                             class="ms-sidebar-avatar"
                                             src="{{ asset('img/Default_avatar_profile.jpg') }}"
-                                            alt="avatar"
+                                            alt=""
                                         >
                                     @endif
                                 @endif

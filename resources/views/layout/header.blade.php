@@ -1,6 +1,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<meta name="csrf-token" content="{{ csrf_token() }}" />
 <meta name="description" content="" />
 <meta name="author" content="" />
 <title>{{ config('app.name', 'Social Network') }}</title>
@@ -33,7 +34,10 @@
 <link href="{{ asset('./assets/plugins/dropzone/dist/min/dropzone.min.css')}}" rel="stylesheet" />
 <link href="{{ asset('./assets/css/video-js.css')}}" rel="stylesheet">
 <link href="{{ asset('./assets/css/castuomizing-face.css')}}" rel="stylesheet" />
-<link href="{{ asset('style/style.css') }}" rel="stylesheet" />
-
-
+<link href="{{ asset('style/style.css') }}?v={{ filemtime(public_path('style/style.css')) }}" rel="stylesheet" />
+<script>
+    if (localStorage.getItem('fb_dark_mode') === 'true') {
+        document.addEventListener('DOMContentLoaded', function() { document.body.classList.add('dark-theme'); });
+    }
+</script>
 </head>

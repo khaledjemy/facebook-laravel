@@ -9,6 +9,8 @@ class Messanger extends Model
         'my_id',
         'user_id',
         'message',
+        'attachment',
+        'attachment_type',
         'read'
     ];
 

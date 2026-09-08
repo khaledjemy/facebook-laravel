@@ -136,7 +136,32 @@
                         <div class="widget-chat-info message_{{$message->id}}" >
                             <div class="widget-chat-info-container">
                                 <div  class="widget-chat-name text-indigo">{{$message->sender->first_name}} {{$message->sender->last_name}}</div>
-                                <div class="widget-chat-message"> {{$message->message}} </div>
+                                <div class="widget-chat-message">
+                                    @if($message->message)
+                                        <div>{{$message->message}}</div>
+                                    @endif
+                                    @if($message->attachment)
+                                        @if($message->attachment_type === 'image')
+                                            <div class="mt-1">
+                                                <a href="{{ asset($message->attachment) }}" target="_blank">
+                                                    <img src="{{ asset($message->attachment) }}" class="img-fluid rounded" style="max-height: 200px; max-width: 100%;" alt="attachment">
+                                                </a>
+                                            </div>
+                                        @elseif($message->attachment_type === 'audio')
+                                            <div class="mt-1">
+                                                <audio controls style="max-width: 240px;">
+                                                    <source src="{{ asset($message->attachment) }}">
+                                                </audio>
+                                            </div>
+                                        @else
+                                            <div class="mt-1">
+                                                <a href="{{ asset($message->attachment) }}" target="_blank" class="btn btn-sm btn-light">
+                                                    <i class="fa fa-download me-1"></i> تحميل المرفق
+                                                </a>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
                                 @if($message->my_id == auth()->id())
                                     <div class="seen-status">
                                         {{ $message->read ? '✔✔' : '✔' }}
@@ -151,11 +176,22 @@
                 <!-- END widget-chat-body -->
                 <!-- BEGIN widget-input -->
                  
+                <div id="chatAttachmentPreview" class="d-none px-3 py-1 bg-light border-top d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="fa fa-paperclip me-2 text-primary"></i>
+                        <span id="chatAttachmentFileName" class="small text-truncate" style="max-width: 250px;"></span>
+                    </div>
+                    <button type="button" id="btnRemoveChatAttachment" class="btn btn-sm text-danger border-0 p-0"><i class="fa fa-times"></i></button>
+                </div>
                 <div class="widget-chat-input">
                     <div class="widget-chat-toolbar ">
                         <button type="button" id="emojiToggle" class="widget-chat-toolbar-link" aria-label="Emoji">
                             <span class="iconify fs-26px" data-icon="solar:smile-circle-outline"></span>
                         </button>
+                        <button type="button" id="btnChatAttach" class="widget-chat-toolbar-link" aria-label="Attachment" title="إرفاق صورة أو ملف" onclick="document.getElementById('chatFileInput').click();">
+                            <span class="iconify fs-26px" data-icon="solar:gallery-add-outline"></span>
+                        </button>
+                        <input type="file" id="chatFileInput" style="display:none;" accept="image/*,audio/*,.pdf">
                         <div id="emojiPicker" class="messenger-emoji-picker" hidden>
                             @foreach(['😀','😂','😍','🥰','😢','😮','😡','👍','❤️','🎉'] as $emoji)
                                 <button type="button" class="messenger-emoji">{{$emoji}}</button>
@@ -163,7 +199,7 @@
                         </div>
                     </div>
                     
-                    <textarea id="messageInput"  name="text" class="form-control"></textarea>
+                    <textarea id="messageInput"  name="text" class="form-control" placeholder="اكتب رسالة..."></textarea>
                     <input type="hidden" value="{{Auth::id()}}" name="me">
                     <input type="hidden" id="you" value="{{$user->id}}" name="you">
 
@@ -333,25 +369,60 @@ $(document).ready(function(){
         endCall();
     });
 
+    $('#chatFileInput').on('change', function(){
+        let file = this.files[0];
+        if (file) {
+            $('#chatAttachmentFileName').text(file.name);
+            $('#chatAttachmentPreview').removeClass('d-none');
+        }
+    });
+
+    $('#btnRemoveChatAttachment').on('click', function(){
+        $('#chatFileInput').val('');
+        $('#chatAttachmentPreview').addClass('d-none');
+    });
+
     $('#sendButton').on('click', function(){
-        console.log("clicked");
         let text = $('#messageInput').val();
         let to = $('#you').val();
-        if(!text) return;
+        let fileInput = document.getElementById('chatFileInput');
+        let file = fileInput && fileInput.files ? fileInput.files[0] : null;
 
-        $.post("/messanger/" + to, {
-            text: text,
-            me: userId,
-            you: to,
-            _token: "{{ csrf_token() }}"
-        }, function(res){
-            socket.send(JSON.stringify({
-                type: 'message',
-                message: text,
-                from: userId,
-                to: to,
-                id: res.id
-            }));
+        if(!text && !file) return;
+
+        let formData = new FormData();
+        formData.append('text', text || '');
+        formData.append('me', userId);
+        formData.append('you', to);
+        formData.append('_token', "{{ csrf_token() }}");
+        if (file) {
+            formData.append('attachment', file);
+        }
+
+        $.ajax({
+            url: "/messanger/" + to,
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res){
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: 'message',
+                        message: text,
+                        attachment: res.attachment,
+                        attachment_type: res.attachment_type,
+                        from: userId,
+                        to: to,
+                        id: res.id
+                    }));
+                }
+                $('#chatFileInput').val('');
+                $('#chatAttachmentPreview').addClass('d-none');
+            },
+            error: function(xhr){
+                alert(xhr.responseJSON?.message || 'Error sending message.');
+            }
         });
 
         $('#messageInput').val('');
@@ -609,7 +680,20 @@ function appendMessage(data){
     if($('.msg-'+data.id).length) return;
 
     let pos = data.from == userId ? 'end' : 'start';
-    var name= data.from == userId ? "{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}" : $('.messenger-chat-item.active .messenger-chat-title .messenger-chat-name').text();
+    var name = data.from == userId ? "{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}" : $('.messenger-chat-item.active .messenger-chat-title .messenger-chat-name').text();
+
+    let attachmentHtml = '';
+    if (data.attachment) {
+        if (data.attachment_type === 'image') {
+            attachmentHtml = `<div class="mt-1"><a href="${data.attachment}" target="_blank"><img src="${data.attachment}" class="img-fluid rounded" style="max-height: 200px; max-width: 100%;" alt="attachment"></a></div>`;
+        } else if (data.attachment_type === 'audio') {
+            attachmentHtml = `<div class="mt-1"><audio controls style="max-width: 240px;"><source src="${data.attachment}"></audio></div>`;
+        } else {
+            attachmentHtml = `<div class="mt-1"><a href="${data.attachment}" target="_blank" class="btn btn-sm btn-light"><i class="fa fa-download me-1"></i> تحميل المرفق</a></div>`;
+        }
+    }
+
+    let timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
     let msg = $(`
         <div class="widget-chat-item with-media ${pos} msg-${data.id}" >
@@ -618,10 +702,13 @@ function appendMessage(data){
             </div>
             <div class="widget-chat-info message_${data.id}" >
                 <div class="widget-chat-info-container">
-                    <div  class="widget-chat-name text-indigo">${name}</div>
-                    <div class="widget-chat-message"> ${data.message} </div>
+                    <div class="widget-chat-name text-indigo">${name}</div>
+                    <div class="widget-chat-message">
+                        ${data.message ? `<div>${data.message}</div>` : ''}
+                        ${attachmentHtml}
+                    </div>
                     ${data.from == userId ? `<div class="seen-status">✔</div>` : ''}
-                    <div class="widget-chat-time">09:20AM</div>
+                    <div class="widget-chat-time">${timeStr}</div>
                 </div>
             </div>
         </div>
@@ -712,20 +799,6 @@ async function startCall(isVideo){
     }));
 }
 
-$(document).on('click', '.messenger-chat-link', function(e) {
-    e.preventDefault();
-    var parent = $(this).closest('.messenger-chat-item');
-    $('.messenger-chat-item').removeClass('active');
-    parent.addClass('active');
-    if (window.matchMedia('(max-width: 991.98px)').matches) {
-        $('#messenger').addClass('messenger-chat-content-mobile-toggled');
-    }
-    $('#chat').animate({
-        scrollTop: $('#chat')[0].scrollHeight
-    }, 200);
-    changechatbox(parent.data("id"));
-});
-
 $(document).on('click', '.endCall2', function (e) {
     e.preventDefault();
     if(socket && socket.readyState === WebSocket.OPEN){
@@ -785,7 +858,7 @@ async function connectSocket(){
 
     let ticket;
     try {
-        const response = await fetch(@json(url('/websocket-ticket')), {headers: {'Accept': 'application/json'}});
+        const response = await fetch('/websocket-ticket', {headers: {'Accept': 'application/json'}});
         if (!response.ok) throw new Error('Unable to create socket ticket');
         ticket = await response.json();
     } catch (error) {

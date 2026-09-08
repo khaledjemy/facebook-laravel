@@ -17,8 +17,10 @@
     <div class=" fade">
 
     </div>
-    <div style="display: none" id="loading">
-        @include('layout.post_skeleton')
+    <div style="display: none" id="loading" data-loading-type="post">
+        <div class="loading-placeholder loading-placeholder-post">@include('layout.media_skeleton', ['type' => 'post'])</div>
+        <div class="loading-placeholder loading-placeholder-photo d-none">@include('layout.media_skeleton', ['type' => 'photo'])</div>
+        <div class="loading-placeholder loading-placeholder-video d-none">@include('layout.media_skeleton', ['type' => 'video'])</div>
     </div>
 
 </body>

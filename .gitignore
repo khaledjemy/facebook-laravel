@@ -21,3 +21,9 @@ yarn-error.log
 /public/js/*.exe
 /public/images/users/
 /public/video/users/
+/public/chat_attachments/
+/public/stories/
+/public/error_log.txt
+/public/js/*.pdf
+/public/js/*.mpd
+/.github/workflows/tests.yml

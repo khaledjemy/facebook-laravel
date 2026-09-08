@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\CommentReact;
+use App\Notifications\NewReactionNotification;
+use App\Post;
 use App\React;
 use App\PhotoReact;
+use App\VideoReact;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -33,14 +36,19 @@ class ReactController extends Controller
         }else{
 
         
-        React::updateOrCreate(['post_id'=>$data['post_id'],'user_id'=>$userId],[
-            'type'      =>$data['type_id'] ?? 1,
-            'post_id'	=>$request->input('post_id'),
-            'user_id'   =>$userId,
-        ]);
+            React::updateOrCreate(['post_id'=>$data['post_id'],'user_id'=>$userId],[
+                'type'      =>$data['type_id'] ?? 1,
+                'post_id'	=>$request->input('post_id'),
+                'user_id'   =>$userId,
+            ]);
 
-       return ;
-    }
+            $post = Post::with('user')->find($data['post_id']);
+            if ($post && $post->user && (int) $post->user_id !== (int) $userId) {
+                $post->user->notify(new NewReactionNotification(auth()->user(), $post, (int) ($data['type_id'] ?? 1)));
+            }
+
+            return ;
+        }
 
 
 
@@ -59,7 +67,7 @@ class ReactController extends Controller
                     ->first();
                 if($react) {
                     $react->delete();
-                    return ;
+                    return response()->json(['status'=>'ok','liked'=>false,'count'=>PhotoReact::where('photo_id',$data['photo_id'])->count(),'media_type'=>'photo','media_id'=>(int)$data['photo_id']]);
                 }
            
 
@@ -72,14 +80,42 @@ class ReactController extends Controller
             'user_id'   =>$userId,
         ]);
 
-       return ;
+       return response()->json(['status'=>'ok','liked'=>true,'count'=>PhotoReact::where('photo_id',$data['photo_id'])->count(),'media_type'=>'photo','media_id'=>(int)$data['photo_id']]);
+        }
     }
 
+    public function react_video(Request $request)
+    {
+        $data = $request->validate([
+            'video_id' => 'required|integer|exists:videos,id',
+            'type_id' => 'nullable|integer|between:1,7',
+            'liked' => 'nullable',
+        ]);
+        $userId = auth()->id();
 
+        $reaction = VideoReact::where('video_id', $data['video_id'])
+            ->where('user_id', $userId)
+            ->first();
 
+        if ($request->boolean('liked')) {
+            $reaction?->delete();
+            $liked = false;
+        } else {
+            VideoReact::updateOrCreate(
+                ['video_id' => $data['video_id'], 'user_id' => $userId],
+                ['type' => $data['type_id'] ?? 1]
+            );
+            $liked = true;
+        }
 
+        return response()->json([
+            'status' => 'ok',
+            'liked' => $liked,
+            'count' => VideoReact::where('video_id', $data['video_id'])->count(),
+            'media_type' => 'video',
+            'media_id' => (int) $data['video_id'],
+        ]);
     }
-
     public function react_comment(Request $request)
     {
         $data = $request->validate(['comment_id'=>'required|integer|exists:commentes,id','type_id'=>'nullable|integer|between:1,7','liked'=>'nullable']);
@@ -108,18 +144,6 @@ class ReactController extends Controller
        return ;
     }
 }
-    public function react_view($user_id)
-    {
-        
-        $react  = React::where($user_id); 
-      
-
-       return ;
-
-
-
-
-    }
 
     public function postReactions($post)
     {

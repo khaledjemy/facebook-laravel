@@ -120,7 +120,7 @@ $(document).ready(function(){
                 formData.append("files", filee,'cropped_image.jpg');
                 formData.append("cover", true);
             $.ajax({
-                url: "{{ url('/make-profile-picture') }}",
+                url: "/make-profile-picture",
                 method: 'POST',
                 data: formData,
                 processData: false,

@@ -8,7 +8,7 @@ class Replie extends Model
 {
     //
     protected $table = "replies";
-    protected $fillable =   ['comment_id','user_id','userreply_id','reply'];
+    protected $fillable = ['comment_id','user_id','userreply_id','reply','media_path','media_type'];
     function comment()
     {
        return $this->belongsTo(Commente::class);
