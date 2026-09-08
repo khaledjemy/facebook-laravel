@@ -1,11 +1,11 @@
 @extends('layout.masterhome')
 @section('content')
     <!-- About Section-->
-<div class="row m-0 p-0">
-    <div class="col-md-3 col-0 m-0 p-0" >
+<div class="row m-0 p-0 home-feed-layout">
+    <div class="col-md-3 col-0 m-0 p-0 home-left-rail" >
        @include('layout.left_sb')
     </div>
-    <div class="col-md-6 col-12 m-0 p-0" >
+    <div class="col-md-6 col-12 m-0 p-0 home-feed-column" >
         <div id="content" class="mt-3 m-0 p-0">
             <div class="row m-0 p-0">
                 <div class="col-md-12 m-0 p-0">
@@ -398,7 +398,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3 d-none d-md-block ">
+    <div class="col-md-3 d-none d-md-block home-right-rail">
     @include('layout.right_sb')
     </div>
 
