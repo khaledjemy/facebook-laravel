@@ -10,6 +10,52 @@ use Illuminate\Http\Request;
 
 class MessangerController extends Controller
 {
+    public function summary()
+    {
+        $me = (int) auth()->id();
+        $messages = Messanger::with(['sender.photopro', 'receiver.photopro'])
+            ->where(fn ($query) => $query->where('my_id', $me)->orWhere('user_id', $me))
+            ->latest('id')
+            ->limit(100)
+            ->get();
+
+        $conversations = $messages->unique(function ($message) use ($me) {
+            return (int) $message->my_id === $me ? (int) $message->user_id : (int) $message->my_id;
+        })->take(6)->map(function ($message) use ($me) {
+            $contact = (int) $message->my_id === $me ? $message->receiver : $message->sender;
+            $contactId = (int) $contact->id;
+            $unread = Messanger::where('my_id', $contactId)
+                ->where('user_id', $me)
+                ->where('read', 0)
+                ->count();
+
+            $preview = trim((string) $message->message);
+            if ($preview === '') {
+                $preview = match ($message->attachment_type) {
+                    'image' => 'أرسل صورة',
+                    'audio' => 'أرسل مقطعًا صوتيًا',
+                    default => 'أرسل مرفقًا',
+                };
+            }
+
+            return [
+                'id' => $contactId,
+                'name' => trim($contact->first_name.' '.$contact->last_name),
+                'avatar' => $contact->avatar_url,
+                'preview' => $preview,
+                'time_ago' => $message->created_at?->diffForHumans(short: true),
+                'unread_count' => $unread,
+                'is_mine' => (int) $message->my_id === $me,
+                'url' => url('/messanger/'.$contactId),
+            ];
+        })->values();
+
+        return response()->json([
+            'unread_count' => Messanger::where('user_id', $me)->where('read', 0)->count(),
+            'conversations' => $conversations,
+        ]);
+    }
+
     public function inbox()
     {
         $me = auth()->id();

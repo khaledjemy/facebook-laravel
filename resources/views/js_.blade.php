@@ -164,6 +164,35 @@ $(document).ready(function() {
     setupPopup('menu-icon', 'menu-popup');
     setupPopup('profile-icon', 'profile-popup');
 
+    const escapeNavText = value => $('<div>').text(value == null ? '' : String(value)).html();
+    function setNavBadge(selector, count, wrapper) {
+      const total = Number(count || 0), $badge = $(selector);
+      $badge.text(total > 99 ? '99+' : total).toggle(total > 0);
+      $(wrapper).toggleClass('has-unread', total > 0);
+    }
+    function loadMessageSummary() {
+      @auth
+      $.getJSON('/messages/summary').done(function(data) {
+        setNavBadge('#message-badge', data.unread_count, '#chat-icon');
+        const $list = $('#chat-recent-list').empty();
+        if (!data.conversations || !data.conversations.length) {
+          $list.html('<div class="chat-popup-empty"><i class="far fa-comments"></i><span>لا توجد محادثات بعد</span></div>');
+          return;
+        }
+        data.conversations.forEach(function(chat) {
+          const unread = Number(chat.unread_count || 0);
+          $list.append('<a class="chat-recent-item '+(unread ? 'unread' : '')+'" href="'+escapeNavText(chat.url)+'">'
+            +'<img class="chat-recent-avatar" src="'+escapeNavText(chat.avatar)+'" alt="">'
+            +'<span class="chat-recent-body"><span class="chat-recent-head"><span class="chat-recent-name">'+escapeNavText(chat.name)+'</span><span class="chat-recent-time">'+escapeNavText(chat.time_ago || '')+'</span></span>'
+            +'<span class="chat-recent-preview"><span>'+(chat.is_mine ? 'أنت: ' : '')+escapeNavText(chat.preview)+'</span>'+(unread ? '<span class="chat-unread-dot">'+(unread > 99 ? '99+' : unread)+'</span>' : '')+'</span></span></a>');
+        });
+      });
+      @endauth
+    }
+    loadMessageSummary();
+    $('#chat-icon').on('click', loadMessageSummary);
+    setInterval(loadMessageSummary, 15000);
+
     $(document).on('click', function(e) {
       if (!$(e.target).closest('.icon-wrapper').length) {
         $('.fb-popup, .profile-menu').removeClass('show');

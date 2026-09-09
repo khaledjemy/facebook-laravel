@@ -140,6 +140,7 @@ Route::post('likecomment', [ReactController::class, 'react_comment'])->middlewar
 // Route::post('/messanger/{id}/seen', 'MessangerController@seen');
 
 Route::get('/messanger', 'MessangerController@inbox')->middleware('auth');
+Route::get('/messages/summary', 'MessangerController@summary')->middleware('auth');
 Route::get('/messanger/{id}', 'MessangerController@index')->middleware('auth');
 Route::post('/messanger/{id}', 'MessangerController@index')->middleware('auth');
 Route::post('/messanger/{id}/seen', 'MessangerController@seen')->middleware('auth');
