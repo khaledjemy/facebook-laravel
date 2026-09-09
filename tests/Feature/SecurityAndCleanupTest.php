@@ -141,4 +141,26 @@ class SecurityAndCleanupTest extends TestCase
             ->assertJsonPath('0.message', 'Mini chat message')
             ->assertJsonPath('0.my_id', $sender->id);
     }
+
+    public function test_opening_conversation_marks_incoming_messages_as_read(): void
+    {
+        $sender = $this->createUser('read-sender@example.com');
+        $receiver = $this->createUser('read-receiver@example.com');
+
+        $message = Messanger::create([
+            'my_id' => $sender->id,
+            'user_id' => $receiver->id,
+            'message' => 'Unread message',
+            'read' => 0,
+        ]);
+
+        $this->actingAs($receiver)
+            ->get('/messanger/'.$sender->id)
+            ->assertOk();
+
+        $this->assertDatabaseHas('messangers', [
+            'id' => $message->id,
+            'read' => 1,
+        ]);
+    }
 }

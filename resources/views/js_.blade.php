@@ -61,6 +61,9 @@ $(document).on('click', '.contact-chat', function (e) {
     const id = $(this).data('chat-id');
     $('#mini-chat').removeClass('d-none').data('chat-id', id);
     $('#mini-chat-name').text($(this).data('chat-name'));
+    $.post('/messanger/' + id + '/seen', {_token: '{{ csrf_token() }}'}).always(function () {
+        if (typeof window.loadMessageSummary === 'function') window.loadMessageSummary();
+    });
     $('#mini-chat-messages').html('<div class="text-muted small text-center">جاري التحميل...</div>');
     $.ajax({
         url: '/messanger/' + id,
@@ -189,6 +192,7 @@ $(document).ready(function() {
       });
       @endauth
     }
+    window.loadMessageSummary = loadMessageSummary;
     loadMessageSummary();
     $('#chat-icon').on('click', loadMessageSummary);
     setInterval(loadMessageSummary, 15000);
@@ -1033,14 +1037,25 @@ function fetchNotifications() {
 }
 
 $(document).on('click', '.notification-entry', function(e) {
+    e.preventDefault();
+    const entry = $(this);
     const notifId = $(this).data('id');
+    const targetUrl = $(this).attr('href');
     if (notifId) {
+        const current = Math.max(0, Number($('#notification-badge').text()) || 0);
+        entry.removeClass('fw-bold').css('background-color', '').find('.badge.bg-primary').remove();
+        setNavBadge('#notification-badge', Math.max(0, current - 1), '#notifications-icon');
         $.ajax({
             url: '/notifications/' + notifId + '/read',
             type: 'POST',
             data: { _token: '{{ csrf_token() }}' },
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            complete: function() {
+                if (targetUrl && targetUrl !== '#') window.location.href = targetUrl;
+            }
         });
+    } else if (targetUrl && targetUrl !== '#') {
+        window.location.href = targetUrl;
     }
 });
 

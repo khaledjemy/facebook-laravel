@@ -203,6 +203,12 @@ class MessangerController extends Controller
             ]);
         }
 
+        // Opening a conversation means its incoming messages have been seen.
+        Messanger::where('my_id', $user->id)
+            ->where('user_id', $me)
+            ->where('read', 0)
+            ->update(['read' => 1]);
+
         // جلب الرسائل
         $messages = Messanger::with('sender.photopro')
         ->where(function ($q) use ($user, $me) {
