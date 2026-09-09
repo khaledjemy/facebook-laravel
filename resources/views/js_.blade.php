@@ -167,6 +167,24 @@ $(document).ready(function() {
     setupPopup('menu-icon', 'menu-popup');
     setupPopup('profile-icon', 'profile-popup');
 
+    // Facebook-like behavior: opening the bell acknowledges every current
+    // notification at once, while keeping the list available to read.
+    $('#notifications-icon').on('click.markAllOnOpen', function() {
+      if (!$('#notifications-popup').hasClass('show')) return;
+      const unread = Number($('#notification-badge').text()) || 0;
+      if (unread < 1) return;
+
+      setNavBadge('#notification-badge', 0, '#notifications-icon');
+      $('#mark-all-notifications-read').hide();
+      $('#notifications-list .notification-entry')
+        .removeClass('fw-bold')
+        .css('background-color', '')
+        .find('.badge.bg-primary').remove();
+
+      $.post('/notifications/read-all', {_token: '{{ csrf_token() }}'})
+        .fail(fetchNotifications);
+    });
+
     const escapeNavText = value => $('<div>').text(value == null ? '' : String(value)).html();
     function setNavBadge(selector, count, wrapper) {
       const total = Number(count || 0), $badge = $(selector);
