@@ -1,0 +1,10 @@
+[program:facebook-websocket]
+command=php /var/www/facebook-laravel/websocket-server/server2.php
+directory=/var/www/facebook-laravel
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/www/facebook-laravel/storage/logs/websocket.log

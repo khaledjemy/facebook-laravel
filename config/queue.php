@@ -37,8 +37,10 @@ return [
         'database' => [
             'driver' => 'database',
             'table' => 'jobs',
-            'queue' => 'default',
-            'retry_after' => 90,
+            'queue' => env('DB_QUEUE', 'default'),
+            // Must remain longer than the longest queued video conversion.
+            'retry_after' => (int) env('QUEUE_RETRY_AFTER', 3900),
+            'after_commit' => true,
         ],
 
         'beanstalkd' => [
@@ -62,8 +64,9 @@ return [
             'driver' => 'redis',
             'connection' => 'default',
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => 90,
+            'retry_after' => (int) env('QUEUE_RETRY_AFTER', 3900),
             'block_for' => null,
+            'after_commit' => true,
         ],
 
     ],

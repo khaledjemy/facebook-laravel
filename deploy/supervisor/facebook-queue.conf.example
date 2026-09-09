@@ -1,0 +1,13 @@
+[program:facebook-queue]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/facebook-laravel/artisan queue:work database --queue=videos,default --sleep=2 --tries=2 --timeout=3700 --max-time=3600
+directory=/var/www/facebook-laravel
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/var/www/facebook-laravel/storage/logs/queue-worker.log
+stopwaitsecs=3800

@@ -77,6 +77,7 @@ parse_str($queryString ?? '', $query);
     if (!$authenticatedUser) { $from->close(); return; }
     $data['from'] = $authenticatedUser;
     $type = $data['type'] ?? null;
+    $toUser = isset($data['to']) ? (string) $data['to'] : null;
 
 
     // ===== call =====
@@ -132,6 +133,7 @@ parse_str($queryString ?? '', $query);
     }
 
     // ===== message =====
+    if (!$toUser) return;
     $fromUser = $authenticatedUser;
     $payload = json_encode($data);
 

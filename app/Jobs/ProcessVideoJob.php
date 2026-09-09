@@ -23,7 +23,9 @@ class ProcessVideoJob implements ShouldQueue
         protected ?string $modelClass = null,
         protected ?int $modelId = null,
         protected ?string $modelAttribute = null,
-    ) {}
+    ) {
+        $this->onQueue((string) config('media.queue', 'videos'));
+    }
 
     public function handle(): void
     {

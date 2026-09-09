@@ -1,5 +1,6 @@
 <?php
 return [
+    'queue' => env('VIDEO_QUEUE', 'videos'),
     'ffmpeg' => env('FFMPEG_BINARIES', base_path('bin/ffmpeg.exe')),
     'ffprobe' => env('FFPROBE_BINARIES', base_path('bin/ffprobe.exe')),
     'timeout' => (int) env('FFMPEG_TIMEOUT', 3600),
