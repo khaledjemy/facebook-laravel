@@ -101,6 +101,24 @@
                         <button id="sendButton" class="d-none">Send</button>
                     </div>
 
+                    <section id="videoDetailsPanel" class="video-details-panel d-none mb-3" dir="rtl">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="video-details-icon"><i class="fa fa-video"></i></span>
+                            <div><strong>تفاصيل الفيديو</strong><small class="d-block text-muted">اختر الغلاف وأكمل بيانات البحث قبل النشر</small></div>
+                        </div>
+                        <label class="form-label fw-bold small">اختر صورة الغلاف</label>
+                        <div id="videoThumbnailChoices" class="video-thumbnail-choices mb-3"></div>
+                        <input type="hidden" id="selectedVideoThumbnail" data-video-field="selected_video_thumbnail">
+                        <div class="row g-2">
+                            <div class="col-12"><label class="form-label small fw-bold">عنوان الفيديو <span class="text-danger">*</span></label><input id="videoTitle" data-video-field="video_title" class="form-control" maxlength="160" placeholder="عنوان واضح وجذاب"></div>
+                            <div class="col-12"><label class="form-label small fw-bold">الوصف</label><textarea data-video-field="video_description" class="form-control" rows="3" maxlength="2000" placeholder="اكتب وصفًا يساعد الناس على فهم الفيديو"></textarea></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold">عنوان SEO</label><input data-video-field="video_seo_title" class="form-control" maxlength="160" placeholder="عنوان نتائج البحث"></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold">الكلمات المفتاحية</label><input data-video-field="video_keywords" class="form-control" maxlength="500" placeholder="تعليم، برمجة، نصائح"></div>
+                            <div class="col-12"><label class="form-label small fw-bold">وصف SEO</label><textarea data-video-field="video_seo_description" class="form-control" rows="2" maxlength="500" placeholder="وصف مختصر يظهر لمحركات البحث"></textarea></div>
+                            <div class="col-12"><label class="form-label small fw-bold">الهاشتاجات</label><input data-video-field="hashtags" class="form-control" maxlength="500" placeholder="#فيديو #تعليم #برمجة"><small class="text-muted">افصل بينها بمسافة، وستصبح قابلة للضغط بعد النشر.</small></div>
+                        </div>
+                    </section>
+
                     <!-- Add to your post -->
                     <div class="rounded-3 border p-2 mb-3 d-flex justify-content-between align-items-center">
                         <div class="fw-bold text-dark px-2 small">{{ __('ui.add_to_your_post') }}</div>

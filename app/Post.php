@@ -72,6 +72,11 @@ class Post extends Model
     {
         return $this->hasMany(React::class,'post_id');
     }
+
+    public function hashtags()
+    {
+        return $this->belongsToMany(Hashtag::class, 'hashtag_post');
+    }
     
     public function photopro()
     {

@@ -127,7 +127,7 @@
                                                 <!-- timeline-post -->
                                                 <div class="mb-3">
                                                     <div class="m-2 post-text-content-{{ $post->id }}">
-                                                            {{$post->post_text}}
+                                                            {!! \App\Support\HashtagFormatter::linkify($post->post_text) !!}
                                                     </div>
                                                     @if($post->shared_post_id && $post->sharedPost)
                                                         <div class="shared-post-card border rounded m-2 p-2 bg-light">
@@ -143,7 +143,7 @@
                                                                 </div>
                                                             </div>
                                                             <div class="shared-post-text mb-2 text-dark">
-                                                                {{ $post->sharedPost->post_text }}
+                                                                {!! \App\Support\HashtagFormatter::linkify($post->sharedPost->post_text) !!}
                                                             </div>
                                                             @php
                                                                 $s_images = $imges[$post->sharedPost->id] ?? [];
@@ -209,7 +209,7 @@
                                                                             <video class="video-js vjs-default-skin p-0 VDlol" id="video_{{$i_videos[$r][0]->id }}"
                                                                                 controls
                                                                                 preload="auto"
-                                                                                poster="path_to_image.jpg"
+                                                                                poster="{{ $i_videos[$r][0]->thumbnail_path ? asset($i_videos[$r][0]->thumbnail_path) : '' }}"
                                                                                 data-setup='{}' >
                                                                                 <source src="{{ asset($i_videos[$r][0]->path . $i_videos[$r][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
                                                                             </video>
@@ -223,7 +223,7 @@
                                                                             <video class="video-js vjs-default-skin p-0 VDlol" id="video_{{ $i_videos[$r2][0]->id }}"
                                                                                 controls
                                                                                 preload="auto"
-                                                                                poster="path_to_image.jpg"
+                                                                                poster="{{ $i_videos[$r2][0]->thumbnail_path ? asset($i_videos[$r2][0]->thumbnail_path) : '' }}"
                                                                                 data-setup='{}' >
                                                                                 <source src="{{ asset($i_videos[$r2][0]->path . $i_videos[$r2][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
                                                                             </video>

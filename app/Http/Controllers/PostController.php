@@ -7,6 +7,8 @@ use App\Post;
 use App\User;
 use App\Photo;
 use App\Video;
+use App\Hashtag;
+use App\Support\HashtagFormatter;
 use App\Services\MediaUploadService;
 use Illuminate\Http\Request;
 
@@ -96,13 +98,27 @@ class PostController extends Controller
             'files'      => 'nullable|array|max:10',
             'files.*'    => 'file|max:204800|mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/x-matroska,video/avi,video/x-msvideo,video/mpeg,video/3gpp',
             'visibility' => 'sometimes|in:public,friends,only_me',
+            'video_title' => 'nullable|string|max:160',
+            'video_description' => 'nullable|string|max:2000',
+            'video_seo_title' => 'nullable|string|max:160',
+            'video_seo_description' => 'nullable|string|max:500',
+            'video_keywords' => 'nullable|string|max:500',
+            'hashtags' => 'nullable|string|max:500',
+            'selected_video_thumbnail' => 'nullable|string|max:7000000',
         ]);
 
         $userId = auth()->id();
         $status = true;
 
         if ($photos != null) {
-            $uploadResult = $uploadService->processUploads($photos);
+            $uploadResult = $uploadService->processUploads($photos, [
+                'title' => $validatedData['video_title'] ?? null,
+                'description' => $validatedData['video_description'] ?? null,
+                'seo_title' => $validatedData['video_seo_title'] ?? null,
+                'seo_description' => $validatedData['video_seo_description'] ?? null,
+                'keywords' => $validatedData['video_keywords'] ?? null,
+                'thumbnail' => $validatedData['selected_video_thumbnail'] ?? null,
+            ]);
 
             if (isset($uploadResult['error']) && $uploadResult['error'] === 'failed') {
                 return response()->json(['success' => 'failed', 'data' => $uploadResult['details']]);
@@ -117,6 +133,8 @@ class PostController extends Controller
                 'visibility' => $validatedData['visibility'] ?? 'public',
             ]);
 
+            $this->syncHashtags($post, ($validatedData['hashtags'] ?? '').' '.($validatedData['video_description'] ?? ''));
+
             return response()->json(['success' => 'ok', 'data' => $post]);
         }
 
@@ -129,7 +147,25 @@ class PostController extends Controller
             'visibility' => $validatedData['visibility'] ?? 'public',
         ]);
 
+        $this->syncHashtags($post, $validatedData['hashtags'] ?? '');
+
         return response()->json(['success' => 'ok', 'data' => $post]);
+    }
+
+    private function syncHashtags(Post $post, string $extraText = ''): void
+    {
+        $previousIds = $post->hashtags()->pluck('hashtags.id');
+        $ids = collect(HashtagFormatter::extract($post->post_text.' '.$extraText))->map(function (string $name) {
+            return Hashtag::firstOrCreate(
+                ['slug' => HashtagFormatter::slug($name)],
+                ['name' => $name]
+            )->id;
+        });
+
+        $post->hashtags()->sync($ids);
+        Hashtag::whereIn('id', $previousIds->merge($ids)->unique())->withCount('posts')->get()->each(
+            fn (Hashtag $tag) => $tag->update(['posts_count' => $tag->posts_count])
+        );
     }
 
     public function index1($id)
@@ -217,6 +253,7 @@ class PostController extends Controller
             'visibility' => $data['visibility'] ?? 'public',
             'status' => 1,
         ]);
+        $this->syncHashtags($sharedPost);
 
         if ((int) $originalPost->user_id !== (int) $me->id) {
             $originalOwner = User::find($originalPost->user_id);
@@ -252,6 +289,7 @@ class PostController extends Controller
             'post_text' => $validated['post_text'] ?? $post->post_text,
             'visibility' => $validated['visibility'] ?? $post->visibility,
         ]);
+        $this->syncHashtags($post);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

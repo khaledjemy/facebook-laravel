@@ -17,6 +17,10 @@ class Video extends Model
         "title",
         'description',
         'duration',
+        'seo_title',
+        'seo_description',
+        'keywords',
+        'thumbnail_path',
     ];
 
     public function user()

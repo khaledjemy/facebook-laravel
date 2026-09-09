@@ -13,10 +13,11 @@
 <div class="media-viewer">
  <section class="media-viewer__stage">
   <div class="media-viewer__toolbar"><button type="button" class="media-viewer__close" data-bs-dismiss="modal" aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button><a class="media-viewer__logo" href="{{ asset('/') }}" aria-label="الرئيسية">f</a></div>
-  <video class="video-js vjs-default-skin VDlol media-viewer__video" id="video_{{ $video->id }}" controls preload="auto" playsinline data-setup='{}'><source src="{{ asset($video->path.$video->id.'/playlist.m3u8') }}" type="application/x-mpegURL"></video>
+  <video class="video-js vjs-default-skin VDlol media-viewer__video" id="video_{{ $video->id }}" controls preload="auto" playsinline poster="{{ $video->thumbnail_path ? asset($video->thumbnail_path) : '' }}" data-setup='{}'><source src="{{ asset($video->path.$video->id.'/playlist.m3u8') }}" type="application/x-mpegURL"></video>
  </section>
  <aside class="media-viewer__side">
   <header class="media-viewer__header"><img class="media-viewer__avatar" src="{{ $ownerAvatar }}" alt=""><div><a class="media-viewer__name" href="{{ asset('profile/'.$video->user_id) }}">{{ $video->user?->first_name }} {{ $video->user?->last_name }}</a><div class="media-viewer__time">{{ optional($video->created_at)->diffForHumans() }} · <i class="fa-solid fa-earth-americas"></i></div></div></header>
+  @if($video->title || $video->description)<div class="px-3 pt-3"><h5 class="fw-bold mb-1">{{ $video->title }}</h5>@if($video->description)<p class="mb-0">{!! \App\Support\HashtagFormatter::linkify($video->description) !!}</p>@endif</div>@endif
   <div class="media-viewer__content">
    <div class="media-viewer__stats"><div class="media-viewer__reactions"><span class="media-viewer__reaction-icons">👍 ❤️</span><span id="video_reaction_count_{{ $video->id }}">{{ $video->videoreact->count() }}</span></div><span><span id="video_comment_count_{{ $video->id }}">{{ $video->videocommentes->count() }}</span> تعليق</span></div>
    <div class="media-viewer__actions"><button type="button" class="media-viewer__action like {{ $liked ? 'active' : '' }}" data-liked="{{ $liked ? 1 : 0 }}" data-type_id="1" data-video_id="{{ $video->id }}" data-user-id="{{ Auth::id() }}"><i id="like" class="fa-solid fa-thumbs-up"></i> أعجبني</button><button type="button" class="media-viewer__action" onclick="this.closest('.media-viewer__side').querySelector('.media-viewer__composer input').focus()"><i class="fa-regular fa-comment"></i> تعليق</button></div>

@@ -18,7 +18,7 @@ class MediaUploadService
 
     protected int $maxSizeBytes = 209715200; // 200 MB
 
-    public function processUploads(array|UploadedFile $files): array
+    public function processUploads(array|UploadedFile $files, array $videoMetadata = []): array
     {
         $fileList = is_array($files) ? $files : [$files];
         $photoFiles = [];
@@ -56,7 +56,7 @@ class MediaUploadService
         $types = [];
 
         if (!empty($videoFiles)) {
-            $results['video'] = $this->uploadVideos($videoFiles);
+            $results['video'] = $this->uploadVideos($videoFiles, $videoMetadata);
             $types[] = ['video'];
         }
 
@@ -103,7 +103,7 @@ class MediaUploadService
         return json_encode($encoded, JSON_FORCE_OBJECT);
     }
 
-    public function uploadVideos(array $videos): string
+    public function uploadVideos(array $videos, array $metadata = []): string
     {
         $encoded = [];
         $userId = auth()->id();
@@ -117,6 +117,11 @@ class MediaUploadService
                 'state' => 1,
                 'album_id' => 0,
                 'type' => $dotType,
+                'title' => filled($metadata['title'] ?? null) ? $metadata['title'] : pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+                'description' => $metadata['description'] ?? null,
+                'seo_title' => $metadata['seo_title'] ?? null,
+                'seo_description' => $metadata['seo_description'] ?? null,
+                'keywords' => $metadata['keywords'] ?? null,
             ]);
 
             if ($video) {
@@ -125,6 +130,15 @@ class MediaUploadService
                     mkdir($directory, 0755, true);
                 }
                 $file->move($directory, $video->id . $dotType);
+                $thumbnail = $metadata['thumbnail'] ?? null;
+                if (is_string($thumbnail) && preg_match('/^data:image\/(?:jpeg|jpg|webp);base64,(.+)$/', $thumbnail, $matches)) {
+                    $thumbnailData = base64_decode($matches[1], true);
+                    if ($thumbnailData !== false && strlen($thumbnailData) <= 5 * 1024 * 1024) {
+                        $thumbnailPath = $video->path.$video->id.'_thumbnail.jpg';
+                        file_put_contents(public_path($thumbnailPath), $thumbnailData);
+                        $video->update(['thumbnail_path' => $thumbnailPath]);
+                    }
+                }
             }
 
             $encoded[$key] = [$video->id];

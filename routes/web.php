@@ -41,6 +41,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\HashtagController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('postowner');
 Route::get('/language/{locale}', function ($locale) { abort_unless(in_array($locale, ['en','ar'], true), 404); session(['locale'=>$locale]); return back(); })->name('language');
@@ -51,6 +52,7 @@ Route::get('/saved', [ExploreController::class, 'saved'])->middleware('auth');
 Route::post('/saved/{post}', [ExploreController::class, 'toggleSaved'])->middleware('auth');
 Route::get('/memories', [ExploreController::class, 'memories'])->middleware('auth');
 Route::get('/search', [ExploreController::class, 'search'])->middleware('auth');
+Route::get('/hashtag/{slug}', [HashtagController::class, 'show'])->name('hashtags.show')->middleware('auth');
 Route::get('/notifications', [NotificationController::class, 'index'])->middleware('auth');
 Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->middleware('auth');
 Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->middleware('auth');

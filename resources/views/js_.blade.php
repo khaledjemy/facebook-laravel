@@ -279,6 +279,19 @@ $(document).on('click', '#PostSubmit, #PostSubmit2', function(e) {
 
     var formData = new FormData($form[0]);
 
+    $('[data-video-field]').each(function() {
+        formData.set($(this).data('video-field'), $(this).val() || '');
+    });
+
+    var hasVideo = document.querySelector('#myForm #fileInput2') && Array.from(document.querySelector('#myForm #fileInput2').files || []).some(function(file) {
+        return file.type.indexOf('video/') === 0;
+    });
+    if (hasVideo && !String($('#videoTitle').val() || '').trim()) {
+        $('#videoTitle').addClass('is-invalid').trigger('focus');
+        alert('اكتب عنوان الفيديو قبل النشر.');
+        return;
+    }
+
     // Ensure post_text is populated in formData
     if (textFound && (!formData.has('post_text') || !formData.get('post_text'))) {
         formData.set('post_text', textFound);
@@ -359,6 +372,7 @@ var myDropzone = new Dropzone(this, {
             });
             file.previewElement.appendChild(removeButton);
             updateFileInput();
+            if (file.type && file.type.indexOf('video/') === 0) prepareVideoDetails(file);
         });
         dropzoneInstance.on("removedfile", function(file) {
             updateFileInput();
@@ -372,7 +386,54 @@ var myDropzone = new Dropzone(this, {
                 dataTransfer.items.add(file);
             });
             fileInput.files = dataTransfer.files;
-         
+            var remainingVideo = dropzoneInstance.files.some(function(item) { return item.type && item.type.indexOf('video/') === 0; });
+            if (!remainingVideo) resetVideoDetails();
+        }
+
+        function resetVideoDetails() {
+            $('#videoDetailsPanel').addClass('d-none');
+            $('#videoThumbnailChoices').empty();
+            $('[data-video-field]').val('');
+            $('#videoTitle').removeClass('is-invalid');
+        }
+
+        async function prepareVideoDetails(file) {
+            var panel = $('#videoDetailsPanel');
+            panel.removeClass('d-none');
+            $('#videoThumbnailChoices').html('<div class="text-muted small py-3"><i class="fa fa-spinner fa-spin me-1"></i> جاري استخراج 3 لقطات من الفيديو...</div>');
+            if (!$('#videoTitle').val()) $('#videoTitle').val(file.name.replace(/\.[^.]+$/, ''));
+            var video = document.createElement('video');
+            var objectUrl = URL.createObjectURL(file);
+            video.preload = 'metadata'; video.muted = true; video.src = objectUrl;
+            try {
+                await new Promise(function(resolve, reject) { video.onloadedmetadata = resolve; video.onerror = reject; });
+                var times = [0.15, 0.5, 0.85].map(function(p) { return Math.max(0, Math.min(video.duration - 0.05, video.duration * p)); });
+                var images = [];
+                for (var i = 0; i < times.length; i++) {
+                    video.currentTime = times[i];
+                    await new Promise(function(resolve) { video.onseeked = resolve; });
+                    var canvas = document.createElement('canvas');
+                    var maxWidth = 640;
+                    canvas.width = Math.min(maxWidth, video.videoWidth || maxWidth);
+                    canvas.height = Math.round(canvas.width * ((video.videoHeight || 360) / (video.videoWidth || 640)));
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    images.push(canvas.toDataURL('image/jpeg', 0.82));
+                }
+                var choices = $('#videoThumbnailChoices').empty();
+                images.forEach(function(src, index) {
+                    var button = $('<button type="button" class="video-thumbnail-choice" aria-label="اختيار اللقطة '+(index + 1)+'"><img alt="لقطة '+(index + 1)+'"></button>');
+                    button.find('img').attr('src', src);
+                    button.on('click', function() {
+                        $('.video-thumbnail-choice').removeClass('selected');
+                        $(this).addClass('selected');
+                        $('#selectedVideoThumbnail').val(src);
+                    });
+                    choices.append(button);
+                });
+                choices.find('.video-thumbnail-choice').first().trigger('click');
+            } catch (error) {
+                $('#videoThumbnailChoices').html('<div class="alert alert-warning py-2 mb-0">تعذر استخراج اللقطات في المتصفح، وسيُستخدم غلاف تلقائي.</div>');
+            } finally { URL.revokeObjectURL(objectUrl); }
         }
     }
 });
