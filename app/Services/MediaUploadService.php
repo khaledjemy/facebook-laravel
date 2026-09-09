@@ -143,10 +143,14 @@ class MediaUploadService
 
             $encoded[$key] = [$video->id];
 
-            ProcessVideoJob::dispatch(
+            $job = new ProcessVideoJob(
                 $video->path . $video->id . $dotType,
                 $video->path . $video->id,
             );
+            if (config('media.sync_initial_quality', true)) {
+                $job->processInitialQuality();
+            }
+            dispatch($job);
         }
 
         return json_encode($encoded, JSON_FORCE_OBJECT);

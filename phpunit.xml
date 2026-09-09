@@ -16,6 +16,7 @@
     <server name="DB_DATABASE" value=":memory:"/>
     <server name="MAIL_DRIVER" value="array"/>
     <server name="QUEUE_CONNECTION" value="sync"/>
+    <server name="VIDEO_SYNC_INITIAL_QUALITY" value="false"/>
     <server name="SESSION_DRIVER" value="array"/>
   </php>
   <source>

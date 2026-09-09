@@ -22,6 +22,13 @@
     });
 
  function AjaxReqForAll(url,method,formData,post){
+    var protectVideoUpload = post === 'Post' && formData instanceof FormData && formData.getAll('files[]').some(function(file) {
+        return file instanceof File && file.type.indexOf('video/') === 0;
+    });
+    if (protectVideoUpload) {
+        window.postUploadInProgress = true;
+        window.postUploadStage = 'uploading';
+    }
     $.ajax({
         url: url, 
         type: method,
@@ -36,15 +43,30 @@
                         $("#progressWrapper").show();  
                         $("#progressBar").css("width", percent + "%");
                         $("#percentage").text(Math.round(percent) + "%");
+                        if (protectVideoUpload && percent >= 100) {
+                            window.postUploadStage = 'processing';
+                            $("#percentage").removeClass('d-none').html('<i class="fa fa-spinner fa-spin me-1"></i> اكتمل الرفع — جاري توليد أول جودة قبل النشر...');
+                            $("#progressBar").addClass('video-processing-progress');
+                        }
                     }
                 };
                 return xhr;
             },
         success: function (response) {
+                if (protectVideoUpload) {
+                    window.postUploadInProgress = false;
+                    window.postUploadStage = null;
+                    $("#progressBar").removeClass('video-processing-progress');
+                }
                 $('#loading').hide();
                 componant(post,response);
         },
         error: function (xhr, status, error) {
+            if (protectVideoUpload) {
+                window.postUploadInProgress = false;
+                window.postUploadStage = null;
+                $("#progressBar").removeClass('video-processing-progress');
+            }
             $('#loading').hide();
             $('#PostSubmit, #PostSubmit2').prop('disabled', false).text('{{ __("ui.post") }}');
             console.log(error,status,xhr);
@@ -63,6 +85,14 @@ $(document).on('click', '.contact-chat', function (e) {
     $('#mini-chat-name').text($(this).data('chat-name'));
     $.post('/messanger/' + id + '/seen', {_token: '{{ csrf_token() }}'}).always(function () {
         if (typeof window.loadMessageSummary === 'function') window.loadMessageSummary();
+    });
+
+    window.postUploadInProgress = false;
+    window.addEventListener('beforeunload', function (event) {
+        if (!window.postUploadInProgress) return;
+        event.preventDefault();
+        event.returnValue = 'الفيديو ما زال قيد الرفع أو تجهيز أول جودة. إذا غادرت الآن قد لا يكتمل نشره.';
+        return event.returnValue;
     });
     $('#mini-chat-messages').html('<div class="text-muted small text-center">جاري التحميل...</div>');
     $.ajax({
@@ -200,6 +230,7 @@ $(document).ready(function() {
           $list.html('<div class="chat-popup-empty"><i class="far fa-comments"></i><span>لا توجد محادثات بعد</span></div>');
           return;
         }
+
         data.conversations.forEach(function(chat) {
           const unread = Number(chat.unread_count || 0);
           $list.append('<a class="chat-recent-item '+(unread ? 'unread' : '')+'" href="'+escapeNavText(chat.url)+'">'

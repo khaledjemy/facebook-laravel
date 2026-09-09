@@ -111,14 +111,21 @@ class PostController extends Controller
         $status = true;
 
         if ($photos != null) {
-            $uploadResult = $uploadService->processUploads($photos, [
-                'title' => $validatedData['video_title'] ?? null,
-                'description' => $validatedData['video_description'] ?? null,
-                'seo_title' => $validatedData['video_seo_title'] ?? null,
-                'seo_description' => $validatedData['video_seo_description'] ?? null,
-                'keywords' => $validatedData['video_keywords'] ?? null,
-                'thumbnail' => $validatedData['selected_video_thumbnail'] ?? null,
-            ]);
+            try {
+                $uploadResult = $uploadService->processUploads($photos, [
+                    'title' => $validatedData['video_title'] ?? null,
+                    'description' => $validatedData['video_description'] ?? null,
+                    'seo_title' => $validatedData['video_seo_title'] ?? null,
+                    'seo_description' => $validatedData['video_seo_description'] ?? null,
+                    'keywords' => $validatedData['video_keywords'] ?? null,
+                    'thumbnail' => $validatedData['selected_video_thumbnail'] ?? null,
+                ]);
+            } catch (\Throwable $exception) {
+                report($exception);
+                return response()->json([
+                    'message' => 'تم رفع الملف لكن تعذر تجهيز أول جودة للفيديو، لذلك لم يتم نشره. حاول مرة أخرى.',
+                ], 422);
+            }
 
             if (isset($uploadResult['error']) && $uploadResult['error'] === 'failed') {
                 return response()->json(['success' => 'failed', 'data' => $uploadResult['details']]);
