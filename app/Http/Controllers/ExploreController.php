@@ -6,13 +6,19 @@ use App\Post;
 use App\User;
 use App\Video;
 use App\SavedPost;
+use App\LiveStream;
 use Illuminate\Http\Request;
 
 class ExploreController extends Controller
 {
     public function watch()
     {
-        return view('explore', ['title' => __('ui.watch'), 'kind' => 'watch', 'items' => Video::with('user')->latest()->paginate(12)]);
+        return view('explore', [
+            'title' => __('ui.watch'),
+            'kind' => 'watch',
+            'items' => Video::with('user')->latest()->paginate(12),
+            'liveStreams' => LiveStream::visibleTo(auth()->user())->with('user.photopro')->where('status', 'live')->latest('started_at')->get(),
+        ]);
     }
 
     public function friends()

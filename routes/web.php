@@ -42,11 +42,24 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HashtagController;
+use App\Http\Controllers\LiveStreamController;
 
 Route::get('/', [PostController::class, 'index'])->middleware('postowner');
 Route::get('/language/{locale}', function ($locale) { abort_unless(in_array($locale, ['en','ar'], true), 404); session(['locale'=>$locale]); return back(); })->name('language');
 Route::get('/community', [CommunityController::class, 'index'])->middleware('auth');
 Route::get('/watch', [ExploreController::class, 'watch'])->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::get('/live/create', [LiveStreamController::class, 'create'])->name('live.create');
+    Route::post('/live', [LiveStreamController::class, 'store'])->name('live.store');
+    Route::get('/live/{stream}', [LiveStreamController::class, 'show'])->name('live.show');
+    Route::post('/live/{stream}/start', [LiveStreamController::class, 'start']);
+    Route::post('/live/{stream}/join', [LiveStreamController::class, 'join']);
+    Route::post('/live/{stream}/leave', [LiveStreamController::class, 'leave']);
+    Route::post('/live/{stream}/finish', [LiveStreamController::class, 'finish']);
+    Route::get('/live/{stream}/status', [LiveStreamController::class, 'status']);
+    Route::get('/live/{stream}/comments', [LiveStreamController::class, 'comments']);
+    Route::post('/live/{stream}/comments', [LiveStreamController::class, 'comment']);
+});
 Route::get('/friends', [ExploreController::class, 'friends'])->middleware('auth');
 Route::get('/saved', [ExploreController::class, 'saved'])->middleware('auth');
 Route::post('/saved/{post}', [ExploreController::class, 'toggleSaved'])->middleware('auth');

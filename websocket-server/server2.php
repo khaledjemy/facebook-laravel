@@ -82,7 +82,7 @@ parse_str($queryString ?? '', $query);
 
     // ===== call =====
 
-    if(in_array($type, ['offer','answer','ice'], true)){
+    if(in_array($type, ['offer','answer','ice','live-viewer-join','live-offer','live-answer','live-ice','live-ended'], true)){
         $toUser = $data['to'] ?? null;
         if(!$toUser) return;
         if(isset($this->userConnections[$toUser])){
