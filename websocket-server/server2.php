@@ -82,7 +82,11 @@ parse_str($queryString ?? '', $query);
 
     // ===== call =====
 
-    if(in_array($type, ['offer','answer','ice','live-viewer-join','live-offer','live-answer','live-ice','live-ended'], true)){
+    if(in_array($type, [
+        'offer','answer','ice','end-call','call-request','call-accepted','call-rejected',
+        'call-cancelled','call-busy','call-media-error','video-upgrade-request','video-upgrade-accepted',
+        'live-viewer-join','live-offer','live-answer','live-ice','live-ended'
+    ], true)){
         $toUser = $data['to'] ?? null;
         if(!$toUser) return;
         if(isset($this->userConnections[$toUser])){

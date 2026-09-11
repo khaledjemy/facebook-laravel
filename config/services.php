@@ -4,6 +4,12 @@ return [
 
     'websocket_url' => env('WEBSOCKET_URL', 'ws://127.0.0.1:8081'),
     'websocket_secret' => env('WEBSOCKET_SECRET', env('APP_KEY')),
+    'webrtc' => [
+        'stun_url' => env('WEBRTC_STUN_URL', 'stun:stun.l.google.com:19302'),
+        'turn_url' => env('WEBRTC_TURN_URL'),
+        'turn_username' => env('WEBRTC_TURN_USERNAME'),
+        'turn_credential' => env('WEBRTC_TURN_CREDENTIAL'),
+    ],
 
     /*
     |--------------------------------------------------------------------------
