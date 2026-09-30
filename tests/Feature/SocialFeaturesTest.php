@@ -421,6 +421,40 @@ class SocialFeaturesTest extends TestCase
             ->assertSee('img/Default_avatar_profile.jpg', false);
     }
 
+    public function test_profile_gallery_hides_media_from_posts_the_viewer_cannot_see(): void
+    {
+        $owner = $this->user('private-gallery-owner@example.com');
+        $stranger = $this->user('private-gallery-stranger@example.com');
+        $photo = Photo::create([
+            'user_id' => $owner->id,
+            'path' => 'private/media/images/users/'.$owner->id.'/',
+            'type' => '.jpg',
+            'album_id' => 0,
+        ]);
+        Storage::disk('local')->put($photo->path.$photo->id.'.jpg', 'private-image-bytes');
+        $video = Video::create([
+            'user_id' => $owner->id,
+            'path' => 'private/media/videos/users/'.$owner->id.'/',
+            'type' => '.mp4',
+            'title' => 'Private gallery video',
+        ]);
+        Post::create([
+            'user_id' => $owner->id,
+            'post_text' => 'Friends-only gallery media',
+            'image' => json_encode([[$photo->id]], JSON_FORCE_OBJECT),
+            'video' => json_encode([[$video->id]], JSON_FORCE_OBJECT),
+            'visibility' => 'friends',
+            'status' => true,
+        ]);
+
+        $this->actingAs($stranger)
+            ->get('/profile/'.$owner->id)
+            ->assertOk()
+            ->assertDontSee(route('media.photos.show', $photo->id), false)
+            ->assertDontSee(route('media.videos.hls', ['video' => $video->id, 'file' => 'playlist.m3u8']), false)
+            ->assertDontSee('Private gallery video');
+    }
+
     public function test_authenticated_user_can_load_a_safe_profile_hover_card(): void
     {
         $viewer = $this->user('hover-viewer@example.com');

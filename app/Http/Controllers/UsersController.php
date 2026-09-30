@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Album;
 use App\Friend;
 use App\Notifications\FriendAcceptedNotification;
 use App\Notifications\FriendRequestNotification;
 use App\Post;
+use App\Services\MediaVisibilityService;
 use App\User;
 use App\photo;
 use App\Video;
@@ -18,7 +18,7 @@ use Ramsey\Collection\Map\AssociativeArrayMap;
 class UsersController extends Controller
 {
     //
-    public function profile($id, Request $request)
+    public function profile($id, Request $request, MediaVisibilityService $mediaVisibility)
     {
         if (auth()->check()) {
             $me = auth()->id();
@@ -31,11 +31,19 @@ class UsersController extends Controller
             abort_if($isBlocked, 404, 'This profile is not available.');
         }
 
-        $allphoto = photo::where('user_id', $id)->get()->filter(
-            fn ($photo) => $photo->mediaFileExists()
-        )->values();
-        $allvideo = Video::where('user_id', $id)->latest()->get();
-        $albums = Album::where('user_id', $id)->with('photos')->get();
+        $profile_page = User::where('id', $id)->with('photopro', 'coverpro')->firstOrFail();
+        $visiblePhotoIds = $mediaVisibility->visiblePhotoIds(auth()->user())
+            ->merge([$profile_page->profile_photo_id, $profile_page->cover_photo_id])
+            ->filter()
+            ->map(fn ($photoId) => (int) $photoId)
+            ->unique();
+        $visibleVideoIds = $mediaVisibility->visibleVideoIds(auth()->user());
+
+        $allphoto = photo::where('user_id', $id)->whereIn('id', $visiblePhotoIds)
+            ->get()
+            ->filter(fn ($photo) => $photo->mediaFileExists())
+            ->values();
+        $allvideo = Video::where('user_id', $id)->whereIn('id', $visibleVideoIds)->latest()->get();
         $friends = $this->friends($id);
         $profileFriendIds = Friend::where('state', 1)
             ->where(fn ($query) => $query->where('user_id', $id)->orWhere('friends_id', $id))
@@ -44,8 +52,6 @@ class UsersController extends Controller
             ->unique()
             ->values();
         $profileFriends = User::with('photopro')->whereIn('id', $profileFriendIds)->orderBy('first_name')->get();
-        $profile_page = User::where('id', $id)->with('photopro', 'coverpro')->firstOrFail();
-
         $page = $request->query('page', 1);
         $p_postes = Post::visibleTo(auth()->user())->where('user_id', $id)
             ->with('user.photopro', 'sharedPost.user.photopro', 'commentes.react', 'commentes.replie.userreply.photopro', 'react', 'commentes.user.photopro')
@@ -82,7 +88,7 @@ class UsersController extends Controller
 
         $profile = auth()->check() ? auth()->user()->loadMissing('photopro', 'coverpro') : null;
 
-        return view("profile", compact('profile_page', 'p_postes', 'friends', 'profileFriends', 'imges', 'videos', 'allphoto', 'allvideo', 'albums', 'profile'));
+        return view("profile", compact('profile_page', 'p_postes', 'friends', 'profileFriends', 'imges', 'videos', 'allphoto', 'allvideo', 'profile'));
     }
     public function profilenav()
     {
