@@ -403,6 +403,53 @@ class SocialFeaturesTest extends TestCase
             ->assertSee('btn-share-photo', false);
     }
 
+    public function test_photo_comment_reply_uses_the_real_comment_author_and_is_rendered(): void
+    {
+        $owner = $this->user('photo-reply-owner@example.com');
+        $replier = $this->user('photo-reply-sender@example.com');
+        $spoofedUser = $this->user('photo-reply-spoof@example.com');
+        $photo = Photo::create([
+            'user_id' => $owner->id,
+            'path' => 'private/media/images/users/'.$owner->id.'/',
+            'type' => '.jpg',
+            'album_id' => 0,
+        ]);
+        Storage::disk('local')->put($photo->path.$photo->id.'.jpg', 'photo-bytes');
+        Post::create([
+            'user_id' => $owner->id,
+            'post_text' => 'Public photo post',
+            'image' => json_encode([[$photo->id]], JSON_FORCE_OBJECT),
+            'visibility' => 'public',
+            'status' => true,
+        ]);
+        $comment = \App\Photocommente::create([
+            'photo_id' => $photo->id,
+            'user_id' => $owner->id,
+            'comment' => 'Original photo comment',
+        ]);
+
+        $this->actingAs($replier)
+            ->from('/photo/'.$photo->id)
+            ->post('/photo-reply', [
+                'comment_id' => $comment->id,
+                'userreplay_id' => $spoofedUser->id,
+                'comment' => 'A useful reply',
+            ])
+            ->assertRedirect(url('/photo/'.$photo->id));
+
+        $this->assertDatabaseHas('photoreplies', [
+            'comment_id' => $comment->id,
+            'user_id' => $replier->id,
+            'userreply_id' => $owner->id,
+            'reply' => 'A useful reply',
+        ]);
+
+        $this->get('/photo/'.$photo->id)
+            ->assertOk()
+            ->assertSee('A useful reply')
+            ->assertSee($replier->first_name.' '.$replier->last_name);
+    }
+
     public function test_profile_renders_comments_and_replies_when_users_have_no_avatar(): void
     {
         $owner = $this->user('no-avatar-owner@example.com');

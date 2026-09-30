@@ -1739,6 +1739,12 @@ $(document).on('click', '.btn-focus-photo-comment', function(e) {
     input.focus({ preventScroll: true });
 });
 
+$(document).on('click', '.photo-reply-toggle', function() {
+    const expanded = $(this).attr('aria-expanded') === 'true';
+    $(this).attr('aria-expanded', String(!expanded));
+    $('#' + this.getAttribute('aria-controls')).toggleClass('d-none', expanded);
+});
+
 async function copyPhotoShareLink(url) {
     const copiedMessage = @json(__('ui.link_copied'));
     const promptMessage = @json(__('ui.copy_link_prompt'));

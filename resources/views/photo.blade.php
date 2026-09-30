@@ -142,17 +142,16 @@
                             <p class="my-0">
                                 <span class="btn btn-sm text-gray-600 ms-3 px-0">{{optional($comment->created_at)->diffForHumans()}}</span>
                                 <a href="javascript:;" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none mx-1  px-0">Like</a>
-                                <a href="javascript:;" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none mx-1 px-0" onclick="ReplyBox()">Reply</a>
+                                <button type="button" class="btn btn-sm btn-link text-gray-600 fw-bolder text-decoration-none mx-1 px-0 photo-reply-toggle" data-comment-id="{{ $comment->id }}" aria-controls="photo-reply-box-{{ $comment->id }}" aria-expanded="false">Reply</button>
                                 </p>
-                                <div class="reply-box" style="display: none;">
-                                    <form action="/photo-reply" method="POST">
+                                <div id="photo-reply-box-{{ $comment->id }}" class="reply-box d-none">
+                                    <form action="{{ url('/photo-reply') }}" method="POST">
                                         @csrf
                                         <div class="ps-2 flex-1 m-2">
                                             <div class="position-relative m-2">
-                                                <textarea name="comment" class="form-control rounded-pill ps-3" placeholder="Write a reply...">{{ $comment->user['first_name'] }} {{ $comment->user['last_name'] }}</textarea>
+                                                <textarea name="comment" class="form-control rounded-pill ps-3" placeholder="Write a reply..." maxlength="255" required></textarea>
                                                 <input type="hidden" name="comment_id" value="{{ $comment->id }}">
-                                                <input type="hidden" name="userreplay_id" value="{{ $comment->user['id'] }}">
-                                                <button type="submit">reply</button>
+                                                <button type="submit" class="btn btn-primary btn-sm rounded-pill">إرسال الرد</button>
                                                 <div class="position-absolute end-0 top-0 bottom-0 d-flex align-items-center px-2">
                                                     <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-smile fa-fw fa-lg d-block"></i></a>
                                                     <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-camera fa-fw fa-lg d-block"></i></a>
@@ -163,8 +162,13 @@
                                         </div>
                                     </form>
                                 </div>
-                                <div>
-                                    
+                                <div id="photo-replies-{{ $comment->id }}" class="photo-replies ms-4">
+                                    @foreach($comment->reply as $photoReply)
+                                        <div class="small bg-light rounded-3 p-2 mb-2">
+                                            <a class="fw-bold text-decoration-none" href="{{ url('/profile/'.$photoReply->userreply->id) }}">{{ $photoReply->userreply->first_name }} {{ $photoReply->userreply->last_name }}</a>
+                                            <span>{{ $photoReply->reply }}</span>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
                             <div class="col-md-1 col-1 m-1 p-0 d-flex justify-content-end">

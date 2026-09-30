@@ -275,7 +275,7 @@ class PhotoController extends Controller
     
     public function photo($id, MediaVisibilityService $mediaVisibility)
     {
-        $photo  =   photo::where('id',$id)->with('user','photocommentes','reactphoto')->firstOrFail();
+        $photo  =   photo::where('id',$id)->with('user','photocommentes.user','photocommentes.reply.userreply','reactphoto')->firstOrFail();
         abort_unless($mediaVisibility->canViewPhoto($photo, auth()->user()), 404);
         $commente=   Photocommente::where('photo_id',$id)->with('user','reply')->get();
         $profile = auth()->check() ? auth()->user()->loadMissing('photopro', 'coverpro') : null;

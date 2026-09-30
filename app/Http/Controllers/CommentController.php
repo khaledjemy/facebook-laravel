@@ -202,32 +202,22 @@ class CommentController extends Controller
     
     public function photo_reply_store(Request $request)
     {   
-        
-        
         $validatedData = $request->validate([
-            
             'comment' => 'required|max:255',
             'comment_id' => 'required|integer|exists:photocommentes,id',
-            'userreplay_id' => 'required|integer|exists:users,id',
-
         ]);
         $parentComment = Photocommente::findOrFail($validatedData['comment_id']);
         $photo = \App\photo::findOrFail($parentComment->photo_id);
         abort_unless(app(\App\Services\MediaVisibilityService::class)->canViewPhoto($photo, auth()->user()), 404);
         
-        $userId =   auth()->id();
-
-        
         $reply = photoreply::create([
-            
             'comment_id'    => $validatedData['comment_id'],
-            'user_id'       => $userId, // Assign the temporary user id
-            'userreply_id'  => $validatedData['userreplay_id'],
+            'user_id'       => auth()->id(),
+            'userreply_id'  => $parentComment->user_id,
             'reply'         => $validatedData['comment'],
         ]);
-        
 
-       return redirect('/')->with('"success"', 'Comment successfully!');
+        return back()->with('success', 'تم إرسال الرد بنجاح.');
     }
     public function delete_comment(Request  $request)
     {
