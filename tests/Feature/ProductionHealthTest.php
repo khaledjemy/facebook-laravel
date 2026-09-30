@@ -31,6 +31,20 @@ class ProductionHealthTest extends TestCase
         $this->assertStringContainsString('PASS  Background queue configured', Artisan::output());
     }
 
+    public function test_health_check_rejects_a_queue_retry_window_shorter_than_video_timeout(): void
+    {
+        config([
+            'queue.default' => 'beanstalkd',
+            'queue.connections.beanstalkd.driver' => 'beanstalkd',
+            'queue.connections.beanstalkd.queue' => 'default',
+            'queue.connections.beanstalkd.retry_after' => 90,
+        ]);
+
+        Artisan::call('app:health');
+
+        $this->assertStringContainsString('FAIL  Background queue configured', Artisan::output());
+    }
+
     public function test_health_check_rejects_a_mail_transport_without_real_delivery_settings(): void
     {
         config([

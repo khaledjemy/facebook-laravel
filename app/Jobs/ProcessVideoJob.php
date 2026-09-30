@@ -13,8 +13,10 @@ class ProcessVideoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public const TIMEOUT = 3700;
+
     public $tries = 2;
-    public $timeout = 3700;
+    public $timeout = self::TIMEOUT;
     public $backoff = 30;
 
     public function __construct(

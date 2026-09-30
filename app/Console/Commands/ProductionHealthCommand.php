@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\ProcessVideoJob;
 use App\SiteSetting;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -115,7 +116,13 @@ class ProductionHealthCommand extends Command
         }
 
         return match ($configuration['driver'] ?? $connection) {
-            'database', 'redis', 'sqs', 'beanstalkd' => true,
+            'database', 'redis', 'beanstalkd' => filled($configuration['queue'] ?? null)
+                && (int) ($configuration['retry_after'] ?? 0) > ProcessVideoJob::TIMEOUT,
+            'sqs' => filled($configuration['queue'] ?? null)
+                && !str_contains((string) $configuration['queue'], 'your-queue-name')
+                && filled($configuration['region'] ?? null)
+                && filter_var((string) ($configuration['prefix'] ?? ''), FILTER_VALIDATE_URL) !== false
+                && !str_contains((string) $configuration['prefix'], 'your-account-id'),
             default => false,
         };
     }
