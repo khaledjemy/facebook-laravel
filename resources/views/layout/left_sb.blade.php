@@ -139,7 +139,7 @@
 
                     <!-- البروفايل -->
                     <li class="ms-sidebar-item">
-                        <a href="profile/{{Auth::id()}}" class="ms-sidebar-link">
+                        <a href="{{ url('/profile/'.Auth::id()) }}" class="ms-sidebar-link">
 
                             <div class="ms-sidebar-avatar-wrapper">
                                 @if(Auth::check())

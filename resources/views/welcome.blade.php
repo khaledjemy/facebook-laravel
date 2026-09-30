@@ -75,9 +75,9 @@
                                                     </div>
                                                     <div class="col-md-4 mx-2 text-start" >
                                                         <div class="row justify-content-start text-start fs-15px fw-bolder ">
-                                                            <a class="post-author text-dark text-decoration-none my-0" href="profile/{{$post->user['id']}}">{{$post->user['first_name']}} {{$post->user['last_name']}}<i class="fa fa-check-circle text-blue ms-1"></i></a>
+                                                            <a class="post-author text-dark text-decoration-none my-0" href="{{ url('/profile/'.$post->user['id']) }}">{{$post->user['first_name']}} {{$post->user['last_name']}}<i class="fa fa-check-circle text-blue ms-1"></i></a>
                                                             <div class="text-muted ">
-                                                            <a class="post-time text-muted text-decoration-none" href="post/{{$post->id}}"><time class="js-relative-time" datetime="{{ $post->created_at?->toIso8601String() }}">{{ $post->created_at?->diffForHumans() ?? 'just now' }}</time> <i class="fa {{ $post->visibility === 'only_me' ? 'fa-lock' : ($post->visibility === 'friends' ? 'fa-user-friends' : 'fa-globe-americas') }} opacity-5 ms-1 post-visibility-icon-{{ $post->id }}" title="{{ ucfirst(str_replace('_', ' ', $post->visibility ?? 'public')) }}"></i></a>
+                                                            <a class="post-time text-muted text-decoration-none" href="{{ url('/post/'.$post->id) }}"><time class="js-relative-time" datetime="{{ $post->created_at?->toIso8601String() }}">{{ $post->created_at?->diffForHumans() ?? 'just now' }}</time> <i class="fa {{ $post->visibility === 'only_me' ? 'fa-lock' : ($post->visibility === 'friends' ? 'fa-user-friends' : 'fa-globe-americas') }} opacity-5 ms-1 post-visibility-icon-{{ $post->id }}" title="{{ ucfirst(str_replace('_', ' ', $post->visibility ?? 'public')) }}"></i></a>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -288,7 +288,7 @@
                                                     </div>
                                                     <div id="father_cid_{{ $comment->id }}" class=" col-md-10 col-10 m-0 p-0">
                                                         <div class="my-0 py-1 me-2 ms-1 bg-gray-200 radius_30 mt-2" >
-                                                            <a id="user_link_{{$comment->user['id']}}" href="profile/{{$comment->user['id']}}" >
+                                                            <a id="user_link_{{$comment->user['id']}}" href="{{ url('/profile/'.$comment->user['id']) }}" >
                                                                 <h5 class="mb-1 px-3" id="comment_name_{{$comment->id}}">{{$comment->user['first_name']}} {{$comment->user['last_name']}}</h5>
                                                             </a>
                                                             <p class="my-1 px-3" id="comment_text_{{$comment->id}}">{{$comment['text_co']}}</p>

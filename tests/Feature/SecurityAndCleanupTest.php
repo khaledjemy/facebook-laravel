@@ -118,6 +118,16 @@ class SecurityAndCleanupTest extends TestCase
             ->assertRedirect('/messanger/'.$userC->id);
     }
 
+    public function test_empty_messenger_inbox_does_not_start_a_chat_with_a_random_user(): void
+    {
+        $user = $this->createUser('empty-inbox@example.com');
+        $this->createUser('unrelated-contact@example.com');
+
+        $this->actingAs($user)
+            ->get('/messanger')
+            ->assertRedirect('/friends');
+    }
+
     public function test_messenger_supports_full_page_and_mini_chat_responses(): void
     {
         $sender = $this->createUser('mini-sender@example.com');

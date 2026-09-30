@@ -303,7 +303,7 @@
     </div>
     <div id="father_cid_" class=" col-md-10 m-0 p-0">
         <div class="my-0 py-1 me-2 ms-1 bg-gray-200 radius_30 mt-2" >
-            <a id="user_link" href="profile/" >
+            <a id="user_link" href="/profile/" >
                 <h5 class="mb-1 px-3" id="comment_name"></h5>
             </a>
             <p  class="  my-1 px-3" id="comment_text"></p>

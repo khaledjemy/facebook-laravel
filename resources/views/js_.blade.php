@@ -858,7 +858,7 @@ function componant($compvar,data){
             $comment.removeAttr("id").attr("id", "comment_" + data.details.post_id + "_" + data.details.id);
             $comment.removeClass("d-none");
             $comment.find("#comment_img").removeAttr("id").attr({id: "comment_img_" + data.details.id,src: data.details.user['photopro'].url || "{{ asset('img/Default_avatar_profile.jpg') }}"});
-            $comment.find("#user_link").removeAttr("id").removeAttr("href").attr({id: "user_link_" + data.details.user['id'],href: "profile/"+data.details.user['id']});
+            $comment.find("#user_link").removeAttr("id").removeAttr("href").attr({id: "user_link_" + data.details.user['id'],href: "/profile/"+data.details.user['id']});
             $comment.find("#comment_text").removeAttr("id").attr("id", "comment_text_" + data.details.id).text(data.details.text_co+".");
             $comment.find("#comment_name").removeAttr("id").attr("id", "comment_name_" + data.details.id).text(data.details.user['first_name']+" "+data.details.user['last_name']);
             $comment.find("#id_raplay_comment_").removeAttr("id").attr({id:"id_raplay_comment_"+data.details.id,"data-id_raplay_comment_":data.details.id});
@@ -880,7 +880,7 @@ function componant($compvar,data){
             $comment.removeAttr("id").attr("id", "photocomment_" + data.details.photo_id + "_" + data.details.id);
             $comment.removeClass("d-none");
             $comment.find("#comment_img").removeAttr("id").attr({id: "photocomment_img_" + data.details.id,src: data.details.user['photopro'].url || "{{ asset('img/Default_avatar_profile.jpg') }}"});
-            $comment.find("#user_link").removeAttr("id").removeAttr("href").attr({id: "user_link_" + data.details.user['id'],href: "profile/"+data.details.user['id']});
+            $comment.find("#user_link").removeAttr("id").removeAttr("href").attr({id: "user_link_" + data.details.user['id'],href: "/profile/"+data.details.user['id']});
             $comment.find("#comment_text").removeAttr("id").attr("id", "photocomment_text_" + data.details.id).text(data.details.comment+".");
             $comment.find("#comment_name").removeAttr("id").attr("id", "photocomment_name_" + data.details.id).text(data.details.user['first_name']+" "+data.details.user['last_name']);
             $comment.find("#comment_opt").removeAttr("id").attr("id" ,"photocomment_opt_" + data.details.id).off('click').on("click",function(){
@@ -921,7 +921,7 @@ function componant($compvar,data){
             $replay.removeAttr("id").attr("id", "replay_id_" + data.details.id);
             $replay.removeClass("d-none");
             $replay.find("#replay_photo_id_").removeAttr("id").attr({id: "replay_photo_id_" + data.details.id,src: data.details.userreply['photopro'].url || "{{ asset('img/Default_avatar_profile.jpg') }}"});
-            $replay.find("#link_id_").removeAttr("id").removeAttr("href").attr({id: "link_id_" + data.details.userreply['id'],href: "profile/"+data.details.userreply['id']});
+            $replay.find("#link_id_").removeAttr("id").removeAttr("href").attr({id: "link_id_" + data.details.userreply['id'],href: "/profile/"+data.details.userreply['id']});
             $replay.find("#replay_comen_").removeAttr("id").attr("id", "replay_comen_" + data.details.id).text(data.details.reply+".");
             $replay.find("#userdata_fl_").removeAttr("id").attr("id", "userdata_fl_" + data.details.id).text(data.details.userreply['first_name']+" "+data.details.userreply['last_name']);
             $("#rid_"+data.details.comment_id).append($replay);
@@ -1892,7 +1892,7 @@ $(document).on('click', '.btn-block-user', function(e) {
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         success: function(res) {
             alert('تم حظر المستخدم بنجاح.');
-            $('a[href="profile/' + userId + '"]').closest('.postes').fadeOut(300, function() {
+            $('a[href="/profile/' + userId + '"]').closest('.postes').fadeOut(300, function() {
                 $(this).remove();
             });
         },

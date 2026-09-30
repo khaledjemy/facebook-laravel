@@ -45,11 +45,11 @@
                         </div>
                         <div class="col-md-4 mx-3   text-start">
                             <div class="row justify-content-start text-start fs-15px fw-bolder ">
-                                <a class="text-dark text-decoration-none my-0" href="profile/{{$photo->user['id']}}">
+                                <a class="text-dark text-decoration-none my-0" href="{{ url('/profile/'.$photo->user['id']) }}">
                                 {{$photo->user['first_name']}}  {{$photo->user['last_name']}}
                                 <i class="fa fa-check-circle text-blue ms-1"></i></a>
                                 <div class="text-muted ">
-                                <a class="text-muted   text-decoration-none" href="photo/{{$photo->id}}"> 8 mins <i class="fa fa-globe-americas opacity-5 ms-1"></i></a>
+                                <a class="text-muted   text-decoration-none" href="{{ url('/photo/'.$photo->id) }}">{{ $photo->created_at?->diffForHumans() ?? __('ui.just_now') }} <i class="fa fa-globe-americas opacity-5 ms-1"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -134,7 +134,7 @@
                         </div>
                         <div class="col-md-10 col-10 m-0 p-0">
                             <div class="my-0 py-1 me-2 ms-1 bg-gray-200 radius_30 mt-2" >
-                                <a id="user_link_{{$comment->user['id']}}" href="profile/{{$comment->user['id']}}" >
+                                <a id="user_link_{{$comment->user['id']}}" href="{{ url('/profile/'.$comment->user['id']) }}" >
                                     <h5 class="mb-1 px-3" id="photocomment_name_{{$comment->id}}">{{$comment->user['first_name']}} {{$comment->user['last_name']}}</h5>
                                 </a>
                                 <p  class="  my-1 px-3" id="photocomment_text_{{$comment->id}}" >{{$comment['comment']}}.</p>

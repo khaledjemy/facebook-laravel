@@ -90,13 +90,7 @@ class MessangerController extends Controller
             return redirect('/messanger/'.$contactId);
         }
 
-        $contact = User::whereKeyNot($me)
-            ->when($blockedIds->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $blockedIds))
-            ->orderBy('id')
-            ->first();
-        abort_unless($contact, 404, 'No contacts are available.');
-
-        return redirect('/messanger/'.$contact->id);
+        return redirect('/friends');
     }
 
     public function index(Request $request, $id)
@@ -104,6 +98,7 @@ class MessangerController extends Controller
         $me = auth()->id();
         abort_if((int) $id === (int) $me, 422, 'You cannot start a conversation with yourself.');
         $user = User::findOrFail($id);
+        abort_if($user->is_active === false, 404);
 
         $isBlocked = Block::where(function ($q) use ($me, $id) {
             $q->where('user_id', $me)->where('blocked_id', $id);
@@ -143,16 +138,10 @@ class MessangerController extends Controller
 
         $contactIds = array_values(array_unique(array_merge($recentContactIds, $friendIds)));
 
-        if (count($contactIds) < 10) {
-            $fallbackIds = User::whereKeyNot($me)
-                ->whereNotIn('id', array_merge($contactIds, $blockedIds->all()))
-                ->limit(10)
-                ->pluck('id')
-                ->all();
-            $contactIds = array_merge($contactIds, $fallbackIds);
-        }
-
-        $users = User::with('photopro')->whereIn('id', $contactIds)->get();
+        $users = User::with('photopro')
+            ->whereIn('id', $contactIds)
+            ->where(fn ($query) => $query->whereNull('is_active')->orWhere('is_active', true))
+            ->get();
 
         // إرسال رسالة
         if ($request->isMethod('post')) {

@@ -22,7 +22,6 @@
             border-radius: 10px;
         }
 
-        /* Sponsored */
         .sidebar_title {
             color: #525355;
             font-size: 17px;
@@ -30,48 +29,6 @@
             font-weight: bold;
         }
 
-        .sponsored_item {
-            display: flex;
-            gap: 10px;
-            text-decoration: none;
-            padding: 8px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            transition: .2s;
-        }
-
-        .sponsored_item:hover {
-            background: #f1f1f1;
-        }
-
-        .sponsored_item img {
-            width: 120px;
-            height: 70px;
-            border-radius: 10px;
-            object-fit: cover;
-        }
-
-        .sponsored_item div {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .sponsored_title {
-            color: #606164;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .sponsored_item small {
-            color: #4a4b4d;
-        }
-
-        hr {
-            border-color: #3a3b3c;
-        }
-
-        /* Contacts */
         .contacts_header {
             display: flex;
             justify-content: space-between;
@@ -86,14 +43,10 @@
             font-weight: bold;
         }
 
-        .contact_icons {
-            display: flex;
-            gap: 15px;
-        }
-
-        .contact_icons i {
-            color: #29292b;
-            cursor: pointer;
+        .contacts_header a {
+            color: #65676b;
+            font-size: 13px;
+            text-decoration: none;
         }
 
         .contacts_list {
@@ -131,17 +84,6 @@
             object-fit: cover;
         }
 
-        .online {
-            width: 10px;
-            height: 10px;
-            background: #31a24c;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 1px;
-            right: 1px;
-            border: 2px solid #18191a;
-        }
-
         .contacts_list span {
             color: #393a3d;
             font-size: 15px;
@@ -169,123 +111,33 @@
         <!-- Right Sidebar -->
         <div class="right_sidebar">
 
-            <!-- Sponsored -->
-            <div class="sidebar_section">
-
-                <h6 class="sidebar_title">Sponsored</h6>
-
-                <a href="#" class="sponsored_item">
-                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600&auto=format&fit=crop">
-
-                    <div>
-                        <span class="sponsored_title">
-                            Learn Programming
-                        </span>
-
-                        <small>www.learn.com</small>
-                    </div>
-                </a>
-
-                <a href="#" class="sponsored_item">
-                    <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop">
-
-                    <div>
-                        <span class="sponsored_title">
-                            Web Templates
-                        </span>
-
-                        <small>www.templates.com</small>
-                    </div>
-                </a>
-
-            </div>
-
-            <hr>
-
-            <!-- Contacts -->
             <div class="contacts_section">
-
                 <div class="contacts_header">
-
-                    <h6>Contacts</h6>
-
-                    <div class="contact_icons">
-                        <i class="fa-solid fa-video"></i>
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <i class="fa-solid fa-ellipsis"></i>
-                    </div>
-
+                    <h6>{{ __('ui.contacts') }}</h6>
+                    <a href="{{ url('/friends') }}">{{ __('ui.friends') }}</a>
                 </div>
 
                 <ul class="contacts_list">
-
-                    <li>
-                        <a href="#" class="contact-chat" data-chat-id="2" data-chat-name="Mohamed Hassan">
-
-                            <div class="contact_img">
-                                <img src="{{ asset('images/avatars/2.svg') }}" alt="Mohamed Hassan">
-                                <span class="online"></span>
-                            </div>
-
-                            <span>Mohamed Hassan</span>
-
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="#" class="contact-chat" data-chat-id="3" data-chat-name="Sarah Ahmed">
-
-                            <div class="contact_img">
-                                <img src="{{ asset('images/avatars/3.svg') }}" alt="Sarah Ahmed">
-                                <span class="online"></span>
-                            </div>
-
-                            <span>Sarah Ahmed</span>
-
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="#" class="contact-chat" data-chat-id="4" data-chat-name="Omar Gamal">
-
-                            <div class="contact_img">
-                                <img src="{{ asset('images/avatars/4.svg') }}" alt="Omar Gamal">
-                                <span class="online"></span>
-                            </div>
-
-                            <span>Omar Gamal</span>
-
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="#" class="contact-chat" data-chat-id="5" data-chat-name="Mahmoud Ali">
-
-                            <div class="contact_img">
-                                <img src="{{ asset('images/avatars/5.svg') }}" alt="Mahmoud Ali">
-                                <span class="online"></span>
-                            </div>
-
-                            <span>Mahmoud Ali</span>
-
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="#" class="contact-chat" data-chat-id="6" data-chat-name="Nour Mohamed">
-
-                            <div class="contact_img">
-                                <img src="{{ asset('images/avatars/6.svg') }}" alt="Nour Mohamed">
-                                <span class="online"></span>
-                            </div>
-
-                            <span>Nour Mohamed</span>
-
-                        </a>
-                    </li>
-
+                    @forelse($sidebarContacts as $contact)
+                        <li>
+                            <a href="{{ url('/messanger/'.$contact->id) }}"
+                               class="contact-chat"
+                               data-chat-id="{{ $contact->id }}"
+                               data-chat-name="{{ $contact->first_name.' '.$contact->last_name }}"
+                               aria-label="{{ __('ui.open_chat_with', ['name' => $contact->first_name.' '.$contact->last_name]) }}">
+                                <div class="contact_img">
+                                    <img src="{{ $contact->avatar_url }}" alt="" loading="lazy">
+                                </div>
+                                <span>{{ $contact->first_name }} {{ $contact->last_name }}</span>
+                            </a>
+                        </li>
+                    @empty
+                        <li class="text-muted small px-2 py-2">
+                            <span>{{ __('ui.no_contacts') }}</span>
+                            <a href="{{ url('/friends') }}" class="d-inline-block ms-1">{{ __('ui.find_friends') }}</a>
+                        </li>
+                    @endforelse
                 </ul>
-
             </div>
 
         </div>

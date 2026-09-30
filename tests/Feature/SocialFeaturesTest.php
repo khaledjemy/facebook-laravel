@@ -342,7 +342,10 @@ class SocialFeaturesTest extends TestCase
             ->assertSee('/live/create', false)
             ->assertSee('data-bs-target="#modal-dialog2"', false)
             ->assertSee('data-bs-target="#createStoryModal"', false);
+        $this->actingAs($demo)->get('/profile/'.$demo->id)->assertOk()
+            ->assertDontSee('href="profile/', false);
         $this->actingAs($demo)->get('/post/1')->assertOk()
+            ->assertDontSee('href="profile/', false)
             ->assertSee('class="dropdown-item btn-edit-post"', false)
             ->assertSee('class="dropdown-item text-danger btn-delete-post"', false);
 
@@ -351,6 +354,48 @@ class SocialFeaturesTest extends TestCase
             ->assertSee('aria-label="الأصدقاء"', false)
             ->assertSee('aria-label="ابدأ محادثة جديدة"', false)
             ->assertDontSee('assets/img/user/user-13.jpg');
+    }
+
+    public function test_home_sidebar_shows_only_real_unblocked_friends(): void
+    {
+        $viewer = $this->user('sidebar-viewer@example.com');
+        $friend = $this->user('sidebar-friend@example.com');
+        $blockedFriend = $this->user('sidebar-blocked@example.com');
+        $stranger = $this->user('sidebar-stranger@example.com');
+        $friend->update(['first_name' => 'Visible', 'last_name' => 'Friend']);
+        $blockedFriend->update(['first_name' => 'Hidden', 'last_name' => 'Blocked']);
+        $stranger->update(['first_name' => 'Unrelated', 'last_name' => 'Person']);
+
+        Friend::create(['user_id' => $viewer->id, 'friends_id' => $friend->id, 'state' => true]);
+        Friend::create(['user_id' => $blockedFriend->id, 'friends_id' => $viewer->id, 'state' => true]);
+        Block::create(['user_id' => $viewer->id, 'blocked_id' => $blockedFriend->id]);
+
+        $this->actingAs($viewer)->get('/')
+            ->assertOk()
+            ->assertSee('Visible Friend')
+            ->assertDontSee('Hidden Blocked')
+            ->assertDontSee('Unrelated Person')
+            ->assertDontSee('Learn Programming')
+            ->assertDontSee('www.learn.com');
+    }
+
+    public function test_photo_detail_links_use_root_relative_routes(): void
+    {
+        $owner = $this->user('photo-links@example.com');
+        $photo = Photo::create([
+            'user_id' => $owner->id,
+            'path' => 'private/media/images/users/'.$owner->id.'/',
+            'type' => '.jpg',
+            'album_id' => 0,
+        ]);
+        Storage::disk('local')->put($photo->path.$photo->id.'.jpg', 'image-bytes');
+
+        $this->actingAs($owner)->get('/photo/'.$photo->id)
+            ->assertOk()
+            ->assertDontSee('href="profile/', false)
+            ->assertDontSee('href="photo/', false)
+            ->assertSee(url('/profile/'.$owner->id), false)
+            ->assertSee(url('/photo/'.$photo->id), false);
     }
 
     public function test_profile_renders_comments_and_replies_when_users_have_no_avatar(): void

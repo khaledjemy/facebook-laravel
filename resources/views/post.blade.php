@@ -193,7 +193,7 @@
                                             </div>
                                             <div id="father_cid_{{ $comment->id }}" class=" col-md-10 col-10 m-0 p-0">
                                                 <div class="my-0 py-1 me-2 ms-1 bg-gray-200 radius_30 mt-2" >
-                                                    <a id="user_link_{{$comment->user['id']}}" href="profile/{{$comment->user['id']}}" >
+                                                    <a id="user_link_{{$comment->user['id']}}" href="{{ url('/profile/'.$comment->user['id']) }}" >
                                                         <h5 class="mb-1 px-3" id="comment_name_{{$comment->id}}">{{$comment->user['first_name']}} {{$comment->user['last_name']}}</h5>
                                                     </a>
                                                     <p class="my-1 px-3" id="comment_text_{{$comment->id}}">{{$comment['text_co']}}</p>
