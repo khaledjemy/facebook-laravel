@@ -1,5 +1,5 @@
 
-<script src="{{ asset('./assets/js/jquery.min.js') }}"></script>
+@empty($jqueryAlreadyLoaded)<script src="{{ asset('./assets/js/jquery.min.js') }}"></script>@endempty
 <script src="{{ asset('./assets/js/app.min.js') }}"></script>
 <script src="{{ asset('./assets/js/vendor.min.js') }}"></script>
 <script src="{{ asset('./assets/js/crop_photo.js') }}"></script>
@@ -13,6 +13,12 @@
 <script>
     const ASSETS = "/";
     const assets = "/";
+
+    $(document).on('change', '#profile-photos-input', function () {
+        var files = Array.from(this.files || []);
+        var summary = files.length ? files.map(function (file) { return file.name; }).join('، ') : 'لم يتم اختيار ملفات';
+        $('#profile-photos-filename').text(summary);
+    });
 
     $.ajaxSetup({
         headers: {
@@ -68,6 +74,16 @@
                 $("#progressBar").removeClass('video-processing-progress');
             }
             $('#loading').hide();
+            if (post === 'Postreload') {
+                isLoading = false;
+                $('#feed-end-message').remove();
+            }
+            if (post === 'PostReaction' || post === 'PhotoReaction' || post === 'ReactionMedia') {
+                var mediaType = post === 'PostReaction' ? 'post' : (post === 'PhotoReaction' ? 'photo' : 'video');
+                var mediaId = formData instanceof FormData ? formData.get(mediaType + '_id') : null;
+                $('.like[data-' + mediaType + '_id="' + mediaId + '"]')
+                    .data('pending', false).removeAttr('aria-busy').removeClass('reaction-pending');
+            }
             $('#PostSubmit, #PostSubmit2').prop('disabled', false).text('{{ __("ui.post") }}');
             console.log(error,status,xhr);
             console.error('Error:', error);
@@ -94,7 +110,7 @@ $(document).on('click', '.contact-chat', function (e) {
         event.returnValue = 'الفيديو ما زال قيد الرفع أو تجهيز أول جودة. إذا غادرت الآن قد لا يكتمل نشره.';
         return event.returnValue;
     });
-    $('#mini-chat-messages').html('<div class="text-muted small text-center">جاري التحميل...</div>');
+    $('#mini-chat-messages').html('<div class="inline-loading-state" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span><span>جاري تحميل المحادثة...</span></div>');
     $.ajax({
         url: '/messanger/' + id,
         method: 'GET',
@@ -520,6 +536,10 @@ var myDropzone = new Dropzone(this, {
             });         
        
     $(document).on('click', '.like', function(event){  
+        event.preventDefault();
+        if ($(this).data('pending')) return;
+
+        var $like = $(this);
         var post_id = $(this).data('post_id');
         var photo_id = $(this).data('photo_id');
         var video_id = $(this).data('video_id');
@@ -530,15 +550,7 @@ var myDropzone = new Dropzone(this, {
         var csrfToken = "{{ csrf_token() }}";
         var form = new FormData();
         
-        if (!liked) {
-            $(this).data('liked', true);
-            $(this).addClass('active');
-            $(this).find('#like').addClass('text-blue-400').removeClass('text-gray-400');
-        } else {
-            $(this).data('liked', false);
-            $(this).removeClass('active');
-            $(this).find('#like').addClass('text-gray-400').removeClass('text-blue-400');
-        }
+        $like.data('pending', true).attr('aria-busy', 'true').addClass('reaction-pending');
         var assets = "{{ asset('') }}";
         form.append('post_id', post_id);
         form.append('user_id', user_id);
@@ -551,9 +563,9 @@ var myDropzone = new Dropzone(this, {
         if(video_id != null && video_id != undefined){
             AjaxReqForAll(assets+"video/like","POST",form,"ReactionMedia");
         }else if(post_id==null||post_id==undefined){
-            AjaxReqForAll(assets+"photo/like","POST",form,"ReactionMedia");
+            AjaxReqForAll(assets+"photo/like","POST",form,"PhotoReaction");
         }else{
-            AjaxReqForAll("like","POST",form,"ReactionPost");
+            AjaxReqForAll("like","POST",form,"PostReaction");
         }
         
         
@@ -649,15 +661,19 @@ $(document).on("mouseleave", ".comment", function () {
       // console.log(page);
         var $feed = $('#allpost');
         var $loader = $('#loading');
-        if ($feed.length) {
-            $loader.appendTo($feed).addClass('feed-inline-loader').show();
-        } else {
-            $loader.show();
+        if ($feed.data('feed-ended')) {
+            isLoading = false;
+            return;
         }
-        setTimeout(function(){
-           AjaxReqForAll(ASSETS+"?page="+page,'GET',{page:page},"Postreload");  
-           isLoading = false; 
-        },1000);
+        if ($feed.length) {
+            $('#feed-end-message').remove();
+            $loader.appendTo($feed).addClass('feed-inline-loader').attr('aria-live', 'polite').show();
+        } else {
+            $loader.hide();
+            isLoading = false;
+            return;
+        }
+        AjaxReqForAll(ASSETS+"?page="+page,'GET',{page:page},"Postreload");
     }
        
 });
@@ -752,26 +768,86 @@ function componant($compvar,data){
             initializeFeedVideos($newPost[0]);
             break;
         case "Postreload":
-            var postes= $(data).find("#allpost");
-            var lol=postes.children();
+            var postes = $(data).find("#allpost");
+            var lol = postes.children();
             $('#loading').hide();
-            $("#allpost").append(lol);
+            if (lol.length) {
+                $("#allpost").append(lol);
+                $('#feed-end-message').remove();
+            } else {
+                $('#allpost').attr('data-feed-ended', 'true');
+                $('#allpost').append('<div id="feed-end-message" class="feed-end-message" role="status">لا توجد منشورات أخرى لعرضها.</div>');
+            }
             var play= $('.VDlol');
             play.each(function(index,element){
                 initPlayer(element);
             });
            // createElement
-          // return isLoading=true;
+            isLoading = false;
             break;
-        case "ReactionPost":
-           // console.log(data);
-            $('.response-container').html(data);
-            break;
+        case "PostReaction":
+        case "PhotoReaction":
         case "ReactionMedia":
             if (data && data.status === 'ok') {
-                $('[data-'+data.media_type+'_id="'+data.media_id+'"]').data('liked', data.liked);
-                $('#'+data.media_type+'_reaction_count_'+data.media_id).text(data.count);
+                var mediaType = data.media_type;
+                var mediaId = Number(data.media_id);
+                var $reactionButtons = $('.like[data-' + mediaType + '_id="' + mediaId + '"]');
+                $reactionButtons.each(function () {
+                    var $button = $(this);
+                    $button.data('liked', data.liked).attr('data-liked', data.liked ? 'true' : 'false')
+                        .data('pending', false).removeAttr('aria-busy').removeClass('reaction-pending')
+                        .toggleClass('active', data.liked);
+                    $button.find('#like').toggleClass('text-blue-400', data.liked).toggleClass('text-gray-400', !data.liked);
+                });
+
+                var reactionEmojis = {1:'👍', 2:'❤️', 3:'🤗', 4:'😂', 5:'😮', 6:'😢', 7:'😡'};
+                var $summaries = $('.post-engagement-summary[data-' + mediaType + '-id="' + mediaId + '"]');
+                $summaries.each(function () {
+                    var $summary = $(this);
+                    var $totals = $summary.find('.post-engagement-totals');
+                    var $count = $totals.children('a.reaction-count');
+                    if (data.count > 0) {
+                        if (!$count.length) {
+                            $count = $('<a>', {href:'#', 'data-post-id':mediaId})
+                                .addClass('reaction-count text-dark text-decoration-none').prependTo($totals);
+                        }
+                        $count.text(data.count);
+                    } else {
+                        $count.remove();
+                    }
+
+                    var $icons = $summary.find('.post-reaction-icons').empty().toggleClass('d-none', data.count < 1);
+                    Object.entries(data.reaction_counts || {}).sort(function (a, b) { return Number(b[1]) - Number(a[1]); }).slice(0, 3).forEach(function (entry) {
+                        var type = Number(entry[0]);
+                        $icons.append($('<span>', {
+                            class: 'post-reaction-icon post-reaction-type-' + type,
+                            title: String(entry[1]),
+                            text: reactionEmojis[type] || '👍'
+                        }));
+                    });
+                });
+
+                var $reactionCount = $('#'+data.media_type+'_reaction_count_'+data.media_id);
+                $reactionCount.text(data.count).prop('hidden', data.count < 1);
+                if (data.media_type === 'video') {
+                    $('.media-viewer__action.like[data-video_id="'+data.media_id+'"]')
+                        .data('liked', data.liked)
+                        .toggleClass('active', data.liked);
+                    var $reactionIcons = $('#video_reaction_icons_'+data.media_id);
+                    if (data.count < 1) {
+                        $reactionIcons.empty().prop('hidden', true);
+                    } else {
+                        $reactionIcons.empty().append($('<span>', {
+                            class: 'media-viewer__reaction-icon',
+                            title: data.count,
+                            text: data.reaction_emoji || '👍'
+                        })).prop('hidden', false);
+                    }
+                }
             }
+            break;
+        case "ReactionPost":
+            $('.response-container').html(data);
             break;
         case "CommentPost":
         var $original = $("#comment_");
@@ -781,10 +857,10 @@ function componant($compvar,data){
         var $comment = $original.clone();
             $comment.removeAttr("id").attr("id", "comment_" + data.details.post_id + "_" + data.details.id);
             $comment.removeClass("d-none");
-            $comment.find("#comment_img").removeAttr("id").attr({id: "comment_img_" + data.details.id,src: "{{ asset('') }}"+data.details.user['photopro'].path+data.details.user['photopro'].id+data.details.user['photopro'].type});
+            $comment.find("#comment_img").removeAttr("id").attr({id: "comment_img_" + data.details.id,src: data.details.user['photopro'].url || "{{ asset('img/Default_avatar_profile.jpg') }}"});
             $comment.find("#user_link").removeAttr("id").removeAttr("href").attr({id: "user_link_" + data.details.user['id'],href: "profile/"+data.details.user['id']});
-            $comment.find("#comment_text").removeAttr("id").attr("id", "comment_text_" + data.details.id).html(data.details.text_co+".");
-            $comment.find("#comment_name").removeAttr("id").attr("id", "comment_name_" + data.details.id).html(data.details.user['first_name']+" "+data.details.user['last_name']);
+            $comment.find("#comment_text").removeAttr("id").attr("id", "comment_text_" + data.details.id).text(data.details.text_co+".");
+            $comment.find("#comment_name").removeAttr("id").attr("id", "comment_name_" + data.details.id).text(data.details.user['first_name']+" "+data.details.user['last_name']);
             $comment.find("#id_raplay_comment_").removeAttr("id").attr({id:"id_raplay_comment_"+data.details.id,"data-id_raplay_comment_":data.details.id});
             $comment.find("#comment_opt").removeAttr("id").attr("id" ,"comment_opt_" + data.details.id).off('click').on("click",function(){
                 Delete("comment",data.details.id);
@@ -803,10 +879,10 @@ function componant($compvar,data){
             var $comment = $original.clone();
             $comment.removeAttr("id").attr("id", "photocomment_" + data.details.photo_id + "_" + data.details.id);
             $comment.removeClass("d-none");
-            $comment.find("#comment_img").removeAttr("id").attr({id: "photocomment_img_" + data.details.id,src: "{{ asset('') }}"+data.details.user['photopro'].path+data.details.user['photopro'].id+data.details.user['photopro'].type});
+            $comment.find("#comment_img").removeAttr("id").attr({id: "photocomment_img_" + data.details.id,src: data.details.user['photopro'].url || "{{ asset('img/Default_avatar_profile.jpg') }}"});
             $comment.find("#user_link").removeAttr("id").removeAttr("href").attr({id: "user_link_" + data.details.user['id'],href: "profile/"+data.details.user['id']});
-            $comment.find("#comment_text").removeAttr("id").attr("id", "photocomment_text_" + data.details.id).html(data.details.comment+".");
-            $comment.find("#comment_name").removeAttr("id").attr("id", "photocomment_name_" + data.details.id).html(data.details.user['first_name']+" "+data.details.user['last_name']);
+            $comment.find("#comment_text").removeAttr("id").attr("id", "photocomment_text_" + data.details.id).text(data.details.comment+".");
+            $comment.find("#comment_name").removeAttr("id").attr("id", "photocomment_name_" + data.details.id).text(data.details.user['first_name']+" "+data.details.user['last_name']);
             $comment.find("#comment_opt").removeAttr("id").attr("id" ,"photocomment_opt_" + data.details.id).off('click').on("click",function(){
                 Delete("photocomment",data.details.id);
             });
@@ -844,10 +920,10 @@ function componant($compvar,data){
         var $replay = $original.clone();
             $replay.removeAttr("id").attr("id", "replay_id_" + data.details.id);
             $replay.removeClass("d-none");
-            $replay.find("#replay_photo_id_").removeAttr("id").attr({id: "replay_photo_id_" + data.details.id,src: "{{ asset('') }}"+data.details.userreply['photopro'].path+data.details.userreply['photopro'].id+data.details.userreply['photopro'].type});
+            $replay.find("#replay_photo_id_").removeAttr("id").attr({id: "replay_photo_id_" + data.details.id,src: data.details.userreply['photopro'].url || "{{ asset('img/Default_avatar_profile.jpg') }}"});
             $replay.find("#link_id_").removeAttr("id").removeAttr("href").attr({id: "link_id_" + data.details.userreply['id'],href: "profile/"+data.details.userreply['id']});
-            $replay.find("#replay_comen_").removeAttr("id").attr("id", "replay_comen_" + data.details.id).html(data.details.reply+".");
-            $replay.find("#userdata_fl_").removeAttr("id").attr("id", "userdata_fl_" + data.details.id).html(data.details.userreply['first_name']+" "+data.details.userreply['last_name']);
+            $replay.find("#replay_comen_").removeAttr("id").attr("id", "replay_comen_" + data.details.id).text(data.details.reply+".");
+            $replay.find("#userdata_fl_").removeAttr("id").attr("id", "userdata_fl_" + data.details.id).text(data.details.userreply['first_name']+" "+data.details.userreply['last_name']);
             $("#rid_"+data.details.comment_id).append($replay);
             break;
         case "crobed":
@@ -1042,18 +1118,29 @@ function initPlayer(videoElement) {
     });
 }
 
+function showMediaLoading(message) {
+    $('#modalContent').attr('aria-busy', 'true').html('<div class="media-loading-state" role="status" aria-live="polite"><span class="spinner-border text-light" aria-hidden="true"></span><span>' + message + '</span></div>');
+}
+
+function showMediaLoadError(message) {
+    $('#modalContent').attr('aria-busy', 'false').html('<div class="media-loading-state" role="alert"><i class="fa-solid fa-triangle-exclamation fs-2" aria-hidden="true"></i><span>' + message + '</span><button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">إغلاق</button></div>');
+}
+
 function showphoto(urlphoto) {
     pauseBackgroundMedia(null);
     var url = ASSETS + "photo/" + urlphoto;
-    $('#modalContent').html("جاري التحميل...");
+    showMediaLoading('جاري تحميل الصورة...');
+    $('#showphoto').modal('show');
     $.get(url, function (response) {
         var wrapper = $('<div>').html(response);
         var content = wrapper.find('#fullspace').html();
-        $('#modalContent').html(content);
-        $('#showphoto').modal('show');
+        if (!content) {
+            showMediaLoadError('تعذر عرض الصورة. حاول فتحها مرة أخرى.');
+            return;
+        }
+        $('#modalContent').attr('aria-busy', 'false').html(content);
     }).fail(function () {
-        restoreBackgroundMedia();
-        alert('تعذر فتح الصورة.');
+        showMediaLoadError('تعذر تحميل الصورة. تحقق من اتصالك وحاول مرة أخرى.');
     });
 }
 
@@ -1062,13 +1149,17 @@ function showphoto(urlphoto) {
     if ($('#showphoto').hasClass('show')) return;
     pauseBackgroundMedia(sourcePlayer || null, sourceWasPlaying);
     var url = ASSETS + "video/" + urlvideo;
-        $('#modalContent').html("جاري التحميل...");
+        showMediaLoading('جاري تحميل الفيديو...');
+        $('#showphoto').modal('show');
         $.get(url, function (response) {
             var $vid = $('<div>').html(response).find('#fullspace');
             var $viewerVideo = $vid.find('.VDlol').first();
+            if (!$vid.length || !$viewerVideo.length) {
+                showMediaLoadError('تعذر تجهيز مشغّل الفيديو. حاول مرة أخرى.');
+                return;
+            }
             $viewerVideo.attr('id', 'viewer_video_' + urlvideo).removeAttr('data-setup');
-            $('#modalContent').html($vid.html());
-            $('#showphoto').modal('show');
+            $('#modalContent').attr('aria-busy', 'false').html($vid.html());
             const viewerElement = document.getElementById('viewer_video_' + urlvideo);
             if (viewerElement) {
                 initPlayer(viewerElement);
@@ -1082,8 +1173,7 @@ function showphoto(urlphoto) {
                 });
             }
         }).fail(function () {
-            restoreBackgroundMedia();
-            alert('تعذر فتح الفيديو.');
+            showMediaLoadError('تعذر تحميل الفيديو. تحقق من اتصالك وحاول مرة أخرى.');
         });
     }
 
@@ -1774,6 +1864,18 @@ $(document).on('click', '.btn-delete-post', function(e) {
 });
 
 // ==================== Block User Script ====================
+$(document).on('click', '.btn-report-post', function(e) {
+    e.preventDefault();
+    const postId = $(this).data('post-id');
+    const labels = {spam:'محتوى مزعج', harassment:'مضايقة أو تنمر', violence:'عنف', nudity:'محتوى غير لائق', false_information:'معلومات زائفة', other:'سبب آخر'};
+    const reason = window.prompt('اكتب رمز سبب البلاغ:\nspam - مزعج\nharassment - مضايقة\nviolence - عنف\nnudity - غير لائق\nfalse_information - معلومات زائفة\nother - سبب آخر', 'spam');
+    if (!reason || !labels[reason]) return;
+    const details = window.prompt('تفاصيل إضافية (اختياري):', '') || '';
+    $.ajax({url: '/posts/' + postId + '/report', method: 'POST', data: {reason, details, _token: $('meta[name="csrf-token"]').attr('content')}})
+        .done(function(response){ alert(response.message || 'تم إرسال البلاغ.'); })
+        .fail(function(xhr){ alert(xhr.responseJSON?.message || 'تعذر إرسال البلاغ.'); });
+});
+
 $(document).on('click', '.btn-block-user', function(e) {
     e.preventDefault();
     let userId = $(this).data('user-id');

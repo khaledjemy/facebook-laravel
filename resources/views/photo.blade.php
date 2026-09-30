@@ -26,7 +26,7 @@
     <div class="d-flex  flex-row m-0 p-0 ">
         <div class="col-md-8 m-0 p-0 h-75">
             <div class="row border-0 m-0 p-0">
-                <img src="{{asset($photo->path.'/'.$photo->id.$photo->type)}}" alt="Image" class="m-0 p-0 rounded">
+                <img src="{{ $photo->url }}" alt="Image" class="m-0 p-0 rounded">
             </div>
         </div>
         <div class="col-md-4 mt-5 p-0 h-100">
@@ -37,7 +37,7 @@
                         <div class="col-md-1 ">
                             <div class="widget-icon rounded-circle bgr  text-white">
                                 @if(isset($photo->user['photopro']['path']))
-                                    <img src="{{asset($photo->user['photopro']['path'].$photo->user['photopro']['id'].$photo->user['photopro']['type'])}}" class="rounded-circle photop" width="40" height="40" alt="">
+                                    <img src="{{ $photo->user->avatar_url }}" class="rounded-circle photop" width="40" height="40" alt="">
                                 @else
                                     <img src="assets/img/user/user-1.jpg" alt="">    
                                 @endif
@@ -58,23 +58,13 @@
                                     <i class="fa fa-ellipsis-h"></i>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-end">
-                                    <a href="#" class="dropdown-item d-flex align-items-center">
-                                        <i class="fa fa-fw fa-bookmark fa-lg"></i> 
-                                        <div class="flex-1 ps-1">
-                                            <div>Save Post</div>
-                                            <div class="mt-n1 text-gray-500"><small>Add this to your saved items</small></div>
-                                        </div>
+                                    <a href="{{ $photo->url }}" download="photo-{{ $photo->id }}{{ $photo->type }}" class="dropdown-item">
+                                        <i class="fa fa-fw fa-download me-1"></i> تنزيل الصورة
                                     </a>
-                                    <div class="dropdown-divider"></div>
                                     @if(request()->photowner)
-                                    <a href="#" class="dropdown-item"><i class="fa fa-fw fa-edit fa-lg me-1"></i> Edit Photo</a>
-                                    <a href="#" data-bs-toggle="modal"  data-bs-target="#modal-message" class="dropdown-item make-profile-picture" data-user-id="{{$photo->user['id']}}" data-photo-id="{{$photo->id}}"><i class="fa fa-fw fa-user fa-lg me-1"></i> Make profile picture</a>
-                                    <a href="#" data-bs-toggle="modal" data-bs-target="#modal-messagec"  class="dropdown-item make-profile-cover" data-user-id="{{$photo->user['id']}}" data-photo-id="{{$photo->id}}"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Make profile Cover</a>
-                                    <a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn off notifications for this post</a>
-                                    <a href="#" class="dropdown-item"><i class="fa fa-fw fa-language fa-lg me-1"></i> Turn off translations</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a href="#" class="dropdown-item"><i class="fa fa-fw fa-archive fa-lg me-1"></i> Move to archive</a>
-                                    <a href="#" class="dropdown-item"><i class="fa fa-fw fa-trash-alt fa-lg me-1"></i> Move to Recycle bin</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#modal-message" class="dropdown-item make-profile-picture" data-user-id="{{ $photo->user['id'] }}" data-photo-id="{{ $photo->id }}"><i class="fa fa-fw fa-user me-1"></i> جعلها صورة الملف الشخصي</a>
+                                        <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#modal-messagec" class="dropdown-item make-profile-cover" data-user-id="{{ $photo->user['id'] }}" data-photo-id="{{ $photo->id }}"><i class="fa fa-fw fa-image me-1"></i> جعلها صورة الغلاف</a>
                                     @endif
                                 </div>
                             </div>
@@ -139,7 +129,7 @@
                     <div class="d-flex m-3 flex-row comment" id="photocomment_{{$photo->id}}_{{$comment->id}}">
                         <div class="col-md-1 col-1 my-3 p-0 d-flex justify-content-start " >
                             <a class="p-0 me-0 " href="javascript:;">
-                                <img id="photocomment_img_{{$comment->id}}" src="{{asset($comment['user']['photopro']['path'].$comment['user']['photopro']['id'].$comment['user']['photopro']['type'])}}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0 ">
+                                <img id="photocomment_img_{{$comment->id}}" src="{{ $comment->user?->avatar_url ?? asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0 ">
                             </a>
                         </div>
                         <div class="col-md-10 col-10 m-0 p-0">
@@ -204,7 +194,7 @@
                                                 @if(isset($profile['photopro']->path))
                                                 <div class="d-flex align-items-center " >
                                                     <a class="radius_30 d-flex align-items-center text-center justify-content-center" href="javascript:;">
-                                                        <img  src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type)}}" width="30" height="30"  class="rounded-pill photop">
+                                                        <img  src="{{ $profile['photopro']->url }}" width="30" height="30"  class="rounded-pill photop">
                                                     </a>
                                                 </div>
                                                 @else

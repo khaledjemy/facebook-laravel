@@ -3,12 +3,13 @@
 namespace App;
 
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailBehavior;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmailContract
 {
-    use Notifiable;
+    use Notifiable, MustVerifyEmailBehavior;
     
 
     /**
@@ -18,7 +19,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'first_name', 'last_name', 'email', 'password', 'profile_photo_id', 'image', 'cover_photo_id',
-        'about', 'default_post_visibility', 'dark_mode',
+        'about', 'default_post_visibility', 'dark_mode', 'is_admin', 'is_active',
     ];
 
 
@@ -39,6 +40,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'dark_mode' => 'boolean',
+        'is_admin' => 'boolean',
+        'is_active' => 'boolean',
     ];
     public function comments()
     {
@@ -64,8 +67,8 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute(): string
     {
         $photo = $this->photopro;
-        if ($photo && is_file(public_path($photo->path.$photo->id.$photo->type))) {
-            return asset($photo->path.$photo->id.$photo->type);
+        if ($photo && $photo->mediaFileExists()) {
+            return $photo->url;
         }
 
         return asset('img/Default_avatar_profile.jpg');
@@ -74,8 +77,8 @@ class User extends Authenticatable
     public function getCoverUrlAttribute(): ?string
     {
         $cover = $this->coverpro;
-        if ($cover && is_file(public_path($cover->path.$cover->id.$cover->type))) {
-            return asset($cover->path.$cover->id.$cover->type);
+        if ($cover && $cover->mediaFileExists()) {
+            return $cover->url;
         }
 
         return null;

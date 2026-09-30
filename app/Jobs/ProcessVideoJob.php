@@ -63,8 +63,8 @@ class ProcessVideoJob implements ShouldQueue
 
     private function context(): array
     {
-        $input = public_path($this->inputRelativePath);
-        $outputDirectory = public_path($this->outputRelativeDirectory);
+        $input = $this->absoluteMediaPath($this->inputRelativePath);
+        $outputDirectory = $this->absoluteMediaPath($this->outputRelativeDirectory);
         if (!is_file($input)) throw new \RuntimeException("Video source does not exist: {$input}");
         if (!is_dir($outputDirectory) && !mkdir($outputDirectory, 0775, true) && !is_dir($outputDirectory)) {
             throw new \RuntimeException("Could not create video output directory: {$outputDirectory}");
@@ -74,6 +74,16 @@ class ProcessVideoJob implements ShouldQueue
         $qualities = array_filter($qualities, fn (int $bitrate, int $height) => $height <= $sourceHeight, ARRAY_FILTER_USE_BOTH);
         if ($qualities === []) $qualities = [min(240, max(144, $sourceHeight)) => 400];
         return [$input, $outputDirectory, $sourceWidth, $sourceHeight, $qualities];
+    }
+
+    private function absoluteMediaPath(string $relativePath): string
+    {
+        $relativePath = trim(str_replace('\\', '/', $relativePath), '/');
+        if (str_starts_with($relativePath, 'private/')) {
+            return storage_path('app/'.$relativePath);
+        }
+
+        return public_path($relativePath);
     }
 
     private function transcode(string $input, string $outputDirectory, int $height, int $bitrate): void

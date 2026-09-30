@@ -7,14 +7,22 @@ use App\Friend;
 use App\Messanger;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MessangerController extends Controller
 {
     public function summary()
     {
         $me = (int) auth()->id();
+        $blockedIds = Block::where('user_id', $me)->pluck('blocked_id')
+            ->merge(Block::where('blocked_id', $me)->pluck('user_id'))
+            ->unique()
+            ->values();
         $messages = Messanger::with(['sender.photopro', 'receiver.photopro'])
             ->where(fn ($query) => $query->where('my_id', $me)->orWhere('user_id', $me))
+            ->when($blockedIds->isNotEmpty(), function ($query) use ($blockedIds) {
+                $query->whereNotIn('my_id', $blockedIds)->whereNotIn('user_id', $blockedIds);
+            })
             ->latest('id')
             ->limit(100)
             ->get();
@@ -175,14 +183,13 @@ class MessangerController extends Controller
                     $attachmentType = 'file';
                 }
 
-                $ext = $file->getClientOriginalExtension() ?: 'bin';
-                $filename = uniqid('chat_', true) . '.' . $ext;
-                $dest = public_path('chat_attachments/' . $me);
-                if (!is_dir($dest)) {
-                    mkdir($dest, 0755, true);
-                }
-                $file->move($dest, $filename);
-                $attachmentPath = 'chat_attachments/' . $me . '/' . $filename;
+                $ext = $this->safeAttachmentExtension($mime);
+                $filename = bin2hex(random_bytes(16)) . '.' . $ext;
+                $attachmentPath = Storage::disk('local')->putFileAs(
+                    'private/chat_attachments/' . $me,
+                    $file,
+                    $filename
+                );
             }
 
             $message = Messanger::create([
@@ -198,7 +205,7 @@ class MessangerController extends Controller
                 'status' => true,
                 'id' => $message->id,
                 'message' => $message->message,
-                'attachment' => $message->attachment ? asset($message->attachment) : null,
+                'attachment' => $message->attachment ? route('messages.attachment', $message) : null,
                 'attachment_type' => $message->attachment_type,
             ]);
         }
@@ -226,7 +233,7 @@ class MessangerController extends Controller
             return response()->json(
                 $messages->getCollection()->reverse()->values()->map(function ($message) {
                     if ($message->attachment) {
-                        $message->attachment = asset($message->attachment);
+                        $message->attachment = route('messages.attachment', $message);
                     }
 
                     return $message;
@@ -235,6 +242,56 @@ class MessangerController extends Controller
         }
 
         return view('messanger', compact('messages','users','user'));
+    }
+
+    public function attachment(Messanger $message)
+    {
+        $userId = (int) auth()->id();
+        abort_unless(in_array($userId, [(int) $message->my_id, (int) $message->user_id], true), 404);
+        $isBlocked = Block::where(function ($query) use ($message) {
+            $query->where('user_id', $message->my_id)->where('blocked_id', $message->user_id);
+        })->orWhere(function ($query) use ($message) {
+            $query->where('user_id', $message->user_id)->where('blocked_id', $message->my_id);
+        })->exists();
+        abort_if($isBlocked, 404);
+
+        // New uploads are private. Continue serving old public files only through this
+        // participant-checked endpoint while existing installations migrate their data.
+        if (str_starts_with((string) $message->attachment, 'private/chat_attachments/')) {
+            $disk = Storage::disk('local');
+            abort_unless($disk->exists($message->attachment), 404);
+            return $disk->response($message->attachment, basename($message->attachment), [
+                'Cache-Control' => 'private, no-store',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
+        }
+
+        $legacyPrefix = 'chat_attachments/' . (int) $message->my_id . '/';
+        abort_unless(str_starts_with((string) $message->attachment, $legacyPrefix), 404);
+        $filename = substr((string) $message->attachment, strlen($legacyPrefix));
+        abort_unless(preg_match('/^[a-f0-9]{32}\.[a-z0-9]{1,8}$/i', $filename), 404);
+        $legacyPath = public_path($legacyPrefix . $filename);
+        abort_unless(is_file($legacyPath), 404);
+
+        return response()->file($legacyPath, [
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    private function safeAttachmentExtension(string $mime): string
+    {
+        return match ($mime) {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'audio/mpeg' => 'mp3',
+            'audio/wav', 'audio/x-wav' => 'wav',
+            'audio/ogg' => 'ogg',
+            'application/pdf' => 'pdf',
+            default => throw new \InvalidArgumentException('Unsupported attachment type.'),
+        };
     }
 
     // seen

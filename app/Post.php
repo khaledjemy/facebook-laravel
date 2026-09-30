@@ -14,7 +14,13 @@ class Post extends Model
     public function scopeVisibleTo(Builder $query, $user): Builder
     {
         if (!$user) {
-            return $query->where('visibility', 'public');
+            $publicSources = self::query()
+                ->whereNull('shared_post_id')
+                ->where('visibility', 'public')
+                ->select('id');
+
+            return $query->where('visibility', 'public')
+                ->where(fn ($visible) => $visible->whereNull('shared_post_id')->orWhereIn('shared_post_id', $publicSources));
         }
 
         $blockedIds = Block::where('user_id', $user->id)->pluck('blocked_id')
@@ -36,6 +42,19 @@ class Post extends Model
             ->unique()
             ->values();
 
+        $visibleSources = self::query()
+            ->whereNull('shared_post_id')
+            ->whereNotIn('user_id', $blockedIds)
+            ->where(function ($visibilityQuery) use ($user, $friendIds) {
+                $visibilityQuery->where('visibility', 'public')
+                    ->orWhere('user_id', $user->id)
+                    ->orWhere(function ($friendsQuery) use ($friendIds) {
+                        $friendsQuery->where('visibility', 'friends')
+                            ->whereIn('user_id', $friendIds);
+                    });
+            })
+            ->select('id');
+
         return $query->where(function ($visibilityQuery) use ($user, $friendIds) {
             $visibilityQuery->where('visibility', 'public')
                 ->orWhere('user_id', $user->id)
@@ -43,7 +62,9 @@ class Post extends Model
                     $friendsQuery->where('visibility', 'friends')
                         ->whereIn('user_id', $friendIds);
                 });
-        });
+        })->where(fn ($sharedQuery) => $sharedQuery
+            ->whereNull('shared_post_id')
+            ->orWhereIn('shared_post_id', $visibleSources));
     }
 
     public function sharedPost()

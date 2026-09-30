@@ -1,0 +1,5 @@
+<!doctype html><html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">@include('layout.header')
+<body class="d-flex align-items-center justify-content-center min-vh-100"><main class="card bg-white shadow-sm border-0 p-4" style="width:min(460px,92vw)"><h2 class="mb-2">{{ __('ui.reset_password_title') }}</h2><p class="text-muted">{{ __('ui.reset_password_intro') }}</p>
+@if(session('status'))<div class="alert alert-success">{{ session('status') }}</div>@endif
+@if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+<form method="POST" action="{{ route('password.email') }}">@csrf<label class="form-label">{{ __('ui.email') }}</label><input class="form-control py-3 mb-3" type="email" name="email" value="{{ old('email') }}" autocomplete="email" required autofocus><button class="btn btn-primary w-100 py-2">{{ __('ui.send_reset_link') }}</button></form><a class="text-center mt-3" href="{{ route('login') }}">{{ __('ui.back_to_login') }}</a></main></body></html>

@@ -7,7 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class Commente extends Model
 {
     //
+    protected $hidden = ['media_path'];
+    protected $appends = ['media_url'];
     protected $fillable = ['text_co','user_id','post_id','media_path','media_type'];
+
+    public function getMediaUrlAttribute(): ?string
+    {
+        return $this->media_path ? route('media.comments.show', [
+            'comment' => $this->getKey(),
+            'file' => basename($this->media_path),
+        ]) : null;
+    }
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -7,8 +7,8 @@
 
       <!-- الجزء الأيسر: اللوجو + البحث -->
       <div class="col-3 navbar-brand-area d-flex align-items-center flex-shrink-0 p-0 m-0">
-        <a href="{{asset('/')}}" class="facebook-mark" aria-label="Facebook">
-          <svg viewBox="0 0 36 36" width="40" height="40" aria-hidden="true"><circle cx="18" cy="18" r="18" fill="#0866ff"/><path fill="#fff" d="M20.2 31V19.4h3.9l.6-4.5h-4.5V12c0-1.3.4-2.2 2.3-2.2h2.4v-4c-.4-.1-1.8-.2-3.5-.2-3.5 0-5.9 2.1-5.9 6.1v3.2h-4v4.5h4V31h4.7z"/></svg>
+        <a href="{{asset('/')}}" class="site-brand" aria-label="{{ config('app.name') }}">
+          @if(!empty($siteSettings['logo_path']))<img src="{{ asset('storage/'.$siteSettings['logo_path']) }}" alt="{{ config('app.name') }}">@else<svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true"><circle cx="20" cy="20" r="20" fill="var(--brand-primary,#0866ff)"/><path d="M11 20h8l5-7m-5 7 6 7m-6-7h10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="20" r="3" fill="#fff"/><circle cx="24" cy="13" r="3" fill="#fff"/><circle cx="25" cy="27" r="3" fill="#fff"/><circle cx="31" cy="20" r="3" fill="#fff"/></svg>@endif
         </a>
         <form action="{{ url('/search') }}" method="GET" class="navbar-search-form"><i class="fa fa-search"></i><input type="search" name="q" value="{{ request('q') }}" class="form-control rounded-pill border-0" placeholder="{{ __('ui.search') }}"></form>
       </div>
@@ -77,7 +77,7 @@
                 @auth
                   <div class="chat-popup-loading"><i class="fas fa-circle-notch fa-spin"></i><span>جاري تحميل آخر المحادثات...</span></div>
                 @else
-                  <a class="popup-item text-decoration-none" href="{{ route('login') }}"><span class="popup-item-icon"><i class="fab fa-facebook-messenger"></i></span><span>تسجيل الدخول للمحادثة</span></a>
+                  <a class="popup-item text-decoration-none" href="{{ route('login') }}"><span class="popup-item-icon"><i class="fa fa-comments"></i></span><span>تسجيل الدخول للمحادثة</span></a>
                 @endauth
               </div>
             </div>
@@ -92,6 +92,7 @@
               <div class="popup-header">القائمة</div>
               <div class="popup-list">
                 @auth<a class="popup-item text-decoration-none" href="{{ url('/community') }}"><span class="popup-item-icon"><i class="fa fa-users"></i></span><span>{{ __('ui.pages_groups') }}</span></a>@endauth
+                @auth @if(Auth::user()->is_admin)<a class="popup-item text-decoration-none" href="{{ route('admin.dashboard') }}"><span class="popup-item-icon"><i class="fa fa-shield-alt"></i></span><span>لوحة الإدارة</span></a>@endif @endauth
                 <a class="popup-item text-decoration-none" href="{{ route('language', app()->getLocale() === 'ar' ? 'en' : 'ar') }}"><span class="popup-item-icon"><i class="fa fa-globe"></i></span><span>{{ app()->getLocale() === 'ar' ? 'English' : 'العربية' }}</span></a>
                 <a class="popup-item text-decoration-none" href="{{ route('settings') }}"><span class="popup-item-icon"><i class="fa fa-cog"></i></span><span>الإعدادات والخصوصية</span></a>
                 <div class="popup-item"><span class="popup-item-icon"><i class="far fa-question-circle"></i></span><span>المساعدة والدعم</span></div>
@@ -105,7 +106,7 @@
             <div class="widget-icon rounded-circle" style="padding:0;">
               @if(Auth::check())
                 @if(isset($profile) && isset($profile['photopro']))
-                  <img class="rounded-circle" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" width="40" height="40" style="object-fit:cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
+                  <img class="rounded-circle" src="{{ $profile['photopro']->url }}" width="40" height="40" style="object-fit:cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
                 @else
                   <img class="rounded-circle" src="{{ asset('img/Default_avatar_profile.jpg') }}" width="40" height="40">
                 @endif
@@ -114,6 +115,7 @@
             <div id="profile-popup" class="profile-menu">
               <div class="popup-list">
                 @auth<a class="popup-item text-decoration-none" href="{{ url('/profile/'.Auth::id()) }}"><span class="popup-item-icon"><i class="fa fa-user"></i></span><span>ملفي الشخصي</span></a>@endauth
+                @auth @if(Auth::user()->is_admin)<a class="popup-item text-decoration-none" href="{{ route('admin.dashboard') }}"><span class="popup-item-icon"><i class="fa fa-shield-alt"></i></span><span>لوحة الإدارة</span></a>@endif @endauth
                 <a class="popup-item text-decoration-none" href="{{ route('settings') }}"><span class="popup-item-icon"><i class="fa fa-cog"></i></span><span>الإعدادات والخصوصية</span></a>
                 <div class="popup-item"><span class="popup-item-icon"><i class="far fa-question-circle"></i></span><span>مساعدة</span></div>
                 @auth

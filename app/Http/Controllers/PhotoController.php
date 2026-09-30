@@ -8,6 +8,7 @@ use App\photo;
 use App\Photocommente;
 use App\User;
 use App\Video;
+use App\Services\MediaVisibilityService;
 use Exception;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -117,18 +118,14 @@ class PhotoController extends Controller
             $type   =   '.'.$extension;
             $photo =   photo::create([
                 'user_id' => auth()->id(),
-                'path'    => 'images/users/'.auth()->id().'/', // Assign the temporary user id
+                'path'    => 'private/media/images/users/'.auth()->id().'/',
                 'state'   => 1,
                 'album_id'=> 0,
                 'type'    => $type,
 
             ]);
             if ($photo) {
-            $directory = public_path($photo->path);
-            if (!is_dir($directory)) {
-                mkdir($directory, 0755, true);
-            }
-            $photos[$key]->move($directory, $photo->id.$type);
+            Storage::disk('local')->putFileAs($photo->path, $photos[$key], $photo->id.$type);
             }
 
             $img[$key]=array($photo->id);
@@ -145,17 +142,13 @@ class PhotoController extends Controller
             $type   =   '.'.$this->safeExtension($videos[$key]);
             $video =   Video::create([
                 'user_id' => auth()->id(),
-                'path'    => 'video/users/'.auth()->id().'/', // Assign the temporary user id
+                'path'    => 'private/media/videos/users/'.auth()->id().'/',
                 'state'   => 1,
                 'album_id'=> 0,
                 'type'    => $type,
             ]);
             if ($video) {
-            $directory = public_path($video->path);
-            if (!is_dir($directory)) {
-                mkdir($directory, 0755, true);
-            }
-            $videos[$key]->move($directory, $video->id.$type);
+            Storage::disk('local')->putFileAs($video->path, $videos[$key], $video->id.$type);
             }
 
             $img[$key]=array($video->id);
@@ -191,6 +184,23 @@ class PhotoController extends Controller
             default => throw new \InvalidArgumentException('Unsupported media type.'),
         };
     }
+
+    public function uploadMedia(Request $request)
+    {
+        $validated = $request->validate([
+            'files' => 'required|array|min:1|max:10',
+            'files.*' => 'required|file|mimes:jpg,jpeg,png,gif,webp,mp4,avi,mkv,mov,wmv,flv,webm,mpeg,3gp|max:204800',
+        ]);
+
+        $result = $this->img($validated['files']);
+        $payload = $result->getData(true);
+        if (($payload['status'] ?? null) !== 'ok') {
+            return back()->withErrors(['files' => $payload['details'] ?? 'تعذر رفع الملفات.']);
+        }
+
+        return back()->with('status', 'تم رفع الصور والوسائط بنجاح.');
+    }
+
     // public function ffmpegpro($path, $name, $type)
     // {
     //     set_time_limit(0); 
@@ -262,9 +272,10 @@ class PhotoController extends Controller
     //     }
     // }
     
-    public function photo($id)
+    public function photo($id, MediaVisibilityService $mediaVisibility)
     {
         $photo  =   photo::where('id',$id)->with('user','photocommentes','reactphoto')->firstOrFail();
+        abort_unless($mediaVisibility->canViewPhoto($photo, auth()->user()), 404);
         $commente=   Photocommente::where('photo_id',$id)->with('user','reply')->get();
         $profile = auth()->check() ? auth()->user()->loadMissing('photopro', 'coverpro') : null;
         return view('/photo',compact('photo','commente','profile'));
@@ -286,7 +297,7 @@ class PhotoController extends Controller
             $editphoto = photo::where('id',$photoId )->firstOrFail();
             $editphoto->album_id = 1;
             $editphoto->save();
-            return response()->json(['profile'=>asset($editphoto->path.$editphoto->id.$editphoto->type)]);
+            return response()->json(['profile'=>$editphoto->url]);
             }else{
             $user = User::where('id',$userId)->firstOrFail();
             $user->cover_photo_id = $photoId ;
@@ -294,7 +305,7 @@ class PhotoController extends Controller
             $editphoto = photo::where('id',$photoId )->firstOrFail();
             $editphoto->album_id = 1;
             $editphoto->save();
-            return response()->json(['cover'=>asset($editphoto->path.$editphoto->id.$editphoto->type)]);
+            return response()->json(['cover'=>$editphoto->url]);
             }
         }else{
             return response()->json(['message' => 'Image file is required.'], 422);

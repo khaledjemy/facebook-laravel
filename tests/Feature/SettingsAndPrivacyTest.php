@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Block;
+use App\ApiToken;
 use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -58,6 +59,33 @@ class SettingsAndPrivacyTest extends TestCase
         $this->assertEquals('Bio test description', $user->about);
     }
 
+    public function test_changing_email_requires_reverification_and_revokes_api_tokens()
+    {
+        $user = User::create([
+            'first_name' => 'Verified',
+            'last_name' => 'Member',
+            'email' => 'verified@example.com',
+            'password' => Hash::make('password123'),
+        ]);
+        $user->forceFill(['email_verified_at' => now()])->save();
+        ApiToken::create([
+            'user_id' => $user->id,
+            'name' => 'test-device',
+            'token_hash' => hash('sha256', 'secret-token'),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $response = $this->actingAs($user)->postJson('/settings/account', [
+            'first_name' => 'Verified',
+            'last_name' => 'Member',
+            'email' => 'new-address@example.com',
+        ]);
+
+        $response->assertOk()->assertJsonPath('email_verification_required', true);
+        $this->assertNull($user->fresh()->email_verified_at);
+        $this->assertDatabaseMissing('api_tokens', ['user_id' => $user->id]);
+    }
+
     public function test_account_update_enforces_unique_email()
     {
         User::create([
@@ -91,6 +119,12 @@ class SettingsAndPrivacyTest extends TestCase
             'email' => 'pass@example.com',
             'password' => Hash::make('old_password_123'),
         ]);
+        ApiToken::create([
+            'user_id' => $user->id,
+            'name' => 'old-session',
+            'token_hash' => hash('sha256', 'old-secret-token'),
+            'expires_at' => now()->addDay(),
+        ]);
 
         $response = $this->actingAs($user)->post('/settings/password', [
             'current_password' => 'old_password_123',
@@ -102,6 +136,7 @@ class SettingsAndPrivacyTest extends TestCase
         $user->refresh();
 
         $this->assertTrue(Hash::check('new_password_456', $user->password));
+        $this->assertDatabaseMissing('api_tokens', ['user_id' => $user->id]);
     }
 
     public function test_password_change_fails_if_current_password_is_wrong()

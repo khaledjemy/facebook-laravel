@@ -32,6 +32,9 @@ class Kernel extends HttpKernel
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\Session\Middleware\StartSession::class,
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\EnsureUserIsActive::class,
+            \App\Http\Middleware\EnsureSiteIsAvailable::class,
+            \App\Http\Middleware\RequireVerifiedEmail::class,
             // \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
@@ -64,6 +67,7 @@ class Kernel extends HttpKernel
         'checkphotowner' => \App\Http\Middleware\CheckPhotoOwnership::class,
         'postowner' => \App\Http\Middleware\PostOwner::class,
         'api.token' => \App\Http\Middleware\ApiTokenAuth::class,
+        'admin' => \App\Http\Middleware\EnsureAdmin::class,
     ];
 
     /**

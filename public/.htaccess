@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Block legacy user-media URLs from bypassing Laravel authorization.
+    RewriteRule ^(?:images/users|video/users|comment-media|stories|chat_attachments)(?:/|$) - [F,NC,L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

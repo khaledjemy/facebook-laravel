@@ -32,11 +32,18 @@ class UsersController extends Controller
         }
 
         $allphoto = photo::where('user_id', $id)->get()->filter(
-            fn ($photo) => is_file(public_path($photo->path.$photo->id.$photo->type))
+            fn ($photo) => $photo->mediaFileExists()
         )->values();
         $allvideo = Video::where('user_id', $id)->latest()->get();
         $albums = Album::where('user_id', $id)->with('photos')->get();
         $friends = $this->friends($id);
+        $profileFriendIds = Friend::where('state', 1)
+            ->where(fn ($query) => $query->where('user_id', $id)->orWhere('friends_id', $id))
+            ->get()
+            ->map(fn ($friend) => (int) ($friend->user_id == $id ? $friend->friends_id : $friend->user_id))
+            ->unique()
+            ->values();
+        $profileFriends = User::with('photopro')->whereIn('id', $profileFriendIds)->orderBy('first_name')->get();
         $profile_page = User::where('id', $id)->with('photopro', 'coverpro')->firstOrFail();
 
         $page = $request->query('page', 1);
@@ -75,7 +82,7 @@ class UsersController extends Controller
 
         $profile = auth()->check() ? auth()->user()->loadMissing('photopro', 'coverpro') : null;
 
-        return view("profile", compact('profile_page', 'p_postes', 'friends', 'imges', 'videos', 'allphoto', 'allvideo', 'albums', 'profile'));
+        return view("profile", compact('profile_page', 'p_postes', 'friends', 'profileFriends', 'imges', 'videos', 'allphoto', 'allvideo', 'albums', 'profile'));
     }
     public function profilenav()
     {
@@ -113,8 +120,8 @@ class UsersController extends Controller
         }
 
         $photo = $user->photopro;
-        $avatar = $photo && is_file(public_path($photo->path.$photo->id.$photo->type))
-            ? asset($photo->path.$photo->id.$photo->type)
+        $avatar = $photo && $photo->mediaFileExists()
+            ? $photo->url
             : asset('img/Default_avatar_profile.jpg');
 
         return response()->json([

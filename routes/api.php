@@ -18,7 +18,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::prefix('v1')->group(function () {
-    Route::post('/login', 'Api\\V1Controller@login');
+    Route::post('/login', 'Api\\V1Controller@login')->middleware('throttle:api-login');
     Route::get('/feed', 'Api\\V1Controller@feed');
     Route::get('/posts/{post}', 'Api\\V1Controller@post');
     Route::get('/users', 'Api\\V1Controller@users');

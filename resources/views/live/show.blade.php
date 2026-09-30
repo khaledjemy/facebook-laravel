@@ -2,7 +2,7 @@
 @section('content')
 @php
     $isOwner = $stream->user_id === auth()->id();
-    $ownerAvatar = $stream->user->photopro ? asset($stream->user->photopro->path.$stream->user->photopro->id.$stream->user->photopro->type) : asset('img/Default_avatar_profile.jpg');
+    $ownerAvatar = $stream->user->avatar_url;
 @endphp
 <main class="live-room" data-owner="{{ $isOwner ? 1 : 0 }}">
     <section class="live-stage">
@@ -37,7 +37,7 @@
         @if($stream->description)<p class="live-description">{{ $stream->description }}</p>@endif
         <div id="live-comments" class="live-comments"><div class="text-muted text-center py-4">لا توجد تعليقات بعد</div></div>
         <form id="live-comment-form" class="live-comment-form">
-            <img src="{{ $profile->photopro ? asset($profile->photopro->path.$profile->photopro->id.$profile->photopro->type) : asset('img/Default_avatar_profile.jpg') }}" alt="">
+            <img src="{{ $profile->avatar_url }}" alt="">
             <input id="live-comment-input" maxlength="500" placeholder="اكتب تعليقًا..." autocomplete="off">
             <button type="submit" aria-label="إرسال"><i class="fa fa-paper-plane"></i></button>
         </form>

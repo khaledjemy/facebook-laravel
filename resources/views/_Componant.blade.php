@@ -29,7 +29,7 @@
                     <div class="d-flex align-items-center mb-3">
                         <div class="me-2">
                             @if(isset($profile) && isset($profile['photopro']))
-                                <img class="rounded-circle border" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
+                                <img class="rounded-circle border" src="{{ $profile['photopro']->url }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
                             @elseif(Auth::check() && Auth::user()->avatar_url)
                                 <img class="rounded-circle border" src="{{ Auth::user()->avatar_url }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
                             @else
@@ -175,7 +175,7 @@
                     <div class="d-flex align-items-center mb-3">
                         <div class="me-2">
                             @if(isset($profile) && isset($profile['photopro']))
-                                <img class="rounded-circle border" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
+                                <img class="rounded-circle border" src="{{ $profile['photopro']->url }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
                             @elseif(Auth::check() && Auth::user()->avatar_url)
                                 <img class="rounded-circle border" src="{{ Auth::user()->avatar_url }}" height="44" width="44" style="object-fit: cover;" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt=""/>
                             @else
@@ -285,9 +285,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-fullscreen  m-0 p-0" id="modalDialog" >
     <div class="modal-content ">  
        
-      <div class="modal-body bg-black" id="modalContent">
-        جاري التحميل...
-      </div>
+      <div class="modal-body bg-black" id="modalContent"></div>
     </div>
   </div>
 </div>

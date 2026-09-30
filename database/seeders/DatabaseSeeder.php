@@ -8,15 +8,49 @@ use App\Post;
 use App\React;
 use App\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use InvalidArgumentException;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            $email = strtolower(trim((string) config('admin.initial_email')));
+            $password = (string) config('admin.initial_password');
+            $name = trim((string) config('admin.initial_name', 'Site Administrator'));
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 16 || $name === '') {
+                throw new InvalidArgumentException('Production seeding requires INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_NAME, and an INITIAL_ADMIN_PASSWORD of at least 16 characters.');
+            }
+
+            [$firstName, $lastName] = array_pad(explode(' ', $name, 2), 2, '');
+            $existingAdmin = User::where('email', $email)->first();
+            if ($existingAdmin && (!$existingAdmin->is_admin || !$existingAdmin->is_active)) {
+                throw new InvalidArgumentException('INITIAL_ADMIN_EMAIL already belongs to an account that is not an active administrator. Choose an unused email or correct the account through an authorized administrator.');
+            }
+
+            User::firstOrCreate(
+                ['email' => $email],
+                [
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'password' => Hash::make($password),
+                    'email_verified_at' => now(),
+                    'status' => 1,
+                    'is_admin' => true,
+                    'is_active' => true,
+                ]
+            );
+
+            return;
+        }
+
         $demo = User::updateOrCreate(
             ['email' => 'demo@example.com'],
-            ['first_name' => 'Demo', 'last_name' => 'User', 'password' => bcrypt('Demo@12345'), 'status' => 1]
+            ['first_name' => 'Demo', 'last_name' => 'User', 'password' => bcrypt('Demo@12345'), 'status' => 1, 'is_admin' => true, 'is_active' => true]
         );
+        $demo->forceFill(['email_verified_at' => $demo->email_verified_at ?? now()])->save();
 
         $demoPhoto = photo::updateOrCreate(
             ['id' => 1],
@@ -38,6 +72,7 @@ class DatabaseSeeder extends Seeder
                 ['email' => $email],
                 ['first_name' => $first, 'last_name' => $last, 'password' => bcrypt('Demo@12345'), 'status' => 1]
             );
+            $user->forceFill(['email_verified_at' => $user->email_verified_at ?? now()])->save();
             $photoId = $index + 2;
             $avatar = photo::updateOrCreate(
                 ['id' => $photoId],

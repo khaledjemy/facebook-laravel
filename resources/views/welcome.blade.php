@@ -16,11 +16,12 @@
                             <!-- #modal-dialog -->
                                 <form action="/posts" id="myForm"  method="POST" enctype="multipart/form-data">
                                     @csrf
+                                    <input type="file" id="fileInput2" name="files[]" accept="image/*,video/*,.mkv,.avi,.mov,.webm,.mp4,.mpeg,.3gp" hidden multiple>
                                     <input type="hidden" name="visibility" class="post-visibility-input" value="{{ auth()->check() ? (auth()->user()->default_post_visibility ?? 'public') : 'public' }}">
                                     <div class="row  p-2" >
                                         <div class="col-1 p-0 m-0 " >
                                             @if(isset($profile) && isset($profile['photopro']))
-                                            <img class="rounded-circle " src=" {{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}  " height="40" width="40" alt="" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';"/>
+                                            <img class="rounded-circle " src=" {{ $profile['photopro']->url }}  " height="40" width="40" alt="" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';"/>
                                             @else
                                             <img class="rounded-circle" src=" {{ asset('img/Default_avatar_profile.jpg') }}  " height="40" width="40" alt=""/>
                                             @endif
@@ -30,25 +31,17 @@
                                                 <input type="text" class="form-control rounded-pill bgr text-decoration-none inpotbox text-start border-0 shadow-sm mx-1" name="post_text" placeholder="{{ __('ui.whats_on_your_mind') }}" >
                                             </a>
                                         </div>
-                                        <div class="col-3 " >
-                                            <div class="row justify-content-end  border-0 text-decoration-none">
-                                                <button type="button" class="btn btn-0  rounded  border-0 col-4 ">
-                                                        <a href="#" class="text-decoration-none text-muted p-0 m-0" >
-                                                            <img src="style/c0dWho49-X3.png" width="23" height="23"  >
-                                                        </a>
-                                                </button>
-                                                <button type="button" class="btn btn-0  rounded  border-0 col-4">
-                                                        <a class="text-decoration-none text-muted p-0 m-0" href="#">
-                                                            <img src="style/Ivw7nhRtXyo.png" width="23" height="23" >
-                                                            <input type="file" id="fileInput2" name="files[]" class="card-body opacity-0" accept="image/*,video/*,.mkv,.avi,.mov,.webm,.mp4,.mpeg,.3gp" style="display:none;" multiple>
-                                                        </a>
-                                                </button>
-                                                <button type="button" class="btn btn-0  rounded  border-0 col-4">
-                                                    <a class="text-decoration-none text-muted p-0 m-0" href="#">
-                                                        <img src="style/Y4mYLVOhTwq.png" width="23" height="23" >
-
-                                                    </a>
-                                                </button>
+                                        <div class="col-3">
+                                            <div class="row justify-content-end border-0 text-decoration-none">
+                                                <div class="col-4 p-0 text-center">
+                                                    <a href="{{ url('/live/create') }}" class="btn btn-0 rounded border-0" aria-label="بدء بث مباشر" title="بدء بث مباشر"><i class="fa fa-video text-danger"></i></a>
+                                                </div>
+                                                <div class="col-4 p-0 text-center">
+                                                    <button type="button" class="btn btn-0 rounded border-0" data-bs-toggle="modal" data-bs-target="#modal-dialog2" aria-label="إضافة صورة أو فيديو" title="إضافة صورة أو فيديو"><i class="fa fa-image text-success"></i></button>
+                                                </div>
+                                                <div class="col-4 p-0 text-center">
+                                                    <button type="button" class="btn btn-0 rounded border-0" data-bs-toggle="modal" data-bs-target="#createStoryModal" aria-label="إنشاء قصة" title="إنشاء قصة"><i class="fa fa-book-open text-warning"></i></button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -74,7 +67,7 @@
                                                     <div class="col-md-1" >
                                                         <div class="widget-icon rounded-circle bgr text-white">
                                                             @if(isset($post->user['photopro']['path']))
-                                                                <img src="{{asset($post->user['photopro']['path'].$post->user['photopro']['id'].$post->user['photopro']['type'])}}" class="rounded-circle" width="40" height="40" alt="" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
+                                                                <img src="{{ $post->user->avatar_url }}" class="rounded-circle" width="40" height="40" alt="" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
                                                             @else
                                                                 <img src="{{ asset('img/Default_avatar_profile.jpg') }}" class="rounded-circle" width="40" height="40" alt="">
                                                             @endif
@@ -94,26 +87,20 @@
                                                             <i class="fa fa-ellipsis-h"></i>
                                                         </a>
                                                         <div class="dropdown-menu dropdown-menu-end shadow">
-                                                            <a href="#" class="dropdown-item d-flex align-items-center save-post" data-post-id="{{$post->id}}">
-                                                                <i class="fa fa-fw fa-bookmark fa-lg"></i>
-                                                                <div class="flex-1 ps-1">
-                                                                    <div>{{ __('ui.save_post') }}</div>
-                                                                    <div class="mt-n1 text-gray-500">
-                                                                        <small>Add this to your saved items</small>
-                                                                    </div>
-                                                                </div>
-                                                            </a>
-                                                            <div class="dropdown-divider"></div>
-                                                            @if(Auth::check() && $post->user['id']==Auth::id())
-                                                                <a href="javascript:;" class="dropdown-item btn-edit-post" data-post-id="{{ $post->id }}" data-post-text="{{ $post->post_text }}" data-visibility="{{ $post->visibility ?? 'public' }}"><i class="fa fa-fw fa-edit fa-lg me-1"></i> {{ app()->getLocale() === 'ar' ? 'تعديل المنشور' : 'Edit post' }}</a>
-                                                                <div class="dropdown-divider"></div>
-                                                                <a href="javascript:;" class="dropdown-item text-danger btn-delete-post" data-post-id="{{ $post->id }}"><i class="fa fa-fw fa-trash-alt fa-lg me-1"></i> {{ app()->getLocale() === 'ar' ? 'حذف المنشور' : 'Delete post' }}</a>
-                                                            @else
-                                                                <a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn off notifications for this post</a>
-                                                                <div class="dropdown-divider"></div>
-                                                                <a href="javascript:;" class="dropdown-item text-danger btn-block-user" data-user-id="{{ $post->user['id'] }}" data-user-name="{{ $post->user['first_name'] }} {{ $post->user['last_name'] }}">
-                                                                    <i class="fa fa-fw fa-ban fa-lg me-1"></i> حظر {{ $post->user['first_name'] }}
+                                                            @if(Auth::check())
+                                                                <a href="javascript:;" class="dropdown-item d-flex align-items-center save-post" data-post-id="{{ $post->id }}">
+                                                                    <i class="fa fa-fw fa-bookmark fa-lg"></i><div class="flex-1 ps-1"><div>{{ __('ui.save_post') }}</div><small class="text-muted">أضف المنشور إلى المحفوظات</small></div>
                                                                 </a>
+                                                                <div class="dropdown-divider"></div>
+                                                                @if((int) $post->user_id === (int) Auth::id())
+                                                                    <a href="javascript:;" class="dropdown-item btn-edit-post" data-post-id="{{ $post->id }}" data-post-text="{{ $post->post_text }}" data-visibility="{{ $post->visibility ?? 'public' }}"><i class="fa fa-fw fa-edit me-1"></i> تعديل المنشور</a>
+                                                                    <a href="javascript:;" class="dropdown-item text-danger btn-delete-post" data-post-id="{{ $post->id }}"><i class="fa fa-fw fa-trash-alt me-1"></i> حذف المنشور</a>
+                                                                @else
+                                                                    <a href="javascript:;" class="dropdown-item text-danger btn-report-post" data-post-id="{{ $post->id }}"><i class="fa fa-fw fa-flag me-1"></i> الإبلاغ عن المنشور</a>
+                                                                    <a href="javascript:;" class="dropdown-item text-danger btn-block-user" data-user-id="{{ $post->user_id }}" data-user-name="{{ $post->user->first_name }} {{ $post->user->last_name }}"><i class="fa fa-fw fa-ban me-1"></i> حظر {{ $post->user->first_name }}</a>
+                                                                @endif
+                                                            @else
+                                                                <a href="{{ route('login') }}" class="dropdown-item">سجّل الدخول لحفظ المنشور أو الإبلاغ عنه</a>
                                                             @endif
                                                         </div>
                                                 </div>
@@ -154,7 +141,7 @@
                                                                     @foreach($s_images as $sImgGroup)
                                                                         @foreach($sImgGroup as $sImg)
                                                                             <div class="col-12 mb-1">
-                                                                                <img src="{{ asset($sImg->path . '/' . $sImg->id . $sImg->type) }}" class="img-fluid rounded w-100" alt="">
+                                                                                <img src="{{ $sImg->url }}" class="img-fluid rounded w-100" alt="">
                                                                             </div>
                                                                         @endforeach
                                                                     @endforeach
@@ -165,7 +152,7 @@
                                                                     @foreach($sVidGroup as $sVid)
                                                                         <div class="col-12 mb-1">
                                                                             <video class="w-100 rounded" controls preload="metadata">
-                                                                                <source src="{{ asset($sVid->path . $sVid->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
+                                                                                <source src="{{ $sVid->playlist_url }}" type="application/x-mpegURL">
                                                                             </video>
                                                                         </div>
                                                                     @endforeach
@@ -209,9 +196,9 @@
                                                                             <video class="video-js vjs-default-skin p-0 VDlol" id="video_{{$i_videos[$r][0]->id }}"
                                                                                 controls
                                                                                 preload="auto"
-                                                                                poster="{{ $i_videos[$r][0]->thumbnail_path ? asset($i_videos[$r][0]->thumbnail_path) : '' }}"
+                                                                                poster="{{ $i_videos[$r][0]->thumbnail_url }}"
                                                                                 data-setup='{}' >
-                                                                                <source src="{{ asset($i_videos[$r][0]->path . $i_videos[$r][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
+                                                                                <source src="{{ $i_videos[$r][0]->playlist_url }}" type="application/x-mpegURL">
                                                                             </video>
                                                                         </a>
                                                                     </div>
@@ -223,9 +210,9 @@
                                                                             <video class="video-js vjs-default-skin p-0 VDlol" id="video_{{ $i_videos[$r2][0]->id }}"
                                                                                 controls
                                                                                 preload="auto"
-                                                                                poster="{{ $i_videos[$r2][0]->thumbnail_path ? asset($i_videos[$r2][0]->thumbnail_path) : '' }}"
+                                                                                poster="{{ $i_videos[$r2][0]->thumbnail_url }}"
                                                                                 data-setup='{}' >
-                                                                                <source src="{{ asset($i_videos[$r2][0]->path . $i_videos[$r2][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
+                                                                                <source src="{{ $i_videos[$r2][0]->playlist_url }}" type="application/x-mpegURL">
                                                                             </video>
                                                                         </a>
                                                                     </div>
@@ -233,12 +220,12 @@
                                                                     @endif
                                                                 @else
                                                                     <div class="ratio ratio-1x1 p-0 m-0">
-                                                                        <a href="javascript:;" onclick="showphoto({{$i_images[$r][0]->id }})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ asset($i_images[$r][0]->path . '/' . $i_images[$r][0]->id . $i_images[$r][0]->type) }})"></a>
+                                                                        <a href="javascript:;" onclick="showphoto({{$i_images[$r][0]->id }})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ $i_images[$r][0]->url }})"></a>
                                                                     </div>
                                                                     @if($col_2==3 && $r>0)
                                                                     @for ($r2=2;$r2<$i_maxDisplay;$r2++ )
                                                                     <div class="ratio ratio-1x1  p-0 m-0">
-                                                                        <a href="javascript:;" onclick="showphoto({{$i_images[$r2][0]->id}})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ asset($i_images[$r2][0]->path . '/' . $i_images[$r2][0]->id . $i_images[$r2][0]->type) }})"></a>
+                                                                        <a href="javascript:;" onclick="showphoto({{$i_images[$r2][0]->id}})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ $i_images[$r2][0]->url }})"></a>
 
                                                                     </div>
                                                                     @endfor
@@ -296,7 +283,7 @@
                                                     <div class="col-md-1 col-1 my-3 p-0 d-flex justify-content-start " >
                                                         <a class="p-0 me-0 " href="javascript:;">
                                                             @php $commentPhoto = $comment->user?->photopro; @endphp
-                                                            <img id="comment_img_{{$comment->id}}" src="{{ $commentPhoto ? asset($commentPhoto->path.$commentPhoto->id.$commentPhoto->type) : asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
+                                                            <img id="comment_img_{{$comment->id}}" src="{{ $commentPhoto?->url ?? asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="" class="img-fluid rounded-circle p-0 m-0" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';">
                                                         </a>
                                                     </div>
                                                     <div id="father_cid_{{ $comment->id }}" class=" col-md-10 col-10 m-0 p-0">
@@ -306,7 +293,7 @@
                                                             </a>
                                                             <p class="my-1 px-3" id="comment_text_{{$comment->id}}">{{$comment['text_co']}}</p>
                                                             @if($comment->media_path)
-                                                                @if($comment->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ asset($comment->media_path) }}" @if(str_ends_with($comment->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ asset($comment->media_path) }}" alt="">@endif
+                                                                @if($comment->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ route('media.comments.show', ['comment' => $comment->id, 'file' => basename($comment->media_path)]) }}" @if(str_ends_with($comment->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ route('media.comments.show', ['comment' => $comment->id, 'file' => basename($comment->media_path)]) }}" alt="">@endif
                                                             @endif
                                                         </div>
                                                         <p class="my-0">
@@ -345,7 +332,7 @@
                                                                     <div class="col-md-1 m-0" >
                                                                         <a class="p-0 me-0 " href="javascript:;">
                                                                             @php $replyPhoto = $item->userreply?->photopro; @endphp
-                                                                            <img id="replay_photo_id_{{ $item->id  }}" src="{{ $replyPhoto ? asset($replyPhoto->path.$replyPhoto->id.$replyPhoto->type) : asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
+                                                                            <img id="replay_photo_id_{{ $item->id  }}" src="{{ $replyPhoto?->url ?? asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
                                                                         </a>
                                                                     </div>
                                                                     <div class="mx-1 col-md-11 reply-content">
@@ -354,7 +341,7 @@
                                                                             <h5 id="userdata_fl_{{ $item->id  }}" class="mb-1 mx-3">{{$item->userreply['first_name']}} {{$item->userreply['last_name']}}</h5></a>
                                                                         <p id="replay_comen_{{ $item->id }}" class="mx-3 mb-1">{{$item->reply}}.</p>
                                                                         @if($item->media_path)
-                                                                            @if($item->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ asset($item->media_path) }}" @if(str_ends_with($item->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ asset($item->media_path) }}" alt="">@endif
+                                                                            @if($item->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ route('media.replies.show', ['reply' => $item->id, 'file' => basename($item->media_path)]) }}" @if(str_ends_with($item->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ route('media.replies.show', ['reply' => $item->id, 'file' => basename($item->media_path)]) }}" alt="">@endif
                                                                         @endif
                                                                         </div>
                                                                         <time class="reply-time js-relative-time" datetime="{{ $item->created_at?->toIso8601String() }}">{{ $item->created_at?->diffForHumans(short: true) ?? 'now' }}</time>
@@ -395,7 +382,7 @@
                                                         @if(isset($profile['photopro']->path))
                                                         <div class="d-flex align-items-center " >
                                                             <a class="radius_30 d-flex align-items-center text-center justify-content-center" href="javascript:;">
-                                                                <img  src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type)}}" width="30" height="30"  class="rounded-pill">
+                                                                <img  src="{{ $profile['photopro']->url }}" width="30" height="30"  class="rounded-pill">
                                                             </a>
                                                         </div>
                                                         @else

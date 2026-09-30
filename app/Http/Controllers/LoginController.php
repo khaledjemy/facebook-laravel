@@ -19,14 +19,18 @@ class LoginController extends Controller
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt(array_merge($credentials, ['is_active' => true]))) {
             $request->session()->regenerate();
+
+            if (!Auth::user()->hasVerifiedEmail()) {
+                return redirect()->route('verification.notice');
+            }
 
             return redirect()->intended('/');
         }
 
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'email' => __('ui.invalid_credentials'),
         ]);
     }
 

@@ -3,15 +3,20 @@
 namespace Tests\Feature;
 
 use App\Post;
+use App\Commente;
+use App\Block;
+use App\photo as Photo;
 use App\React;
 use App\SavedPost;
 use App\User;
 use App\Friend;
+use App\Video;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SocialFeaturesTest extends TestCase
@@ -22,6 +27,7 @@ class SocialFeaturesTest extends TestCase
     {
         parent::setUp();
         $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+        Storage::fake('local');
     }
 
     private function user(string $email='user@example.com'): User
@@ -32,6 +38,100 @@ class SocialFeaturesTest extends TestCase
     public function test_private_pages_redirect_guests_to_login(): void
     {
         foreach(['/community','/friends','/saved','/memories','/messanger/1'] as $url) $this->get($url)->assertRedirect('/login');
+    }
+
+    public function test_search_uses_names_only_and_hides_blocked_and_inactive_accounts(): void
+    {
+        $viewer = $this->user('viewer-search@example.com');
+        $blocked = $this->user('blocked-search@example.com');
+        $inactive = $this->user('inactive-search@example.com');
+        $inactive->update(['is_active' => false]);
+        Block::create(['user_id' => $viewer->id, 'blocked_id' => $blocked->id]);
+
+        $this->actingAs($viewer)->get('/search?q=Test')
+            ->assertOk()
+            ->assertDontSee('blocked-search@example.com')
+            ->assertDontSee('inactive-search@example.com')
+            ->assertDontSee('viewer-search@example.com')
+            ->assertSee('Test User');
+
+        $this->get('/search?q=inactive-search@example.com')
+            ->assertOk()
+            ->assertDontSee('/profile/'.$inactive->id);
+    }
+
+    public function test_watch_and_video_pages_follow_the_source_post_privacy(): void
+    {
+        $author = $this->user('video-author@example.com');
+        $friend = $this->user('video-friend@example.com');
+        $stranger = $this->user('video-stranger@example.com');
+        $video = Video::create([
+            'user_id' => $author->id,
+            'path' => 'video/users/'.$author->id.'/',
+            'type' => '.mp4',
+            'title' => 'Friends-only video',
+        ]);
+        Post::create([
+            'user_id' => $author->id,
+            'post_text' => 'Friends only',
+            'video' => json_encode([[$video->id]], JSON_FORCE_OBJECT),
+            'visibility' => 'friends',
+            'status' => true,
+        ]);
+        Friend::create(['user_id' => $author->id, 'friends_id' => $friend->id, 'state' => 1]);
+
+        $this->actingAs($stranger)->get('/watch')->assertOk()
+            ->assertViewHas('items', fn ($items) => $items->total() === 0);
+        $this->get('/video/'.$video->id)->assertNotFound();
+        $this->postJson('/video/like', ['video_id' => $video->id])->assertNotFound();
+        $this->postJson('/commentvideo', ['video_id' => $video->id, 'comment' => 'Hidden video'])->assertNotFound();
+
+        $this->actingAs($friend)->get('/watch')->assertOk()
+            ->assertViewHas('items', fn ($items) => $items->total() === 1);
+        $this->get('/video/'.$video->id)->assertOk();
+    }
+
+    public function test_private_video_segments_are_only_served_to_viewers_of_the_source_post(): void
+    {
+        $owner = $this->user('hls-owner@example.com');
+        $friend = $this->user('hls-friend@example.com');
+        $stranger = $this->user('hls-stranger@example.com');
+        Friend::forceCreate(['user_id' => $owner->id, 'friends_id' => $friend->id, 'state' => true]);
+        $video = Video::create([
+            'user_id' => $owner->id,
+            'path' => 'private/media/videos/users/'.$owner->id.'/',
+            'type' => '.mp4',
+        ]);
+        $playlistPath = $video->path.$video->id.'/playlist.m3u8';
+        Storage::disk('local')->put($playlistPath, "#EXTM3U\n");
+        Post::create([
+            'user_id' => $owner->id,
+            'post_text' => 'Friends-only stream',
+            'video' => json_encode([[$video->id]]),
+            'visibility' => 'friends',
+            'status' => true,
+        ]);
+
+        $url = route('media.videos.hls', ['video' => $video->id, 'file' => 'playlist.m3u8']);
+        $this->actingAs($friend)->get($url)->assertOk()
+            ->assertHeader('Content-Type', 'application/vnd.apple.mpegurl')
+            ->assertHeader('Cache-Control', 'no-store, private');
+        $this->actingAs($stranger)->get($url)->assertNotFound();
+        $this->get($url)->assertNotFound();
+        $this->actingAs($friend)->get(route('media.videos.hls', [
+            'video' => $video->id, 'file' => 'private.m3u8',
+        ]))->assertNotFound();
+    }
+
+    public function test_language_switch_only_offers_supported_locales_and_persists_choice(): void
+    {
+        $this->get('/language/ar')->assertRedirect()->assertSessionHas('locale', 'ar');
+        $this->get('/')->assertOk()->assertSessionHas('locale', 'ar');
+
+        $this->get('/language/en')->assertRedirect()->assertSessionHas('locale', 'en');
+        $this->get('/')->assertOk()->assertSessionHas('locale', 'en');
+
+        $this->get('/language/fr')->assertNotFound();
     }
 
     public function test_user_can_save_and_unsave_a_post(): void
@@ -46,12 +146,61 @@ class SocialFeaturesTest extends TestCase
     public function test_reaction_uses_authenticated_user_and_validates_type(): void
     {
         $user=$this->user(); $other=$this->user('other@example.com'); $post=Post::create(['user_id'=>$other->id,'post_text'=>'React','status'=>1]);
-        $this->actingAs($user)->postJson('/like',['post_id'=>$post->id,'type_id'=>2,'liked'=>false,'user_id'=>$other->id])->assertOk();
+        $this->actingAs($user)->postJson('/like',['post_id'=>$post->id,'type_id'=>2,'liked'=>false,'user_id'=>$other->id])
+            ->assertOk()
+            ->assertJson(['status' => 'ok', 'liked' => true, 'count' => 1, 'reaction_counts' => [2 => 1]]);
         $this->assertDatabaseHas('reacts',['post_id'=>$post->id,'user_id'=>$user->id,'type'=>2]);
         $this->getJson('/post/'.$post->id.'/reactions')->assertOk()->assertJsonFragment([
             'name' => 'Test User', 'type' => 'Love', 'type_id' => 2, 'emoji' => '❤️',
         ]);
         $this->actingAs($user)->postJson('/like',['post_id'=>$post->id,'type_id'=>99,'liked'=>false])->assertUnprocessable();
+    }
+
+    public function test_post_reaction_accepts_browser_false_string_and_toggles_count(): void
+    {
+        $user = $this->user('reaction-toggle@example.com');
+        $post = Post::create(['user_id' => $user->id, 'post_text' => 'Toggle me', 'status' => 1]);
+
+        $this->actingAs($user)->postJson('/like', [
+            'post_id' => $post->id,
+            'type_id' => 1,
+            'liked' => 'false',
+        ])->assertOk()->assertJson([
+            'status' => 'ok', 'liked' => true, 'count' => 1, 'reaction_counts' => [1 => 1],
+        ]);
+        $this->assertDatabaseHas('reacts', ['post_id' => $post->id, 'user_id' => $user->id, 'type' => 1]);
+
+        $this->postJson('/like', [
+            'post_id' => $post->id,
+            'type_id' => 1,
+            'liked' => 'true',
+        ])->assertOk()->assertJson([
+            'status' => 'ok', 'liked' => false, 'count' => 0, 'reaction_counts' => [],
+        ]);
+        $this->assertDatabaseMissing('reacts', ['post_id' => $post->id, 'user_id' => $user->id]);
+    }
+
+    public function test_photo_reaction_accepts_browser_boolean_strings_and_returns_updated_count(): void
+    {
+        $user = $this->user('photo-reaction@example.com');
+        $photo = Photo::create(['user_id' => $user->id, 'path' => 'photos/', 'type' => '.jpg', 'album_id' => 0]);
+
+        $this->actingAs($user)->postJson('/photo/like', [
+            'photo_id' => $photo->id,
+            'type_id' => 2,
+            'liked' => 'false',
+        ])->assertOk()->assertJson([
+            'status' => 'ok', 'media_type' => 'photo', 'media_id' => $photo->id,
+            'liked' => true, 'count' => 1, 'reaction_counts' => [2 => 1],
+        ]);
+        $this->assertDatabaseHas('photo_react', ['photo_id' => $photo->id, 'user_id' => $user->id]);
+
+        $this->postJson('/photo/like', [
+            'photo_id' => $photo->id,
+            'type_id' => 2,
+            'liked' => 'true',
+        ])->assertOk()->assertJson(['liked' => false, 'count' => 0, 'reaction_counts' => []]);
+        $this->assertDatabaseMissing('photo_react', ['photo_id' => $photo->id, 'user_id' => $user->id]);
     }
 
     public function test_post_visibility_is_enforced_for_owner_friends_and_others(): void
@@ -70,6 +219,64 @@ class SocialFeaturesTest extends TestCase
         $this->actingAs($friend)->get('/post/'.$private->id)->assertNotFound();
         $this->actingAs($other)->get('/post/'.$friends->id)->assertNotFound();
         $this->actingAs($other)->get('/post/'.$public->id)->assertOk();
+        $this->postJson('/like', ['post_id' => $private->id])->assertNotFound();
+        $this->postJson('/comment', ['post_id' => $private->id, 'comment' => 'Hidden comment'])->assertNotFound();
+        $this->postJson('/saved/'.$private->id)->assertNotFound();
+        $this->get('/post/'.$private->id.'/reactions')->assertNotFound();
+        $hiddenComment = Commente::create(['user_id' => $owner->id, 'post_id' => $private->id, 'text_co' => 'Private comment']);
+        $this->postJson('/likecomment', ['comment_id' => $hiddenComment->id])->assertNotFound();
+        $this->postJson('/post-reply', [
+            'comment_id' => $hiddenComment->id,
+            'userreplay_id' => $owner->id,
+            'comment' => 'Private reply',
+        ])->assertNotFound();
+
+        $privatePhoto = Photo::create([
+            'user_id' => $owner->id,
+            'path' => 'private/media/images/users/'.$owner->id.'/',
+            'type' => '.jpg',
+            'album_id' => 0,
+        ]);
+        Storage::disk('local')->put($privatePhoto->path.$privatePhoto->id.'.jpg', 'image-bytes');
+        $friends->update(['image' => json_encode([[$privatePhoto->id]], JSON_FORCE_OBJECT)]);
+        $this->get('/photo/'.$privatePhoto->id)->assertNotFound();
+        $this->postJson('/photo/like', ['photo_id' => $privatePhoto->id])->assertNotFound();
+        $this->postJson('/commentphoto', ['photo_id' => $privatePhoto->id, 'comment' => 'Hidden photo'])->assertNotFound();
+
+        $this->actingAs($friend)->get('/photo/'.$privatePhoto->id)->assertOk();
+        $this->get($privatePhoto->url)->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->actingAs($other)->get($privatePhoto->url)->assertNotFound();
+        $this->actingAs($owner)->get($privatePhoto->url)->assertOk();
+    }
+
+    public function test_public_reshare_never_bypasses_the_original_posts_privacy(): void
+    {
+        $owner = $this->user('private-original@example.com');
+        $sharer = $this->user('public-sharer@example.com');
+        $friend = $this->user('original-friend@example.com');
+        $stranger = $this->user('original-stranger@example.com');
+        Friend::forceCreate(['user_id' => $owner->id, 'friends_id' => $sharer->id, 'state' => true]);
+        Friend::forceCreate(['user_id' => $owner->id, 'friends_id' => $friend->id, 'state' => true]);
+
+        $original = Post::create([
+            'user_id' => $owner->id,
+            'post_text' => 'Friends-only source',
+            'status' => 1,
+            'visibility' => 'friends',
+        ]);
+        $reshare = Post::create([
+            'user_id' => $sharer->id,
+            'post_text' => 'Public reshare',
+            'status' => 1,
+            'visibility' => 'public',
+            'shared_post_id' => $original->id,
+        ]);
+
+        $this->assertFalse(Post::visibleTo(null)->whereKey($reshare->id)->exists());
+        $this->assertFalse(Post::visibleTo($stranger)->whereKey($reshare->id)->exists());
+        $this->assertTrue(Post::visibleTo($friend)->whereKey($reshare->id)->exists());
+        $this->get('/post/'.$reshare->id)->assertNotFound();
+        $this->actingAs($friend)->get('/post/'.$reshare->id)->assertOk();
     }
 
     public function test_comments_and_replies_accept_image_or_video_attachments(): void
@@ -88,6 +295,10 @@ class SocialFeaturesTest extends TestCase
             $this->assertDatabaseHas('commentes', [
                 'id' => $commentId, 'post_id' => $post->id, 'media_type' => 'image',
             ]);
+            $comment = Commente::findOrFail($commentId);
+            Storage::disk('local')->assertExists($comment->media_path);
+            $this->get($comment->media_url)->assertOk();
+            $this->assertStringNotContainsString('media_path', json_encode($comment->fresh()->toArray()));
 
             $this->actingAs($user)->postJson('/post-reply', [
                 'comment_id' => $commentId,
@@ -101,6 +312,7 @@ class SocialFeaturesTest extends TestCase
             Queue::assertPushed(\App\Jobs\ProcessVideoJob::class);
         } finally {
             File::deleteDirectory(public_path('comment-media/'.$user->id));
+            Storage::disk('local')->deleteDirectory('private/comment-media/'.$user->id);
         }
     }
 
@@ -125,6 +337,20 @@ class SocialFeaturesTest extends TestCase
         foreach ($pages as $page) {
             $this->actingAs($demo)->get($page)->assertOk();
         }
+
+        $this->actingAs($demo)->get('/')->assertOk()
+            ->assertSee('/live/create', false)
+            ->assertSee('data-bs-target="#modal-dialog2"', false)
+            ->assertSee('data-bs-target="#createStoryModal"', false);
+        $this->actingAs($demo)->get('/post/1')->assertOk()
+            ->assertSee('class="dropdown-item btn-edit-post"', false)
+            ->assertSee('class="dropdown-item text-danger btn-delete-post"', false);
+
+        $this->actingAs($demo)->get('/messanger/2')->assertOk()
+            ->assertSee('id="contactSearch"', false)
+            ->assertSee('aria-label="الأصدقاء"', false)
+            ->assertSee('aria-label="ابدأ محادثة جديدة"', false)
+            ->assertDontSee('assets/img/user/user-13.jpg');
     }
 
     public function test_profile_renders_comments_and_replies_when_users_have_no_avatar(): void
@@ -216,6 +442,12 @@ class SocialFeaturesTest extends TestCase
 
             $this->assertDatabaseHas('photos', ['user_id' => 999, 'type' => '.png']);
             $this->assertDatabaseHas('videos', ['user_id' => 999, 'type' => '.mp4']);
+            $photo = Photo::where('user_id', 999)->firstOrFail();
+            $video = Video::where('user_id', 999)->firstOrFail();
+            $this->assertStringStartsWith('private/media/images/users/999/', $photo->path);
+            $this->assertStringStartsWith('private/media/videos/users/999/', $video->path);
+            Storage::disk('local')->assertExists($photo->path.$photo->id.'.png');
+            Storage::disk('local')->assertExists($video->path.$video->id.'.mp4');
         } finally {
             File::deleteDirectory(public_path('images/users/999'));
             File::deleteDirectory(public_path('video/users/999'));

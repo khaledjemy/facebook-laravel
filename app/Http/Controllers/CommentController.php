@@ -10,7 +10,11 @@ use App\photoreply;
 use App\Post;
 use App\Replie;
 use App\Jobs\ProcessVideoJob;
+use App\Video;
+use App\Services\MediaVisibilityService;
+use App\photo as Photo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CommentController extends Controller
 {
@@ -25,6 +29,7 @@ class CommentController extends Controller
             'media' => 'nullable|file|max:51200|mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/x-matroska,video/avi,video/x-msvideo,video/mpeg,video/3gpp',
 
         ]);
+        Post::visibleTo(auth()->user())->whereKey($validatedData['post_id'])->firstOrFail();
         $userId =   auth()->id();
         $media = $this->storeCommentMedia($request);
         $comment = Commente::create([
@@ -57,7 +62,7 @@ class CommentController extends Controller
             ]);
         } 
     }
-    public function photocommentstore(Request $request)
+    public function photocommentstore(Request $request, MediaVisibilityService $mediaVisibility)
     {
         
         $validatedData = $request->validate([
@@ -66,6 +71,8 @@ class CommentController extends Controller
             'photo_id' => 'required|integer|exists:photos,id'
 
         ]);
+        $photo = Photo::findOrFail($validatedData['photo_id']);
+        abort_unless($mediaVisibility->canViewPhoto($photo, auth()->user()), 404);
         $userId =   auth()->id();
 
         
@@ -92,12 +99,14 @@ class CommentController extends Controller
 
     }
 
-    public function videocommentstore(Request $request)
+    public function videocommentstore(Request $request, MediaVisibilityService $mediaVisibility)
     {
         $data = $request->validate([
             'comment' => 'required|string|max:255',
             'video_id' => 'required|integer|exists:videos,id',
         ]);
+        $video = Video::findOrFail($data['video_id']);
+        abort_unless($mediaVisibility->canViewVideo($video, auth()->user()), 404);
 
         $comment = Videocommente::create([
             'comment' => trim($data['comment']),
@@ -125,6 +134,8 @@ class CommentController extends Controller
             'media' => 'nullable|file|max:51200|mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/x-matroska,video/avi,video/x-msvideo,video/mpeg,video/3gpp',
 
         ]);
+        $parentComment = Commente::findOrFail($validatedData['comment_id']);
+        Post::visibleTo(auth()->user())->whereKey($parentComment->post_id)->firstOrFail();
         
         $userId =   auth()->id();
         $media = $this->storeCommentMedia($request);
@@ -166,8 +177,8 @@ class CommentController extends Controller
         $type = str_starts_with((string) $file->getMimeType(), 'video/') ? 'video' : 'image';
         $extension = strtolower($file->guessExtension() ?: ($type === 'video' ? 'mp4' : 'jpg'));
         $name = bin2hex(random_bytes(16)).'.'.$extension;
-        $relativeDirectory = 'comment-media/'.auth()->id();
-        $file->move(public_path($relativeDirectory), $name);
+        $relativeDirectory = 'private/comment-media/'.auth()->id();
+        Storage::disk('local')->putFileAs($relativeDirectory, $file, $name);
 
         $path = $relativeDirectory.'/'.$name;
         return ['path' => $path, 'type' => $type, 'source_path' => $path];
@@ -179,7 +190,7 @@ class CommentController extends Controller
             return;
         }
 
-        $directory = 'comment-media/'.auth()->id().'/'.$model->getTable().'-'.$model->id;
+        $directory = 'private/comment-media/'.auth()->id().'/'.$model->getTable().'-'.$model->id;
         ProcessVideoJob::dispatch(
             $media['source_path'],
             $directory,
@@ -200,6 +211,9 @@ class CommentController extends Controller
             'userreplay_id' => 'required|integer|exists:users,id',
 
         ]);
+        $parentComment = Photocommente::findOrFail($validatedData['comment_id']);
+        $photo = \App\photo::findOrFail($parentComment->photo_id);
+        abort_unless(app(\App\Services\MediaVisibilityService::class)->canViewPhoto($photo, auth()->user()), 404);
         
         $userId =   auth()->id();
 

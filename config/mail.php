@@ -2,6 +2,16 @@
 
 return [
 
+    'default' => env('MAIL_MAILER', env('MAIL_DRIVER', 'log')),
+
+    'mailers' => [
+        'smtp' => ['transport' => 'smtp', 'host' => env('MAIL_HOST', '127.0.0.1'), 'port' => env('MAIL_PORT', 587), 'encryption' => env('MAIL_ENCRYPTION', 'tls'), 'username' => env('MAIL_USERNAME'), 'password' => env('MAIL_PASSWORD'), 'timeout' => null, 'local_domain' => env('MAIL_EHLO_DOMAIN')],
+        'log' => ['transport' => 'log', 'channel' => env('MAIL_LOG_CHANNEL')],
+        'array' => ['transport' => 'array'],
+        'sendmail' => ['transport' => 'sendmail', 'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i')],
+        'failover' => ['transport' => 'failover', 'mailers' => ['smtp', 'log']],
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Mail Driver

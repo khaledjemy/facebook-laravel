@@ -10,7 +10,7 @@
                 <input type="hidden" id="shareTargetPostId" value="">
                 <div class="d-flex align-items-center mb-3">
                     @if(isset($profile) && isset($profile['photopro']))
-                        <img src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" class="rounded-circle me-2" width="40" height="40" alt="">
+                        <img src="{{ $profile['photopro']->url }}" class="rounded-circle me-2" width="40" height="40" alt="">
                     @else
                         <img src="{{ asset('img/Default_avatar_profile.jpg') }}" class="rounded-circle me-2" width="40" height="40" alt="">
                     @endif

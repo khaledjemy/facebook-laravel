@@ -4,39 +4,39 @@
     <div class="messenger" id="messenger">
         <div class="messenger-menu">
             <div class="messenger-menu-item my-2">
-                <a href="#" class="messenger-menu-link">
+                <a href="{{ url('/profile/'.auth()->id()) }}" class="messenger-menu-link" aria-label="الملف الشخصي" title="الملف الشخصي">
                     <div class="m-n1">
-                        <img alt="" src="assets/img/user/user-13.jpg" class="w-100 d-block rounded-circle">
+                        <img alt="{{ auth()->user()->first_name }}" src="{{ auth()->user()->avatar_url }}" class="w-100 d-block rounded-circle">
                     </div>
                 </a>
             </div>
             <div class="messenger-menu-item active">
-                <a href="#" class="messenger-menu-link">
+                <a href="{{ url('/messanger') }}" class="messenger-menu-link" aria-label="الرسائل" title="الرسائل" aria-current="page">
                     <span class="iconify fs-30px" data-icon="solar:dialog-2-bold-duotone"></span>
                 </a>
             </div>
             <div class="messenger-menu-item">
-                <a href="#" class="messenger-menu-link">
+                <a href="{{ url('/friends') }}" class="messenger-menu-link" aria-label="الأصدقاء" title="الأصدقاء">
                     <span class="iconify fs-30px" data-icon="solar:notebook-bold-duotone"></span>
                 </a>
             </div>
             <div class="messenger-menu-item">
-                <a href="#" class="messenger-menu-link">
+                <a href="{{ url('/saved') }}" class="messenger-menu-link" aria-label="المنشورات المحفوظة" title="المنشورات المحفوظة">
                     <span class="iconify fs-30px" data-icon="solar:box-minimalistic-bold-duotone"></span>
                 </a>
             </div>
             <div class="messenger-menu-item">
-                <a href="#" class="messenger-menu-link">
+                <a href="{{ url('/community') }}" class="messenger-menu-link" aria-label="المجتمع" title="المجتمع">
                     <span class="iconify fs-30px" data-icon="solar:folder-with-files-bold-duotone"></span>
                 </a>
             </div>
             <div class="messenger-menu-item">
-                <a href="#" class="messenger-menu-link">
+                <a href="{{ url('/watch') }}" class="messenger-menu-link" aria-label="الفيديوهات" title="الفيديوهات">
                     <span class="iconify fs-30px" data-icon="solar:clapperboard-play-bold-duotone"></span>
                 </a>
             </div>
             <div class="messenger-menu-item">
-                <a href="#" class="messenger-menu-link">
+                <a href="{{ route('settings') }}" class="messenger-menu-link" aria-label="الإعدادات" title="الإعدادات">
                     <span class="iconify fs-30px" data-icon="solar:settings-bold-duotone"></span>
                 </a>
             </div>
@@ -44,11 +44,11 @@
         <div class="messenger-chat">
             <div class="messenger-chat-header d-flex">
                 <div class="flex-1 position-relative">
-                    <input type="text" class="form-control border-0 bg-light ps-30px" placeholder="Search">
+                    <input id="contactSearch" type="search" class="form-control border-0 bg-light ps-30px" placeholder="ابحث عن شخص..." aria-label="ابحث في جهات الاتصال" autocomplete="off">
                     <i class="fa fa-search position-absolute start-0 top-0 h-100 ps-2 ms-3px d-flex align-items-center justify-content-center"></i>
                 </div>
                 <div class="ps-2">
-                    <a href="#" class="btn border-0 bg-light shadow-none">
+                    <a href="{{ url('/friends') }}" class="btn border-0 bg-light shadow-none" aria-label="ابدأ محادثة جديدة" title="ابدأ محادثة جديدة">
                         <i class="fa fa-plus"></i>
                     </a>
                 </div>
@@ -62,7 +62,7 @@
                             <a href="{{ url('/messanger/'.$contact->id) }}" class="messenger-chat-link">
                                 <div class="messenger-chat-media">
                                     @if($contact->photopro)
-                                        <img alt="" src="{{ asset($contact->photopro->path.$contact->photopro->id.$contact->photopro->type) }}">
+                                        <img alt="" src="{{ $contact->avatar_url }}">
                                     @else
                                         <img alt="" src="{{ asset('img/Default_avatar_profile.jpg') }}">
                                     @endif
@@ -78,6 +78,7 @@
                         @endforeach
                         @endif
                     </div>
+                    <div id="contactSearchEmpty" class="text-muted small text-center p-3" @if(isset($users) && $users->isNotEmpty()) hidden @endif>لا توجد جهات اتصال مطابقة.</div>
                 </div>
             </div>
         </div>
@@ -104,15 +105,8 @@
                             <i class="fa fa-ellipsis fa-lg"></i>
                         </button>
                         <ul class="dropdown-menu" style="">
-                            <li>
-                                <a class="dropdown-item" href="#">Action</a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="#">Another action</a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="#">Something else here</a>
-                            </li>
+                            <li><a class="dropdown-item" href="{{ url('/profile/'.$user->id) }}">عرض الملف الشخصي</a></li>
+                            <li><button type="button" class="dropdown-item btn-block-user" data-user-id="{{ $user->id }}" data-user-name="{{ $user->first_name }} {{ $user->last_name }}">حظر المستخدم</button></li>
                         </ul>
                     </div>
                 </div>
@@ -131,7 +125,7 @@
                     @foreach($reservarr as $message)
                     <div class="widget-chat-item with-media {{$message->my_id == auth()->id() ? 'end' : 'start'}} msg-{{$message->id}}" >
                         <div class="widget-chat-media">
-                            <img alt="" src="{{ $message->sender && $message->sender->photopro ? asset($message->sender->photopro->path.$message->sender->photopro->id.$message->sender->photopro->type) : asset('img/Default_avatar_profile.jpg') }}">
+                            <img alt="" src="{{ $message->sender?->avatar_url ?? asset('img/Default_avatar_profile.jpg') }}">
                         </div>
                         <div class="widget-chat-info message_{{$message->id}}" >
                             <div class="widget-chat-info-container">
@@ -143,19 +137,19 @@
                                     @if($message->attachment)
                                         @if($message->attachment_type === 'image')
                                             <div class="mt-1">
-                                                <a href="{{ asset($message->attachment) }}" target="_blank">
-                                                    <img src="{{ asset($message->attachment) }}" class="img-fluid rounded" style="max-height: 200px; max-width: 100%;" alt="attachment">
+                                                <a href="{{ route('messages.attachment', $message) }}" target="_blank">
+                                                    <img src="{{ route('messages.attachment', $message) }}" class="img-fluid rounded" style="max-height: 200px; max-width: 100%;" alt="attachment">
                                                 </a>
                                             </div>
                                         @elseif($message->attachment_type === 'audio')
                                             <div class="mt-1">
                                                 <audio controls style="max-width: 240px;">
-                                                    <source src="{{ asset($message->attachment) }}">
+                                                    <source src="{{ route('messages.attachment', $message) }}">
                                                 </audio>
                                             </div>
                                         @else
                                             <div class="mt-1">
-                                                <a href="{{ asset($message->attachment) }}" target="_blank" class="btn btn-sm btn-light">
+                                                <a href="{{ route('messages.attachment', $message) }}" target="_blank" class="btn btn-sm btn-light">
                                                     <i class="fa fa-download me-1"></i> تحميل المرفق
                                                 </a>
                                             </div>
@@ -213,8 +207,8 @@
 
 {{-- نافذة المكالمة --}}
 @php
-    $callAvatar = $user->photopro ? asset($user->photopro->path.$user->photopro->id.$user->photopro->type) : asset('img/Default_avatar_profile.jpg');
-    $myCallAvatar = auth()->user()->photopro ? asset(auth()->user()->photopro->path.auth()->user()->photopro->id.auth()->user()->photopro->type) : asset('img/Default_avatar_profile.jpg');
+    $callAvatar = $user->avatar_url;
+    $myCallAvatar = auth()->user()->avatar_url;
     $rtcIceServers = [['urls' => config('services.webrtc.stun_url')]];
     if (config('services.webrtc.turn_url')) {
         $rtcIceServers[] = [
@@ -369,6 +363,17 @@ $(document).ready(function(){
 
     $('.mobile-chat-back').on('click', function () {
         $('#messenger').removeClass('messenger-chat-content-mobile-toggled');
+    });
+
+    $('#contactSearch').on('input', function () {
+        const query = $(this).val().trim().toLocaleLowerCase();
+        let visibleContacts = 0;
+        $('.messenger-chat-item').each(function () {
+            const matches = $(this).text().toLocaleLowerCase().includes(query);
+            $(this).toggleClass('d-none', !matches);
+            if (matches) visibleContacts++;
+        });
+        $('#contactSearchEmpty').prop('hidden', visibleContacts > 0);
     });
 
     $('#emojiToggle').on('click', function () {
@@ -728,6 +733,10 @@ function markSeen(data){
     }
 }
 
+function escapeChatHtml(value){
+    return $('<div>').text(value == null ? '' : String(value)).html();
+}
+
 function appendMessage(data){
     let currentChat = $('#you').val();
     if (
@@ -738,7 +747,9 @@ function appendMessage(data){
     if($('.msg-'+data.id).length) return;
 
     let pos = data.from == userId ? 'end' : 'start';
-    var name = data.from == userId ? "{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}" : $('.messenger-chat-item.active .messenger-chat-title .messenger-chat-name').text();
+    var name = data.from == userId ? @json(Auth::user()->first_name.' '.Auth::user()->last_name) : $('.messenger-chat-item.active .messenger-chat-title .messenger-chat-name').text();
+    let safeName = escapeChatHtml(name);
+    let safeMessage = escapeChatHtml(data.message);
 
     let attachmentHtml = '';
     if (data.attachment) {
@@ -760,9 +771,9 @@ function appendMessage(data){
             </div>
             <div class="widget-chat-info message_${data.id}" >
                 <div class="widget-chat-info-container">
-                    <div class="widget-chat-name text-indigo">${name}</div>
+                    <div class="widget-chat-name text-indigo">${safeName}</div>
                     <div class="widget-chat-message">
-                        ${data.message ? `<div>${data.message}</div>` : ''}
+                        ${data.message ? `<div>${safeMessage}</div>` : ''}
                         ${attachmentHtml}
                     </div>
                     ${data.from == userId ? `<div class="seen-status">✔</div>` : ''}

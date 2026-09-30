@@ -16,6 +16,15 @@ class LiveStream extends Model
 
     public function scopeVisibleTo(Builder $query, User $viewer): Builder
     {
+        $blockedIds = Block::where('user_id', $viewer->id)->pluck('blocked_id')
+            ->merge(Block::where('blocked_id', $viewer->id)->pluck('user_id'))
+            ->unique()
+            ->values();
+
+        if ($blockedIds->isNotEmpty()) {
+            $query->whereNotIn('user_id', $blockedIds);
+        }
+
         $friendIds = Friend::where('state', 1)
             ->where(fn ($q) => $q->where('user_id', $viewer->id)->orWhere('friends_id', $viewer->id))
             ->get()

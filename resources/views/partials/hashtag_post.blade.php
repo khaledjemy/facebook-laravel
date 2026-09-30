@@ -8,7 +8,7 @@
         @if(!empty($videos[$post->id][0][0]))
             @php($video = $videos[$post->id][0][0])
             <a href="{{ url('/video/'.$video->id) }}" class="d-block bg-black rounded overflow-hidden">
-                <video class="w-100" preload="metadata" poster="{{ $video->thumbnail_path ? asset($video->thumbnail_path) : '' }}"><source src="{{ asset($video->path.$video->id.'/playlist.m3u8') }}" type="application/x-mpegURL"></video>
+                <video class="w-100" preload="metadata" poster="{{ $video->thumbnail_url }}"><source src="{{ $video->playlist_url }}" type="application/x-mpegURL"></video>
             </a>
         @endif
         <div class="d-flex justify-content-around border-top mt-3 pt-2 text-muted"><span><i class="far fa-thumbs-up"></i> {{ $post->react->count() }}</span><span><i class="far fa-comment"></i> {{ $post->commentes->count() }}</span></div>

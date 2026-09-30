@@ -43,6 +43,30 @@ use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\HashtagController;
 use App\Http\Controllers\LiveStreamController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\VerificationController;
+use App\SiteSetting;
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::put('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+    Route::put('/appearance', [AdminController::class, 'updateAppearance'])->name('appearance.update');
+    Route::delete('/appearance', [AdminController::class, 'resetAppearance'])->name('appearance.reset');
+    Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
+    Route::delete('/posts/{post}', [AdminController::class, 'destroyPost'])->name('posts.destroy');
+    Route::put('/reports/{report}', [AdminController::class, 'reviewReport'])->name('reports.review');
+});
+Route::post('/posts/{post}/report', [ReportController::class, 'store'])->middleware(['auth', 'throttle:10,1'])->name('posts.report');
+Route::get('/media/photos/{photo}', [MediaController::class, 'photo'])->name('media.photos.show');
+Route::get('/media/videos/{video}/hls/{file}', [MediaController::class, 'videoHls'])->where('file', '[A-Za-z0-9_.-]+')->name('media.videos.hls');
+Route::get('/media/videos/{video}/thumbnail', [MediaController::class, 'videoThumbnail'])->name('media.videos.thumbnail');
+Route::get('/media/stories/{story}', [MediaController::class, 'story'])->middleware('auth')->name('media.stories.show');
+Route::get('/media/comments/{comment}/{file}', [MediaController::class, 'comment'])->where('file', '[A-Za-z0-9_.-]+')->name('media.comments.show');
+Route::get('/media/replies/{reply}/{file}', [MediaController::class, 'reply'])->where('file', '[A-Za-z0-9_.-]+')->name('media.replies.show');
 
 Route::get('/', [PostController::class, 'index'])->middleware('postowner');
 Route::get('/language/{locale}', function ($locale) { abort_unless(in_array($locale, ['en','ar'], true), 404); session(['locale'=>$locale]); return back(); })->name('language');
@@ -94,15 +118,25 @@ Route::post('/pages', [CommunityController::class, 'storePage'])->middleware('au
 Route::post('/groups', [CommunityController::class, 'storeGroup'])->middleware('auth');
 
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-Route::get('/logout', [LoginController::class, 'logout'])->name('logout.get');
+Route::get('/email/verify', [VerificationController::class, 'show'])->middleware('auth')->name('verification.notice');
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->middleware(['auth', 'signed', 'throttle:6,1'])->name('verification.verify');
+Route::post('/email/verification-notification', [VerificationController::class, 'resend'])->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+Route::get('/password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->middleware('throttle:5,1')->name('password.email');
+Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->middleware('throttle:5,1')->name('password.update');
 
 
 Route::get('/reg', function(){
+    if (!SiteSetting::getValue('registration_enabled', true)) {
+        return redirect()->route('login')->with('registration_closed', true);
+    }
+
     return view('reg');
 });
-Route::post('/regi', [RegisterController::class, 'reg']);
+Route::post('/regi', [RegisterController::class, 'reg'])->middleware('throttle:5,1');
 
 
 Route::post('posts', [PostController::class, 'store'])->middleware('auth');
@@ -133,6 +167,7 @@ Route::get('/photo/{id}', [PhotoController::class, 'photo'])->middleware('checkp
 Route::get('/video/{id}', [VideoController::class, 'video']);
 
 Route::post('make-profile-picture', [PhotoController::class, 'profile_pic'])->middleware('auth');
+Route::post('photovideo', [PhotoController::class, 'uploadMedia'])->middleware('auth');
 
 
 Route::post('like', [ReactController::class, 'react'])->middleware('auth');
@@ -156,6 +191,7 @@ Route::post('likecomment', [ReactController::class, 'react_comment'])->middlewar
 
 Route::get('/messanger', 'MessangerController@inbox')->middleware('auth');
 Route::get('/messages/summary', 'MessangerController@summary')->middleware('auth');
+Route::get('/messages/{message}/attachment', [MessangerController::class, 'attachment'])->middleware('auth')->name('messages.attachment');
 Route::get('/messanger/{id}', 'MessangerController@index')->middleware('auth');
 Route::post('/messanger/{id}', 'MessangerController@index')->middleware('auth');
 Route::post('/messanger/{id}/seen', 'MessangerController@seen')->middleware('auth');

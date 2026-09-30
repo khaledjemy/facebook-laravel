@@ -146,7 +146,7 @@
                                     @if(isset($profile) && isset($profile['photopro']))
                                         <img
                                             class="ms-sidebar-avatar"
-                                            src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}"
+                                            src="{{ $profile['photopro']->url }}"
                                             alt=""
                                             onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';"
                                         >

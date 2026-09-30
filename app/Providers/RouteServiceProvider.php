@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -23,7 +26,12 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        RateLimiter::for('api-login', function (Request $request) {
+            $email = $request->input('email');
+            $email = is_string($email) ? mb_strtolower($email) : 'invalid';
+
+            return Limit::perMinute(5)->by($request->ip().'|'.$email);
+        });
 
         parent::boot();
     }

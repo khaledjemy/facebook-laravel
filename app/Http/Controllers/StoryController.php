@@ -7,6 +7,7 @@ use App\Friend;
 use App\Services\MediaUploadService;
 use App\Story;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class StoryController extends Controller
 {
@@ -46,7 +47,7 @@ class StoryController extends Controller
                 'stories' => $userStories->map(fn ($s) => [
                     'id' => $s->id,
                     'type' => $s->type,
-                    'media_url' => $s->media_path ? asset($s->media_path) : null,
+                    'media_url' => $s->media_path ? route('media.stories.show', $s) : null,
                     'content' => $s->content,
                     'background' => $s->background,
                     'time_ago' => $s->created_at->diffForHumans(short: true),
@@ -91,14 +92,8 @@ class StoryController extends Controller
             $file = $request->file('media');
             $ext = $uploadService->safeExtension($file);
             $filename = uniqid('story_', true) . '.' . $ext;
-            $destinationDir = public_path('stories/' . auth()->id());
-
-            if (!is_dir($destinationDir)) {
-                mkdir($destinationDir, 0755, true);
-            }
-
-            $file->move($destinationDir, $filename);
-            $mediaPath = 'stories/' . auth()->id() . '/' . $filename;
+            $mediaPath = 'private/stories/' . auth()->id() . '/' . $filename;
+            Storage::disk('local')->putFileAs('private/stories/' . auth()->id(), $file, $filename);
         }
 
         $story = Story::create([
@@ -112,7 +107,15 @@ class StoryController extends Controller
 
         return response()->json([
             'status' => true,
-            'story' => $story->load('user.photopro'),
+            'story' => [
+                'id' => $story->id,
+                'user_id' => $story->user_id,
+                'type' => $story->type,
+                'media_url' => $story->media_path ? route('media.stories.show', $story) : null,
+                'content' => $story->content,
+                'background' => $story->background,
+                'expires_at' => $story->expires_at?->toIso8601String(),
+            ],
         ], 201);
     }
 
@@ -127,7 +130,9 @@ class StoryController extends Controller
             ], 403);
         }
 
-        if ($story->media_path && is_file(public_path($story->media_path))) {
+        if ($story->media_path && str_starts_with($story->media_path, 'private/')) {
+            Storage::disk('local')->delete($story->media_path);
+        } elseif ($story->media_path && is_file(public_path($story->media_path))) {
             @unlink(public_path($story->media_path));
         }
 

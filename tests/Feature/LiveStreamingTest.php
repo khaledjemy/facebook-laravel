@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\LiveStream;
+use App\Block;
 use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -54,6 +55,17 @@ class LiveStreamingTest extends TestCase
         $this->actingAs($viewer)->get("/live/{$stream->id}/status")->assertForbidden();
         $this->actingAs($viewer)->get("/live/{$stream->id}/comments")->assertForbidden();
         $this->actingAs($viewer)->post("/live/{$stream->id}/comments", ['body' => 'مرفوض'])->assertForbidden();
+    }
+
+    public function test_blocked_users_live_streams_are_hidden_even_when_public(): void
+    {
+        $owner = $this->user();
+        $viewer = $this->user();
+        $stream = LiveStream::create(['user_id' => $owner->id, 'title' => 'غير متاح', 'visibility' => 'public', 'status' => 'live']);
+        Block::create(['user_id' => $viewer->id, 'blocked_id' => $owner->id]);
+
+        $this->actingAs($viewer)->get("/live/{$stream->id}")->assertForbidden();
+        $this->get('/watch')->assertOk()->assertViewHas('liveStreams', fn ($streams) => $streams->isEmpty());
     }
 
     public function test_viewer_count_is_not_duplicated_in_same_session(): void

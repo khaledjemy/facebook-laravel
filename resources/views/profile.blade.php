@@ -17,7 +17,7 @@
 						<div class="profile-header-content    p-0 rounded rounded-bottom" >
 							<div class="row p-0 m-0 p_co rounded-bottom ">
 								@if($profile_page->coverpro)
-                                <img id="profile-cover-preview" role="button" tabindex="0" data-profile-photo-id="{{ $profile_page->coverpro->id }}" class="p-0 m-0 rounded-bottom profile-cover-image profile-media-view-trigger" src="{{ asset($profile_page->coverpro->path.$profile_page->coverpro->id.$profile_page->coverpro->type) }}" alt="{{ $profile_page->first_name }} cover"/>
+                                <img id="profile-cover-preview" role="button" tabindex="0" data-profile-photo-id="{{ $profile_page->coverpro->id }}" class="p-0 m-0 rounded-bottom profile-cover-image profile-media-view-trigger" src="{{ $profile_page->coverpro->url }}" alt="{{ $profile_page->first_name }} cover"/>
                                 @else
                                 <div id="profile-cover-preview" class="profile-cover-image profile-cover-fallback"></div>
                                 @endif
@@ -37,7 +37,7 @@
                     	<!-- BEGIN profile-header-img -->
 							<div class="profile-header-img rounded-circle position-sticky mt-n5">
 								@if($profile_page->photopro)
-                                <img id="profile-avatar-preview" role="button" tabindex="0" data-profile-photo-id="{{ $profile_page->photopro->id }}" class="img-thumbnail rounded-circle profile-avatar-image profile-media-view-trigger" src="{{ asset($profile_page->photopro->path.$profile_page->photopro->id.$profile_page->photopro->type) }}" alt="{{ $profile_page->first_name }}"/>
+                                <img id="profile-avatar-preview" role="button" tabindex="0" data-profile-photo-id="{{ $profile_page->photopro->id }}" class="img-thumbnail rounded-circle profile-avatar-image profile-media-view-trigger" src="{{ $profile_page->photopro->url }}" alt="{{ $profile_page->first_name }}"/>
                                 @else
                                 <img id="profile-avatar-preview" class="img-thumbnail rounded-circle profile-avatar-image" src="{{ asset('img/Default_avatar_profile.jpg') }}" alt="{{ $profile_page->first_name }}"/>
                                 @endif
@@ -58,26 +58,15 @@
                         </div>
 						<div class="col-md-4 pt-5">
 							@if($friends[0]==1)
-                <div class="btn-group">
-                    <a href="javascript:;" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown">friend
-                    <i class="fa fa-user-group"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <a href="javascript:;" class="dropdown-item">Action 1</a>
-                        <a href="javascript:;" class="dropdown-item">Action 2</a>
-                        <a href="javascript:;" class="dropdown-item">Action 3</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="javascript:;" class="dropdown-item" >
-							<form action="/f_action" method="POST">
-							@csrf
-							<button name="add" type="submit" class="btn btn-link">
-								<input name="user" type="hidden" value="{{$profile_page['id']}}">	
-								<input name="type" type="hidden" value="remove">
-                    			remove friend
-                				</button>
-						</form>
-					</a>
-                    </ul>
-                </div>
+							<div class="d-flex align-items-center gap-2">
+								<span class="btn btn-light border rounded-pill"><i class="fa fa-user-group me-1"></i> صديق</span>
+								<form action="{{ url('/f_action') }}" method="POST" onsubmit="return confirm('هل تريد إزالة هذا الصديق؟')">
+									@csrf
+									<input name="user" type="hidden" value="{{ $profile_page->id }}">
+									<input name="type" type="hidden" value="remove">
+									<button type="submit" class="btn btn-outline-danger rounded-pill">إزالة صديق</button>
+								</form>
+							</div>
 						@elseif($friends[0]==2)
 						<form action="/f_action" method="POST">
 							@csrf
@@ -169,7 +158,7 @@
 								<input type="hidden" name="post_text" class="inpotbox">
 								<div class="profile-composer-top">
 									@if(isset($profile) && isset($profile['photopro']))
-                                        <img class="profile-composer-avatar" src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type) }}" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt="">
+                                        <img class="profile-composer-avatar" src="{{ $profile['photopro']->url }}" onerror="this.onerror=null;this.src='{{ asset('img/Default_avatar_profile.jpg') }}';" alt="">
                                     @else
                                         <img class="profile-composer-avatar" src="{{ asset('img/Default_avatar_profile.jpg') }}" alt="">
                                     @endif
@@ -202,7 +191,7 @@
 									@else
 									@foreach ($p_postes as $post)
 						
-						<div class="row  mx-0 p-0">
+						<div class="row mx-0 p-0 post-card-container-{{ $post->id }}">
                             <div class="row mx-0 mt-4">
                                 <div class="card text-dark bg-white m-0 rounded">
                                     <!-- BEGIN timeline-header -->
@@ -211,7 +200,7 @@
                                             <div class="col-md-1  " >
                                                 <div class="widget-icon rounded-circle bgr  text-white">
                                                     @if(isset($post->user['photopro']['path']))
-                                                        <img src="{{asset($post->user['photopro']['path'].$post->user['photopro']['id'].$post->user['photopro']['type'])}}" class="rounded-circle" width="40" height="40" alt="">
+                                                        <img src="{{ $post->user->avatar_url }}" class="rounded-circle" width="40" height="40" alt="">
                                                     @else 
                                                         <img src="" alt="">
                                                     @endif
@@ -221,7 +210,7 @@
                                                 <div class="row justify-content-start text-start fs-15px fw-bolder ">
                                                     <a class="post-author text-dark text-decoration-none my-0" href="profile/{{$post->user['id']}}">{{$post->user['first_name']}}  {{$post->user['last_name']}}<i class="fa fa-check-circle text-blue ms-1"></i></a>
                                                     <div class="text-muted ">
-                                                    <a class="post-time text-muted text-decoration-none" href="{{ url('/post/'.$post->id) }}"><time class="js-relative-time" datetime="{{ $post->created_at?->toIso8601String() }}">{{ $post->created_at?->diffForHumans() ?? 'just now' }}</time> <i class="fa {{ $post->visibility === 'only_me' ? 'fa-lock' : ($post->visibility === 'friends' ? 'fa-user-friends' : 'fa-globe-americas') }} opacity-5 ms-1" title="{{ ucfirst(str_replace('_', ' ', $post->visibility ?? 'public')) }}"></i></a>
+                                                    <a class="post-time text-muted text-decoration-none" href="{{ url('/post/'.$post->id) }}"><time class="js-relative-time" datetime="{{ $post->created_at?->toIso8601String() }}">{{ $post->created_at?->diffForHumans() ?? 'just now' }}</time> <i class="fa {{ $post->visibility === 'only_me' ? 'fa-lock' : ($post->visibility === 'friends' ? 'fa-user-friends' : 'fa-globe-americas') }} opacity-5 ms-1 post-visibility-icon-{{ $post->id }}" title="{{ ucfirst(str_replace('_', ' ', $post->visibility ?? 'public')) }}"></i></a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -231,31 +220,19 @@
                                                     <i class="fa fa-ellipsis-h"></i>
                                                 </a>
                                                 <div class="dropdown-menu dropdown-menu-end shadow">
-                                                    <a href="#" class="dropdown-item d-flex align-items-center">
-                                                        <i class="fa fa-fw fa-bookmark fa-lg"></i> 
-                                                        <div class="flex-1 ps-1">
-                                                            <div>{{ __('ui.save_post') }}</div>
-                                                            <div class="mt-n1 text-gray-500">
-                                                                <small>Add this to your saved items</small>
-                                                            </div>
-                                                        </div>
-                                                    </a>
-                                                    <div class="dropdown-divider"></div>
-													@if (isset(Auth::user()->id))
-														@if($post->user['id']==Auth::user()->id)
-															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-edit fa-lg me-1"></i> Edit post</a>
-															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-user fa-lg me-1"></i> Edit audience</a>
-															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn on notifications for this post</a>
-															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-language fa-lg me-1"></i> Turn off translations</a>
-															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-calendar-alt fa-lg me-1"></i> Turn date</a>
-															<div class="dropdown-divider"></div>
-															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-archive fa-lg me-1"></i> Move to archive</a>
-															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-trash-alt fa-lg me-1"></i> Move to Recycle bin</a>
-															@else 
-															<a href="#" class="dropdown-item"><i class="fa fa-fw fa-bell fa-lg me-1"></i> Turn off notifications for this post</a>
-														@endif
-													@endif
-                                                    
+                                                    @if(Auth::check())
+                                                        <a href="javascript:;" class="dropdown-item d-flex align-items-center save-post" data-post-id="{{ $post->id }}"><i class="fa fa-fw fa-bookmark fa-lg"></i><div class="flex-1 ps-1"><div>{{ __('ui.save_post') }}</div><small class="text-muted">أضف المنشور إلى المحفوظات</small></div></a>
+                                                        <div class="dropdown-divider"></div>
+                                                        @if((int) $post->user_id === (int) Auth::id())
+                                                            <a href="javascript:;" class="dropdown-item btn-edit-post" data-post-id="{{ $post->id }}" data-post-text="{{ $post->post_text }}" data-visibility="{{ $post->visibility ?? 'public' }}"><i class="fa fa-fw fa-edit me-1"></i> تعديل المنشور</a>
+                                                            <a href="javascript:;" class="dropdown-item text-danger btn-delete-post" data-post-id="{{ $post->id }}"><i class="fa fa-fw fa-trash-alt me-1"></i> حذف المنشور</a>
+                                                        @else
+                                                            <a href="javascript:;" class="dropdown-item text-danger btn-report-post" data-post-id="{{ $post->id }}"><i class="fa fa-fw fa-flag me-1"></i> الإبلاغ عن المنشور</a>
+                                                            <a href="javascript:;" class="dropdown-item text-danger btn-block-user" data-user-id="{{ $post->user_id }}" data-user-name="{{ $post->user->first_name }} {{ $post->user->last_name }}"><i class="fa fa-fw fa-ban me-1"></i> حظر {{ $post->user->first_name }}</a>
+                                                        @endif
+                                                    @else
+                                                        <a href="{{ route('login') }}" class="dropdown-item">سجّل الدخول لحفظ المنشور أو الإبلاغ عنه</a>
+                                                    @endif
                                                 </div>
                                         </div>
                                             </div>
@@ -266,7 +243,7 @@
                                     <div class="card-body rounded bg-white p-0 m-0">
                                         <!-- timeline-post -->
                                         <div class="mb-3 mx-0">
-                                            <div class="m-2">
+                                            <div class="m-2 post-text-content-{{ $post->id }}">
                                                     {!! \App\Support\HashtagFormatter::linkify($post->post_text) !!}
                                             </div>
                                             @php
@@ -305,9 +282,9 @@
                                                                     <video class="video-js vjs-default-skin p-0 VDlol" id="video_{{$i_videos[$r][0]->id}}" 
                                                                         controls 
                                                                         preload="auto" 
-                                                                        poster="{{ $i_videos[$r][0]->thumbnail_path ? asset($i_videos[$r][0]->thumbnail_path) : '' }}"
+                                                                        poster="{{ $i_videos[$r][0]->thumbnail_url }}"
                                                                         data-setup='{}' >
-                                                                        <source src="{{ asset($i_videos[$r][0]->path . $i_videos[$r][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
+                                                                        <source src="{{ $i_videos[$r][0]->playlist_url }}" type="application/x-mpegURL">
                                                                     </video>
                                                                 </a>    
                                                             </div>
@@ -319,9 +296,9 @@
                                                                     <video class="video-js vjs-default-skin p-0 VDlol" id="video_{{ $i_videos[$r2][0]->id }}" 
                                                                         controls 
                                                                         preload="auto" 
-                                                                        poster="{{ $i_videos[$r2][0]->thumbnail_path ? asset($i_videos[$r2][0]->thumbnail_path) : '' }}"
+                                                                        poster="{{ $i_videos[$r2][0]->thumbnail_url }}"
                                                                         data-setup='{}' >
-                                                                        <source src="{{ asset($i_videos[$r2][0]->path . $i_videos[$r2][0]->id . '/playlist.m3u8') }}" type="application/x-mpegURL">
+                                                                        <source src="{{ $i_videos[$r2][0]->playlist_url }}" type="application/x-mpegURL">
                                                                     </video>
                                                                 </a>    
                                                             </div>
@@ -329,12 +306,12 @@
                                                             @endif
                                                         @else
                                                             <div class="ratio ratio-1x1 p-0 m-0">
-                                                                <a href="javascript:;" onclick="showphoto({{$i_images[$r][0]->id }})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ asset($i_images[$r][0]->path . '/' . $i_images[$r][0]->id . $i_images[$r][0]->type) }})"></a>
+                                                                <a href="javascript:;" onclick="showphoto({{$i_images[$r][0]->id }})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ $i_images[$r][0]->url }})"></a>
                                                             </div>
                                                             @if($col_2==3 && $r>0)
                                                             @for ($r2=2;$r2<$i_maxDisplay;$r2++ )
                                                             <div class="ratio ratio-1x1  p-0 m-0">
-                                                                <a href="javascript:;" onclick="showphoto({{$i_images[$r2][0]->id}})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ asset($i_images[$r2][0]->path . '/' . $i_images[$r2][0]->id . $i_images[$r2][0]->type) }})"></a>
+                                                                <a href="javascript:;" onclick="showphoto({{$i_images[$r2][0]->id}})" data-lity class="bg-size-cover bg-position-center" style="background-image: url({{ $i_images[$r2][0]->url }})"></a>
 
                                                             </div>
                                                             @endfor
@@ -392,7 +369,7 @@
                                             <div class="col-md-1 col-1 my-3 p-0 d-flex justify-content-start " >
                                                 <a class="p-0 me-0 " href="javascript:;">
                                                     @php $commentPhoto = $comment->user?->photopro; @endphp
-                                                    <img id="comment_img_{{$comment->id}}" src="{{ $commentPhoto ? asset($commentPhoto->path.$commentPhoto->id.$commentPhoto->type) : asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
+                                                    <img id="comment_img_{{$comment->id}}" src="{{ $commentPhoto?->url ?? asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
                                                 </a>
                                             </div>
                                             <div id="father_cid_{{ $comment->id }}" class=" col-md-10 col-10 m-0 p-0">
@@ -402,7 +379,7 @@
                                                     </a>
                                                     <p class="my-1 px-3" id="comment_text_{{$comment->id}}">{{$comment['text_co']}}</p>
                                                     @if($comment->media_path)
-                                                        @if($comment->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ asset($comment->media_path) }}" @if(str_ends_with($comment->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ asset($comment->media_path) }}" alt="">@endif
+                                                        @if($comment->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ route('media.comments.show', ['comment' => $comment->id, 'file' => basename($comment->media_path)]) }}" @if(str_ends_with($comment->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ route('media.comments.show', ['comment' => $comment->id, 'file' => basename($comment->media_path)]) }}" alt="">@endif
                                                     @endif
                                                 </div>
                                                 <p class="my-0">
@@ -441,7 +418,7 @@
                                                             <div class="col-md-1 m-0" > 
                                                                 <a class="p-0 me-0 " href="javascript:;">
                                                                     @php $replyPhoto = $item->userreply?->photopro; @endphp
-                                                                    <img id="replay_photo_id_{{ $item->id  }}" src="{{ $replyPhoto ? asset($replyPhoto->path.$replyPhoto->id.$replyPhoto->type) : asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
+                                                                    <img id="replay_photo_id_{{ $item->id  }}" src="{{ $replyPhoto?->url ?? asset('img/Default_avatar_profile.jpg') }}" width="35" height="35" alt="avatar" class="img-fluid rounded-circle p-0 m-0 ">
                                                                 </a>
                                                             </div>
                                                             <div class="mx-1 col-md-11 reply-content">
@@ -450,7 +427,7 @@
                                                                     <h5 id="userdata_fl_{{ $item->id  }}" class="mb-1 mx-3">{{$item->userreply['first_name']}} {{$item->userreply['last_name']}}</h5></a>
                                                                 <p id="replay_comen_{{ $item->id }}" class="mx-3 mb-1">{{$item->reply}}.</p>
                                                                 @if($item->media_path)
-                                                                    @if($item->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ asset($item->media_path) }}" @if(str_ends_with($item->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ asset($item->media_path) }}" alt="">@endif
+                                                                    @if($item->media_type === 'video')<video class="comment-media video-js vjs-default-skin" controls preload="metadata" data-setup='{}'><source src="{{ route('media.replies.show', ['reply' => $item->id, 'file' => basename($item->media_path)]) }}" @if(str_ends_with($item->media_path, '.m3u8')) type="application/x-mpegURL" @endif></video>@else<img class="comment-media" src="{{ route('media.replies.show', ['reply' => $item->id, 'file' => basename($item->media_path)]) }}" alt="">@endif
                                                                 @endif
                                                                 </div>
                                                                 <time class="reply-time js-relative-time" datetime="{{ $item->created_at?->toIso8601String() }}">{{ $item->created_at?->diffForHumans(short: true) ?? 'now' }}</time>
@@ -491,7 +468,7 @@
                                                 @if(isset($profile['photopro']->path))
                                                 <div class="d-flex align-items-center " >
                                                     <a class="radius_30 d-flex align-items-center text-center justify-content-center" href="javascript:;">
-                                                        <img src="{{ asset($profile['photopro']->path.$profile['profile_photo_id'].$profile['photopro']->type)}}" width="30" height="30"  class="rounded-pill">
+                                                        <img src="{{ $profile['photopro']->url }}" width="30" height="30"  class="rounded-pill">
                                                     </a>
                                                 </div>
                                                 @else
@@ -597,28 +574,20 @@
 					<!-- END #profile-about tab -->
 					<!-- BEGIN #profile-photos tab -->
 					<div class="tab-pane bg-white rounded fade" id="profile-photos">
-						<div class="row p-2">
-							<div class="col-8"><h1>Photo</h1></div>
-							<div class="col-3">
-								<form action="photovideo" method="POST" enctype="multipart/form-data">
-								<input type="file" name="files[]" style="display: none" id="in"  multiple />
-						<label for="in"> <div class="adphoto btn btn-link rounded">Add Photos/Videos</div></label>
-						 <button type='submit' class="btn btn-defult rounded">Add</button>
-
+						@if(session('status'))<div class="alert alert-success mx-3 mt-3" role="status">{{ session('status') }}</div>@endif
+						@if($errors->has('files'))<div class="alert alert-danger mx-3 mt-3" role="alert">{{ $errors->first('files') }}</div>@endif
+						<div class="d-flex align-items-center justify-content-between gap-3 p-3">
+							<h2 class="h4 mb-0">الصور</h2>
+							@if(auth()->id() === $profile_page->id)
+								<form action="{{ url('/photovideo') }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-2">
+									@csrf
+									<input type="file" name="files[]" id="profile-photos-input" class="visually-hidden" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.avi,.mkv,.mov,.wmv,.flv,.webm,.mpeg,.3gp" multiple required>
+									<label for="profile-photos-input" class="btn btn-light border rounded-pill mb-0">اختيار صور أو فيديو</label>
+									<small id="profile-photos-filename" class="text-muted" aria-live="polite">لم يتم اختيار ملفات</small>
+									<small class="text-muted d-none d-xl-inline">حتى 10 ملفات، 200 ميجابايت للملف</small>
+									<button type="submit" class="btn btn-primary rounded-pill px-3">رفع</button>
 								</form>
-							</div>
-							
-							<div class="col-1">
-								<div class="btn-group">
-									<a href="#" class="btn btn-default dropdown-toggle" data-bs-toggle="dropdown">...</a>
-									<ul class="dropdown-menu dropdown-menu-end">
-									 <li>1</li>
-									 <li>2</li>
-									 <li>3</li>
-									 <li>4</li>
-									</ul>
-								  </div>
-									</div>
+							@endif
 						</div>
 
 						<!-- BEGIN gallery-v2 -->
@@ -632,14 +601,23 @@
 											@foreach($chunk as $photo)
 												<div class="col-md-3">
 													<div class="image gallery-group-4">
-														<a href="../photo/{{$photo->id}}" class="ratio ratio-4x3" data-pswp-src="{{asset($photo->path.'/'.$photo->id.$photo->type)}}" data-pswp-width="1200" data-pswp-height="800">
-															<div class="bg-size-cover bg-position-center" style="background-image: url({{asset($photo->path.'/'.$photo->id.$photo->type)}});"></div>
+														<a href="{{ url('/photo/'.$photo->id) }}" class="ratio ratio-4x3" aria-label="عرض الصورة" data-pswp-src="{{ $photo->url }}" data-pswp-width="1200" data-pswp-height="800">
+															<div class="bg-size-cover bg-position-center" aria-hidden="true" style="background-image: url({{ $photo->url }});"></div>
 														</a>
 													</div>
 												</div>
 											@endforeach
 										</div>
 									@endforeach
+								@else
+									<div class="col-12">
+										<div class="profile-empty-state" role="status">
+											<span class="profile-empty-state-icon"><i class="fa-regular fa-images"></i></span>
+											<h5>{{ auth()->id() === $profile_page->id ? 'لسه ما أضفتش صور' : 'لا توجد صور حتى الآن' }}</h5>
+											<p>{{ auth()->id() === $profile_page->id ? 'أضف صورك لتظهر هنا في ملفك الشخصي.' : 'ستظهر الصور هنا عندما يضيفها صاحب الملف الشخصي.' }}</p>
+															@if(auth()->id() === $profile_page->id)<label for="profile-photos-input" class="btn btn-primary rounded-pill px-4">إضافة صورة</label>@endif
+										</div>
+									</div>
 								@endif
 
 									
@@ -661,7 +639,7 @@
 								<div class="col-xl-4 col-md-6">
 									<div class="profile-video-card">
 										<video class="video-js vjs-default-skin profile-gallery-video" controls preload="metadata" data-setup='{}'>
-											<source src="{{ asset($profileVideo->path.$profileVideo->id.'/playlist.m3u8') }}" type="application/x-mpegURL">
+															<source src="{{ $profileVideo->playlist_url }}" type="application/x-mpegURL">
 										</video>
 									</div>
 								</div>
@@ -792,321 +770,25 @@
 					<!-- END #profile-videos tab -->
 					<!-- BEGIN #profile-friends tab -->
 					<div class="tab-pane bg-white rounded fade" id="profile-friends">
-						<h4 class="mb-3">Friend List (14)</h4>
-						<!-- BEGIN row -->
-						<div class="row gx-1">
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-1.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">James Pittman</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
+						<h4 class="mb-3">الأصدقاء ({{ $profileFriends->count() }})</h4>
+						<div class="row g-2 profile-friend-list" role="list">
+							@forelse($profileFriends as $profileFriend)
+								<div class="col-xl-4 col-lg-6" role="listitem">
+									<div class="p-2 d-flex align-items-center card flex-row border-0 rounded gap-2">
+										<a href="{{ url('/profile/'.$profileFriend->id) }}" aria-label="عرض ملف {{ $profileFriend->first_name }} {{ $profileFriend->last_name }}">
+											<img src="{{ $profileFriend->avatar_url }}" alt="" class="rounded-circle" width="56" height="56" style="object-fit:cover">
+										</a>
+										<div class="flex-grow-1 min-width-0">
+											<a href="{{ url('/profile/'.$profileFriend->id) }}" class="fw-bold text-decoration-none text-body d-block text-truncate">{{ $profileFriend->first_name }} {{ $profileFriend->last_name }}</a>
+											<a href="{{ url('/messanger/'.$profileFriend->id) }}" class="small text-primary text-decoration-none">مراسلة</a>
 										</div>
 									</div>
 								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-2.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Mitchell Ashcroft</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-3.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Ella Cabena</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-4.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Declan Dyson</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-5.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">George Seyler</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-6.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Patrick Musgrove</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-7.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Taj Connal</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-8.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Laura Pollock</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-9.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Dakota Mannix</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-10.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Timothy Woolley</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-11.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Benjamin Congreve</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-12.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Mariam Maddock</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-13.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Blake Gerrald</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
-							<!-- BEGIN col-6 -->
-							<div class="col-xl-4 col-lg-6 mb-1">
-								<div class="p-2 d-flex align-items-center card flex-row border-0 rounded">
-									<a href="javascript:;">
-										<img src="{{asset('assets/img/user/user-14.jpg')}}" alt="" class="rounded" width="64" />
-									</a>
-									<div class="flex-1 ps-3">
-										<b class="text-white">Gabrielle Bunton</b>
-									</div>
-									<div>
-										<a href="javascript:;" class="btn border-0 w-40px h-40px text-gray-500 rounded-pill d-flex align-items-center justify-content-center bg-none" data-bs-toggle="dropdown"><i class="fa fa-ellipsis-h fa-lg"></i></a>
-										<div class="dropdown-menu dropdown-menu-end">
-											<a href="javascript:;" class="dropdown-item">Action 1</a>
-											<a href="javascript:;" class="dropdown-item">Action 2</a>
-											<a href="javascript:;" class="dropdown-item">Action 3</a>
-											<div class="dropdown-divider"></div>
-											<a href="javascript:;" class="dropdown-item">Action 4</a>
-										</div>
-									</div>
-								</div>
-							</div>
-							<!-- END col-6 -->
+							@empty
+								<div class="col-12"><div class="profile-empty-state my-2" role="status"><span class="profile-empty-state-icon"><i class="fa fa-user-group" aria-hidden="true"></i></span><h5>لا توجد صداقات مؤكدة بعد</h5><p>ستظهر هنا الحسابات التي قبلت طلبات الصداقة.</p><a href="{{ url('/friends') }}" class="btn btn-primary rounded-pill px-4">اكتشاف أصدقاء</a></div></div>
+							@endforelse
 						</div>
-						<!-- END row -->
-					</div>
-					<!-- END #profile-friends tab -->
+						<!-- END #profile-friends tab -->
 				</div>
 				<!-- END tab-content -->
 			</div>

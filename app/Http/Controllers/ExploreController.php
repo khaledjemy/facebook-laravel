@@ -7,16 +7,19 @@ use App\User;
 use App\Video;
 use App\SavedPost;
 use App\LiveStream;
+use App\Services\MediaVisibilityService;
 use Illuminate\Http\Request;
 
 class ExploreController extends Controller
 {
-    public function watch()
+    public function watch(MediaVisibilityService $mediaVisibility)
     {
+        $visibleVideoIds = $mediaVisibility->visibleVideoIds(auth()->user());
+
         return view('explore', [
             'title' => __('ui.watch'),
             'kind' => 'watch',
-            'items' => Video::with('user')->latest()->paginate(12),
+            'items' => Video::with('user')->whereIn('id', $visibleVideoIds)->latest()->paginate(12),
             'liveStreams' => LiveStream::visibleTo(auth()->user())->with('user.photopro')->where('status', 'live')->latest('started_at')->get(),
         ]);
     }
@@ -82,6 +85,7 @@ class ExploreController extends Controller
 
     public function toggleSaved(Request $request, Post $post)
     {
+        abort_unless(Post::visibleTo(auth()->user())->whereKey($post->id)->exists(), 404);
         $saved = SavedPost::where(['user_id'=>auth()->id(),'post_id'=>$post->id])->first();
         if ($saved) { $saved->delete(); return response()->json(['saved'=>false]); }
         SavedPost::create(['user_id'=>auth()->id(),'post_id'=>$post->id]);
@@ -96,9 +100,24 @@ class ExploreController extends Controller
     public function search(Request $request)
     {
         $query = trim((string) $request->query('q'));
-        $users = User::with('photopro')->when($query, function ($builder) use ($query) {
-            $builder->where(function ($q) use ($query) { $q->where('first_name','like',"%{$query}%")->orWhere('last_name','like',"%{$query}%")->orWhere('email','like',"%{$query}%"); });
-        })->limit(20)->get();
+        $me = (int) auth()->id();
+        $blockedIds = \App\Block::where('user_id', $me)->pluck('blocked_id')
+            ->merge(\App\Block::where('blocked_id', $me)->pluck('user_id'))
+            ->unique()
+            ->values();
+
+        $users = User::with('photopro')
+            ->where('is_active', true)
+            ->whereKeyNot($me)
+            ->when($blockedIds->isNotEmpty(), fn ($builder) => $builder->whereNotIn('id', $blockedIds))
+            ->when($query !== '', function ($builder) use ($query) {
+                $builder->where(function ($q) use ($query) {
+                    $q->where('first_name', 'like', "%{$query}%")
+                        ->orWhere('last_name', 'like', "%{$query}%");
+                });
+            }, fn ($builder) => $builder->whereRaw('1 = 0'))
+            ->limit(20)
+            ->get();
         $posts = Post::visibleTo(auth()->user())->with('user')->when($query, fn($builder) => $builder->where('post_text','like',"%{$query}%"))->latest()->limit(20)->get();
         return view('search', compact('query','users','posts'));
     }

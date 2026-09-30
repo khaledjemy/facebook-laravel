@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Story extends Model
 {
+    protected $hidden = ['media_path'];
+
     protected $fillable = [
         'user_id',
         'media_path',

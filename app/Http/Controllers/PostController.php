@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Commente;
 use App\Post;
 use App\User;
-use App\Photo;
+use App\photo as Photo;
 use App\Video;
 use App\Hashtag;
 use App\Support\HashtagFormatter;
 use App\Services\MediaUploadService;
 use Illuminate\Http\Request;
+use App\SiteSetting;
 
 class PostController extends Controller
 {
@@ -18,7 +19,7 @@ class PostController extends Controller
     {
         $posts = Post::visibleTo(auth()->user())
             ->with('user.photopro', 'sharedPost.user.photopro', 'commentes.replie.userreply.photopro','commentes.react', 'react', 'commentes.user.photopro')
-            ->orderBy('created_at', 'desc')->paginate(10, ['*'], 'page', $request->query('page', $request->page));
+            ->orderBy('created_at', 'desc')->paginate(SiteSetting::getValue('posts_per_page', 10), ['*'], 'page', $request->query('page', $request->page));
         
         $imges = []; 
         $videos= [];
@@ -96,7 +97,7 @@ class PostController extends Controller
         $validatedData = $request->validate([
             'post_text'  => 'nullable|required_without:files|max:255',
             'files'      => 'nullable|array|max:10',
-            'files.*'    => 'file|max:204800|mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/x-matroska,video/avi,video/x-msvideo,video/mpeg,video/3gpp',
+            'files.*'    => 'file|max:'.(SiteSetting::getValue('max_upload_mb', 200) * 1024).'|mimetypes:image/jpeg,image/png,image/gif,image/webp,video/mp4,video/webm,video/quicktime,video/x-matroska,video/avi,video/x-msvideo,video/mpeg,video/3gpp',
             'visibility' => 'sometimes|in:public,friends,only_me',
             'video_title' => 'nullable|string|max:160',
             'video_description' => 'nullable|string|max:2000',

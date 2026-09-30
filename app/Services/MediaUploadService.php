@@ -3,9 +3,10 @@
 namespace App\Services;
 
 use App\Jobs\ProcessVideoJob;
-use App\Photo;
+use App\photo as Photo;
 use App\Video;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class MediaUploadService
 {
@@ -83,18 +84,14 @@ class MediaUploadService
 
             $photo = Photo::create([
                 'user_id' => $userId,
-                'path' => 'images/users/' . $userId . '/',
+                'path' => 'private/media/images/users/' . $userId . '/',
                 'state' => 1,
                 'album_id' => 0,
                 'type' => $dotType,
             ]);
 
             if ($photo) {
-                $directory = public_path($photo->path);
-                if (!is_dir($directory)) {
-                    mkdir($directory, 0755, true);
-                }
-                $file->move($directory, $photo->id . $dotType);
+                Storage::disk('local')->putFileAs($photo->path, $file, $photo->id . $dotType);
             }
 
             $encoded[$key] = [$photo->id];
@@ -113,7 +110,7 @@ class MediaUploadService
 
             $video = Video::create([
                 'user_id' => $userId,
-                'path' => 'video/users/' . $userId . '/',
+                'path' => 'private/media/videos/users/' . $userId . '/',
                 'state' => 1,
                 'album_id' => 0,
                 'type' => $dotType,
@@ -125,17 +122,13 @@ class MediaUploadService
             ]);
 
             if ($video) {
-                $directory = public_path($video->path);
-                if (!is_dir($directory)) {
-                    mkdir($directory, 0755, true);
-                }
-                $file->move($directory, $video->id . $dotType);
+                Storage::disk('local')->putFileAs($video->path, $file, $video->id . $dotType);
                 $thumbnail = $metadata['thumbnail'] ?? null;
                 if (is_string($thumbnail) && preg_match('/^data:image\/(?:jpeg|jpg|webp);base64,(.+)$/', $thumbnail, $matches)) {
                     $thumbnailData = base64_decode($matches[1], true);
                     if ($thumbnailData !== false && strlen($thumbnailData) <= 5 * 1024 * 1024) {
                         $thumbnailPath = $video->path.$video->id.'_thumbnail.jpg';
-                        file_put_contents(public_path($thumbnailPath), $thumbnailData);
+                        Storage::disk('local')->put($thumbnailPath, $thumbnailData);
                         $video->update(['thumbnail_path' => $thumbnailPath]);
                     }
                 }

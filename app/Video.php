@@ -9,6 +9,9 @@ class Video extends Model
 {
     use HasFactory;
 
+    protected $hidden = ['path', 'thumbnail_path'];
+    protected $appends = ['playlist_url', 'thumbnail_url'];
+
     protected $fillable = [
         'user_id',
         'path',
@@ -22,6 +25,16 @@ class Video extends Model
         'keywords',
         'thumbnail_path',
     ];
+
+    public function getPlaylistUrlAttribute(): string
+    {
+        return route('media.videos.hls', ['video' => $this->getKey(), 'file' => 'playlist.m3u8']);
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail_path ? route('media.videos.thumbnail', $this->getKey()) : null;
+    }
 
     public function user()
     {

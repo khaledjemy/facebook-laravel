@@ -6,7 +6,7 @@ use App\Block;
 use App\Friend;
 use App\Messanger;
 use App\Notifications\PostSharedNotification;
-use App\Photo;
+use App\photo as Photo;
 use App\Post;
 use App\Story;
 use App\User;
@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PhaseThreeFeaturesTest extends TestCase
@@ -32,6 +33,7 @@ class PhaseThreeFeaturesTest extends TestCase
 
     public function test_user_can_create_and_fetch_and_delete_stories(): void
     {
+        Storage::fake('local');
         $user = $this->makeUser('story_user@test.com', 'Story', 'Creator');
         $otherUser = $this->makeUser('other_user@test.com', 'Other', 'User');
 
@@ -61,6 +63,9 @@ class PhaseThreeFeaturesTest extends TestCase
             ->assertJsonPath('story.type', 'image');
 
         $imgStoryId = $imgRes->json('story.id');
+        $mediaUrl = $imgRes->json('story.media_url');
+        $this->get($mediaUrl)->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->assertArrayNotHasKey('media_path', Story::findOrFail($imgStoryId)->toArray());
 
         // Verify expiration is set in the future (~24 hours)
         $story = Story::findOrFail($textStoryId);
@@ -75,6 +80,7 @@ class PhaseThreeFeaturesTest extends TestCase
 
         // 4. Other user cannot delete this story
         $this->actingAs($otherUser);
+        $this->get($mediaUrl)->assertNotFound();
         $delForbidden = $this->deleteJson('/stories/' . $textStoryId);
         $delForbidden->assertStatus(403);
 
@@ -141,12 +147,15 @@ class PhaseThreeFeaturesTest extends TestCase
 
     public function test_messenger_attachment_upload_and_storage(): void
     {
+        Storage::fake('local');
         $sender = $this->makeUser('sender@test.com', 'Alice', 'Sender');
         $receiver = $this->makeUser('receiver@test.com', 'Bob', 'Receiver');
 
         $this->actingAs($sender);
 
-        $fakeFile = UploadedFile::fake()->createWithContent('chat_img.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='));
+        // The stored extension must follow the validated file content, not a misleading filename.
+        $fakeFile = UploadedFile::fake()->createWithContent('mislabeled.jpg', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADUlEQVR4nGP4z8AAAAMBAQDJ/pLvAAAAAElFTkSuQmCC'));
+        $msg = null;
 
         $response = $this->post('/messanger/' . $receiver->id, [
             'text' => 'Check out this picture!',
@@ -158,12 +167,22 @@ class PhaseThreeFeaturesTest extends TestCase
             ->assertJsonPath('message', 'Check out this picture!')
             ->assertJsonPath('attachment_type', 'image');
 
-        $msgId = $response->json('id');
-        $msg = Messanger::findOrFail($msgId);
+        $msg = Messanger::findOrFail($response->json('id'));
 
         $this->assertSame('image', $msg->attachment_type);
         $this->assertNotNull($msg->attachment);
-        $this->assertStringContainsString('chat_attachments', $msg->attachment);
+        $this->assertMatchesRegularExpression('/^private\/chat_attachments\/\d+\/[a-f0-9]{32}\.jpg$/', $msg->attachment);
+        Storage::disk('local')->assertExists($msg->attachment);
+        $response->assertJsonPath('attachment', route('messages.attachment', $msg));
+
+        $this->get(route('messages.attachment', $msg))->assertOk();
+        $this->actingAs($receiver)->get(route('messages.attachment', $msg))->assertOk();
+        $outsider = $this->makeUser('outsider@test.com');
+        $this->actingAs($outsider)->get(route('messages.attachment', $msg))->assertNotFound();
+
+        Block::create(['user_id' => $sender->id, 'blocked_id' => $receiver->id]);
+        $this->actingAs($sender)->get(route('messages.attachment', $msg))->assertNotFound();
+        $this->getJson('/messages/summary')->assertJsonCount(0, 'conversations');
     }
 
     public function test_user_blocking_breaks_friendship_and_blocks_interactions(): void

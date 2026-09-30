@@ -3,7 +3,7 @@
 <main class="fb-explore container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4"><h2 class="m-0">{{ $title }}</h2><a href="{{ url('/') }}" class="btn btn-light rounded-circle">×</a></div>
     @if($kind === 'friends')
-        <div class="row g-3">@foreach($items as $item)<div class="col-6 col-md-4 col-lg-3"><div class="card h-100 shadow-sm border-0"><img src="{{ $item->photopro ? asset($item->photopro->path.$item->photopro->id.$item->photopro->type) : asset('img/Default_avatar_profile.jpg') }}" class="card-img-top explore-avatar" alt=""><div class="card-body"><strong>{{ $item->first_name }} {{ $item->last_name }}</strong><a href="{{ url('/profile/'.$item->id) }}" class="btn btn-primary w-100 mt-3">View profile</a></div></div></div>@endforeach</div>
+        <div class="row g-3">@foreach($items as $item)<div class="col-6 col-md-4 col-lg-3"><div class="card h-100 shadow-sm border-0"><img src="{{ $item->avatar_url }}" class="card-img-top explore-avatar" alt=""><div class="card-body"><strong>{{ $item->first_name }} {{ $item->last_name }}</strong><a href="{{ url('/profile/'.$item->id) }}" class="btn btn-primary w-100 mt-3">View profile</a></div></div></div>@endforeach</div>
     @elseif($kind === 'watch')
         <section class="watch-live-head">
             <div><span class="watch-live-icon"><i class="fa fa-video"></i></span><span><h3>البث المباشر</h3><small>شاهد ما يحدث الآن أو ابدأ بثك الخاص</small></span></div>
@@ -12,7 +12,7 @@
         @if($liveStreams->count())
             <div class="watch-live-grid mb-4">
                 @foreach($liveStreams as $live)
-                    @php($avatar = $live->user->photopro ? asset($live->user->photopro->path.$live->user->photopro->id.$live->user->photopro->type) : asset('img/Default_avatar_profile.jpg'))
+                    @php($avatar = $live->user->avatar_url)
                     <a href="{{ route('live.show', $live) }}" class="watch-live-card">
                         <div class="watch-live-preview"><img src="{{ $avatar }}" alt=""><span class="watch-on-air"><i class="fa fa-circle"></i> مباشر</span><span class="watch-viewers"><i class="fa fa-eye"></i> {{ $live->viewer_count }}</span><i class="fa fa-play watch-play"></i></div>
                         <div class="watch-live-meta"><img src="{{ $avatar }}" alt=""><span><b>{{ $live->title }}</b><small>{{ $live->user->first_name }} {{ $live->user->last_name }}</small></span></div>
@@ -24,7 +24,7 @@
         @endif
         <h3 class="mt-4 mb-3">أحدث الفيديوهات</h3>
         @if($items->count())
-            <div class="watch-video-grid">@foreach($items as $item)<a href="{{ url('/video/'.$item->id) }}" class="watch-video-card"><div class="watch-video-thumb">@if($item->thumbnail_path)<img src="{{ asset($item->thumbnail_path) }}" alt="">@else<i class="fa fa-play-circle"></i>@endif<span><i class="fa fa-play"></i></span></div><div><b>{{ $item->title ?: ('فيديو #'.$item->id) }}</b><small>{{ optional($item->user)->first_name }} {{ optional($item->user)->last_name }} · {{ $item->created_at?->diffForHumans() }}</small></div></a>@endforeach</div>
+            <div class="watch-video-grid">@foreach($items as $item)<a href="{{ url('/video/'.$item->id) }}" class="watch-video-card"><div class="watch-video-thumb">@if($item->thumbnail_url)<img src="{{ $item->thumbnail_url }}" alt="">@else<i class="fa fa-play-circle"></i>@endif<span><i class="fa fa-play"></i></span></div><div><b>{{ $item->title ?: ('فيديو #'.$item->id) }}</b><small>{{ optional($item->user)->first_name }} {{ optional($item->user)->last_name }} · {{ $item->created_at?->diffForHumans() }}</small></div></a>@endforeach</div>
         @else
             <div class="card border-0 shadow-sm text-center p-5"><div class="fs-1 mb-2">🎬</div><h4>{{ __('ui.no_items') }}</h4></div>
         @endif

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Block;
+use App\ApiToken;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -36,12 +37,22 @@ class SettingsController extends Controller
             'about' => 'nullable|string|max:255',
         ]);
 
+        $emailChanged = strcasecmp($user->email, $validated['email']) !== 0;
+        if ($emailChanged) {
+            $user->forceFill(['email_verified_at' => null]);
+        }
+
         $user->update($validated);
+        if ($emailChanged) {
+            $user->save();
+            ApiToken::where('user_id', $user->id)->delete();
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
                 'status' => true,
                 'message' => 'تم تحديث معلومات الحساب بنجاح.',
+                'email_verification_required' => $emailChanged,
                 'user' => [
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
@@ -60,7 +71,7 @@ class SettingsController extends Controller
 
         $request->validate([
             'current_password' => 'required|string',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:8|max:72|confirmed',
         ]);
 
         if (!Hash::check($request->current_password, $user->password)) {
@@ -76,6 +87,7 @@ class SettingsController extends Controller
         $user->update([
             'password' => Hash::make($request->password),
         ]);
+        ApiToken::where('user_id', $user->id)->delete();
 
         if ($request->wantsJson()) {
             return response()->json([

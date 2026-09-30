@@ -7,6 +7,7 @@ use App\Hashtag;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class VideoSeoAndHashtagTest extends TestCase
@@ -16,6 +17,7 @@ class VideoSeoAndHashtagTest extends TestCase
     public function test_video_metadata_thumbnail_and_hashtags_are_saved(): void
     {
         Queue::fake();
+        Storage::fake('local');
         $user = User::create(['first_name' => 'Video', 'last_name' => 'Creator', 'email' => 'video@example.com', 'password' => bcrypt('secret')]);
         $thumbnail = 'data:image/jpeg;base64,'.base64_encode('fake-jpeg');
 
@@ -36,6 +38,10 @@ class VideoSeoAndHashtagTest extends TestCase
         $this->assertDatabaseHas('hashtags', ['name' => 'برمجة']);
         $this->assertDatabaseHas('hashtags', ['name' => 'لارافيل']);
         $this->assertDatabaseHas('hashtag_post', ['post_id' => $postId]);
+        $video = \App\Video::firstOrFail();
+        Storage::disk('local')->assertExists($video->path.$video->id.'.mp4');
+        Storage::disk('local')->assertExists($video->thumbnail_path);
+        $this->actingAs($user)->get($video->thumbnail_url)->assertOk();
     }
 
     public function test_hashtag_page_lists_visible_posts(): void

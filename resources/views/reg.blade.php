@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}" xmlns="http://www.w3.org/1999/xhtml">
 @include('layout.header')
-<body>
+<body @if(!empty($siteSettings['login_background_path'])) style="background-image:linear-gradient(#ffffffbb,#ffffffbb),url('{{ asset('storage/'.$siteSettings['login_background_path']) }}');background-size:cover;background-position:center;background-attachment:fixed" @endif>
 	<div class="container" >
 @if ($errors->any())
     <div class="alert alert-danger">
@@ -14,9 +14,8 @@
 		<div class="card bg-transparent border-0">
 			<div class="card-title " >
 				<p>
-					<h3>Facebook helps you connect and share with the people in your life.</h3>
-					<span>Get started on Facebook
-							Create an account to connect with friends, family and communities of people who share your interests.</span>
+					<h3>{{ app()->getLocale() === 'ar' ? $siteSettings['login_title'] : __('ui.login_title') }}</h3>
+					<span>{{ app()->getLocale() === 'ar' ? $siteSettings['login_subtitle'] : __('ui.login_subtitle') }}</span>
 				</p>
 			</div>
 			<div class="card-body" >
@@ -26,46 +25,49 @@
 					@csrf
 				<div class="row" >
 					<div class="col-md-12" >
-        				<img  class="w-75 justify-content-left" src="{{asset('/img/4lCu2zih0ca.svg')  }}" alt="">
+						@if(!empty($siteSettings['logo_path']))<img class="w-75 justify-content-left" src="{{ asset('storage/'.$siteSettings['logo_path']) }}" alt="{{ $siteSettings['site_name'] }}">@else<div class="h2 text-primary font-weight-bold">{{ $siteSettings['site_name'] }}</div>@endif
 
 					</div>
 				</div>
 				<div class="row" >
-					<h1>Create  an account </h1>
-					<p>It's free and always will be.</p>
+					<h1>{{ __('ui.create_new_account') }}</h1>
+					<p>{{ __('ui.join_description') }}</p>
 				</div>
 				<div class="row my-2">
 					<div class="col-md-6" >
-						<input type="text" class="form-control form-control-lg" id="fname" value="{{ old('firstname') }}" name="firstname" placeholder="Your name..">
+						<input type="text" class="form-control form-control-lg" id="fname" value="{{ old('firstname') }}" name="firstname" placeholder="{{ __('ui.first_name') }}" autocomplete="given-name" required>
 					</div>
 					<div class="col-md-6" >
-						<input type="text" class="form-control form-control-lg" id="lname" value="{{ old('lastname') }}" name="lastname" placeholder="Your last name..">
+						<input type="text" class="form-control form-control-lg" id="lname" value="{{ old('lastname') }}" name="lastname" placeholder="{{ __('ui.last_name') }}" autocomplete="family-name" required>
 					</div>
 				</div>
 				<div class="row my-2" >
 					<div class="col-md-12">
-						<input id="emailsignup" class="form-control form-control-lg" value="{{ old('emailsignup') }}" name="emailsignup" required="required" type="email" placeholder="E-mail@ adress"/> 
+						<input id="emailsignup" class="form-control form-control-lg" value="{{ old('emailsignup') }}" name="emailsignup" required="required" type="email" autocomplete="email" placeholder="{{ __('ui.email') }}"/>
 					</div>
 				</div>
 				<div class="row my-2">
 					<div class="col-md-12" >
-						<input id="passwordsignup" class="form-control form-control-lg" name="passwordsignup" required="required" minlength="8" autocomplete="new-password" type="password" placeholder="Enter password"/>
+						<input id="passwordsignup" class="form-control form-control-lg" name="passwordsignup" required="required" minlength="8" autocomplete="new-password" type="password" placeholder="{{ __('ui.password') }}"/>
 					</div>
 				</div>
 				<div class="row">
 					<div class="col-md-12" >
-						<input id="passwordsignup_confirm" class="form-control form-control-lg" name="passwordsignup_confirm" required="required" minlength="8" autocomplete="new-password" type="password" placeholder="Confirm password"/>					
+						<input id="passwordsignup_confirm" class="form-control form-control-lg" name="passwordsignup_confirm" required="required" minlength="8" autocomplete="new-password" type="password" placeholder="{{ __('ui.confirm_password') }}"/>
 					</div>
 				</div>
 				<div class="row my-2" >
 					<span>
-						By clicking Create an account, you agree to our Terms and confirm that you have read our Data Policy, including our Cookie Use Policy. You may receive SMS message notifications from Facebook and can opt out at any time.
+						{{ __('ui.use_your_email') }}
 					</span>
 				</div>
 				<div class="row my-2" >
 					<div class="col-md-12">
-		            	<input class="btn btn-success w-100" type="submit" value="Creat an account" name="regi"/> 
+						<input class="btn btn-success w-100" type="submit" value="{{ __('ui.create_account') }}" name="regi"/>
 					</div>
+				</div>
+				<div class="text-center mb-3">
+					<a href="{{ route('login') }}">{{ __('ui.already_have_account') }}</a>
 				</div>
 	</form>
 			</div>

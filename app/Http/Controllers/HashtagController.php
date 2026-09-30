@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Hashtag;
-use App\Photo;
+use App\photo as Photo;
 use App\Video;
 
 class HashtagController extends Controller

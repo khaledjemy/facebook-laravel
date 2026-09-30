@@ -3,6 +3,8 @@
 
 @include('layout.header')
 <body>
+    <script src="{{ asset('./assets/js/jquery.min.js') }}"></script>
+    @php($jqueryAlreadyLoaded = true)
     <div id="app" class="app">
         @include('layout.navbar')
         @yield('content')

@@ -6,13 +6,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Str;
+use App\SiteSetting;
 
 class RegisterController extends Controller
 {
     //
     public function reg (Request $request)
         {
+            abort_unless(SiteSetting::getValue('registration_enabled', true), 403, 'التسجيل مغلق مؤقتًا.');
+            $request->merge(['emailsignup' => Str::lower(trim((string) $request->input('emailsignup')))]);
             $validate = $request->validate([
                                     'firstname'=>'required|string|max:50',
                                     'lastname'=>'required|string|max:50',
@@ -31,12 +35,11 @@ class RegisterController extends Controller
                 'cover_photo_id'=>null,
              ]);
 
-//dd($user);
+        event(new Registered($user));
 
         Auth::login($user);
 
-    
-     return redirect('/profile/'.$user->id);
+        return redirect()->route('verification.notice');
 
 
 }
