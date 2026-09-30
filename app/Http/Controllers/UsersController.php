@@ -107,6 +107,13 @@ class UsersController extends Controller
     {
         $viewer = auth()->id();
         $user = User::with('photopro')->findOrFail($id);
+        $isBlocked = \App\Block::where(function ($query) use ($viewer, $user) {
+            $query->where('user_id', $viewer)->where('blocked_id', $user->id);
+        })->orWhere(function ($query) use ($viewer, $user) {
+            $query->where('user_id', $user->id)->where('blocked_id', $viewer);
+        })->exists();
+        abort_if($isBlocked, 404, 'This profile is not available.');
+
         $viewerFriends = $this->approvedFriendIds($viewer);
         $userFriends = $this->approvedFriendIds($user->id);
         $mutualIds = $viewer === $user->id ? [] : array_values(array_intersect($viewerFriends, $userFriends));

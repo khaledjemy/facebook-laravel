@@ -471,6 +471,17 @@ class SocialFeaturesTest extends TestCase
             ->assertJsonStructure(['avatar', 'about', 'mutual_count', 'mutual_names', 'profile_url', 'message_url']);
     }
 
+    public function test_profile_hover_card_hides_users_blocked_in_either_direction(): void
+    {
+        $viewer = $this->user('hover-blocked-viewer@example.com');
+        $blockedUser = $this->user('hover-blocked-user@example.com');
+        Block::create(['user_id' => $blockedUser->id, 'blocked_id' => $viewer->id]);
+
+        $this->actingAs($viewer)
+            ->getJson('/users/'.$blockedUser->id.'/hover-card')
+            ->assertNotFound();
+    }
+
     public function test_websocket_ticket_is_authenticated_and_signed(): void
     {
         $this->getJson('/websocket-ticket')->assertUnauthorized();
