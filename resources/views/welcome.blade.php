@@ -265,7 +265,7 @@
                                 @endforeach
                             </span>
                                                     </a>
-                                                    <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
+                                                    <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400 btn-focus-comment" data-post-id="{{ $post->id }}">
                                                         <i class="fa fa-comments fa-fw me-3px"></i> {{ __('ui.comment') }}
                                                     </a>
                                                     <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400 btn-share-post"

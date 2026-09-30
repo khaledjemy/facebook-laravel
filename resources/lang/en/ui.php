@@ -22,6 +22,8 @@ return [
     'find_friends' => 'Find friends',
     'open_chat_with' => 'Open a chat with :name',
     'just_now' => 'Just now',
+    'link_copied' => 'Photo link copied.',
+    'copy_link_prompt' => 'Copy this photo link to share it:',
     'create_page' => 'Create Page',
     'create_group' => 'Create Group',
     'name' => 'Name',

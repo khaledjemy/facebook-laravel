@@ -346,6 +346,8 @@ class SocialFeaturesTest extends TestCase
             ->assertDontSee('href="profile/', false);
         $this->actingAs($demo)->get('/post/1')->assertOk()
             ->assertDontSee('href="profile/', false)
+            ->assertSee('btn-focus-comment', false)
+            ->assertSee('btn-share-post', false)
             ->assertSee('class="dropdown-item btn-edit-post"', false)
             ->assertSee('class="dropdown-item text-danger btn-delete-post"', false);
 
@@ -395,7 +397,9 @@ class SocialFeaturesTest extends TestCase
             ->assertDontSee('href="profile/', false)
             ->assertDontSee('href="photo/', false)
             ->assertSee(url('/profile/'.$owner->id), false)
-            ->assertSee(url('/photo/'.$photo->id), false);
+            ->assertSee(url('/photo/'.$photo->id), false)
+            ->assertSee('btn-focus-photo-comment', false)
+            ->assertSee('btn-share-photo', false);
     }
 
     public function test_profile_renders_comments_and_replies_when_users_have_no_avatar(): void

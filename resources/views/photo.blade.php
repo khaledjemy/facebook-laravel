@@ -115,10 +115,10 @@
                             class="btn btn-link text-{{$like?'blue' : 'gray'}}-400 text-decoration-none"  >
                             <i class="fa fa-thumbs-up fa-fw me-3px"></i> Like</button>
                         </a>
-                        <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
+                        <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400 btn-focus-photo-comment" data-photo-id="{{ $photo->id }}">
                             <i class="fa fa-comments fa-fw me-3px"></i> Comment
                         </a> 
-                        <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400">
+                        <a href="javascript:;" class="flex-fill text-decoration-none text-center text-gray-400 btn-share-photo" data-share-url="{{ url('/photo/'.$photo->id) }}" data-share-title="{{ $photo->user->first_name }} {{ $photo->user->last_name }}">
                             <i class="fa fa-share fa-fw me-3px"></i> Share
                         </a>
                     </div>
@@ -207,7 +207,7 @@
                                             </div> 
                                             <div class="col-md-11 ps-2 flex-1">
                                                 <div class="position-relative">
-                                                    <input type="text" data-photo_id="{{$photo->id}}" name="comment" class="form-control comment rounded-pill ps-3 py-2 fs-13px" placeholder="Write a comment...">
+                                                    <input id="photo-comment-input-{{ $photo->id }}" type="text" data-photo_id="{{$photo->id}}" name="comment" class="form-control comment rounded-pill ps-3 py-2 fs-13px" placeholder="Write a comment...">
                                                     <div class="position-absolute end-0 top-0 bottom-0 d-flex align-items-center px-2">
                                                         <a href="#" class="btn bg-none  shadow-none px-1"><i class="far fa-smile fa-fw fa-lg d-block"></i></a>
                                                         <a href="#" class="btn bg-none  shadow-none px-1"><i class="fa fa-camera fa-fw fa-lg d-block"></i></a>

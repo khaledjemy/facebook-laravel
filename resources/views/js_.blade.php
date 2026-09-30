@@ -1719,6 +1719,60 @@ $('#viewStoryModal').on('hidden.bs.modal', function() {
 });
 
 // ==================== Share Post Script ====================
+$(document).on('click', '.btn-focus-comment', function(e) {
+    e.preventDefault();
+    const postId = String($(this).data('post-id') || '');
+    const input = Array.from(document.querySelectorAll('.comment[data-post_id]'))
+        .find((element) => String(element.dataset.post_id) === postId);
+    if (!input) return;
+
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input.focus({ preventScroll: true });
+});
+
+$(document).on('click', '.btn-focus-photo-comment', function(e) {
+    e.preventDefault();
+    const input = document.getElementById('photo-comment-input-' + String($(this).data('photo-id') || ''));
+    if (!input) return;
+
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input.focus({ preventScroll: true });
+});
+
+async function copyPhotoShareLink(url) {
+    const copiedMessage = @json(__('ui.link_copied'));
+    const promptMessage = @json(__('ui.copy_link_prompt'));
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(url);
+            alert(copiedMessage);
+            return;
+        }
+    } catch (error) {
+        // Fall through to a manual copy prompt when clipboard access is unavailable.
+    }
+
+    window.prompt(promptMessage, url);
+}
+
+$(document).on('click', '.btn-share-photo', async function(e) {
+    e.preventDefault();
+    const url = String($(this).attr('data-share-url') || window.location.href);
+    const title = String($(this).attr('data-share-title') || document.title);
+
+    if (navigator.share) {
+        try {
+            await navigator.share({ title, url });
+            return;
+        } catch (error) {
+            if (error?.name === 'AbortError') return;
+        }
+    }
+
+    await copyPhotoShareLink(url);
+});
+
 $(document).on('click', '.btn-share-post', function(e) {
     e.preventDefault();
     let postId = $(this).data('post-id');

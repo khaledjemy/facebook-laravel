@@ -22,6 +22,8 @@ return [
     'find_friends' => 'ابحث عن أصدقاء',
     'open_chat_with' => 'افتح محادثة مع :name',
     'just_now' => 'الآن',
+    'link_copied' => 'تم نسخ رابط الصورة.',
+    'copy_link_prompt' => 'انسخ رابط الصورة لمشاركته:',
     'create_page' => 'إنشاء صفحة',
     'create_group' => 'إنشاء مجموعة',
     'name' => 'الاسم',
