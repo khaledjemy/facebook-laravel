@@ -7,6 +7,7 @@ use App\Commente;
 use App\Block;
 use App\photo as Photo;
 use App\React;
+use App\SiteSetting;
 use App\SavedPost;
 use App\User;
 use App\Friend;
@@ -561,6 +562,35 @@ class SocialFeaturesTest extends TestCase
         } finally {
             File::deleteDirectory(public_path('video/users/998'));
         }
+    }
+
+    public function test_configured_upload_limit_is_applied_to_posts_profile_gallery_and_stories(): void
+    {
+        SiteSetting::putValue('max_upload_mb', 1, 'integer');
+        $user = $this->user('upload-limit@example.com');
+        $largeVideo = fn () => UploadedFile::fake()->create('clip.mp4', 1025, 'video/mp4');
+
+        $this->actingAs($user)->get('/profile/'.$user->id)
+            ->assertOk()
+            ->assertSee('1 ميجابايت للملف');
+
+        $serviceResult = app(\App\Services\MediaUploadService::class)->processUploads([$largeVideo()]);
+        $this->assertSame('error', $serviceResult['status']);
+        $this->assertStringContainsString('1 MB', $serviceResult['details']);
+
+        $this->actingAs($user)->postJson('/posts', [
+            'post_text' => 'Oversized post media',
+            'files' => [$largeVideo()],
+        ])->assertUnprocessable()->assertJsonValidationErrors('files.0');
+
+        $this->actingAs($user)->from('/profile/'.$user->id)->post('/photovideo', [
+            'files' => [$largeVideo()],
+        ])->assertSessionHasErrors('files.0');
+
+        $this->actingAs($user)->postJson('/stories', [
+            'type' => 'video',
+            'media' => $largeVideo(),
+        ])->assertUnprocessable()->assertJsonValidationErrors('media');
     }
 
     public function test_user_can_update_profile_and_cover_images(): void

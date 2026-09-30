@@ -584,7 +584,7 @@
 									<input type="file" name="files[]" id="profile-photos-input" class="visually-hidden" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.avi,.mkv,.mov,.wmv,.flv,.webm,.mpeg,.3gp" multiple required>
 									<label for="profile-photos-input" class="btn btn-light border rounded-pill mb-0">اختيار صور أو فيديو</label>
 									<small id="profile-photos-filename" class="text-muted" aria-live="polite">لم يتم اختيار ملفات</small>
-									<small class="text-muted d-none d-xl-inline">حتى 10 ملفات، 200 ميجابايت للملف</small>
+									<small class="text-muted d-none d-xl-inline">حتى 10 ملفات، {{ $maxUploadMb }} ميجابايت للملف</small>
 									<button type="submit" class="btn btn-primary rounded-pill px-3">رفع</button>
 								</form>
 							@endif

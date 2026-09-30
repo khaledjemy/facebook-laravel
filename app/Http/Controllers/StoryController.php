@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Block;
 use App\Friend;
 use App\Services\MediaUploadService;
+use App\SiteSetting;
 use App\Story;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -69,7 +70,7 @@ class StoryController extends Controller
             'type' => 'required|string|in:text,image,video',
             'content' => 'nullable|string|max:1000',
             'background' => 'nullable|string|max:255',
-            'media' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,mp4,mov,webm|max:51200',
+            'media' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,mp4,mov,webm|max:'.(min(50, max(1, (int) SiteSetting::getValue('max_upload_mb', 200))) * 1024),
         ]);
 
         if ($data['type'] === 'text' && empty(trim($data['content'] ?? ''))) {

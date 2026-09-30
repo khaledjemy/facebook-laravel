@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\LiveStream;
 use App\Block;
+use App\SiteSetting;
 use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class LiveStreamingTest extends TestCase
@@ -77,5 +79,24 @@ class LiveStreamingTest extends TestCase
         $this->actingAs($viewer)->post("/live/{$stream->id}/join")->assertOk()->assertJson(['viewer_count' => 1]);
         $this->actingAs($viewer)->post("/live/{$stream->id}/join")->assertOk()->assertJson(['viewer_count' => 1]);
         $this->actingAs($viewer)->post("/live/{$stream->id}/leave")->assertOk()->assertJson(['viewer_count' => 0]);
+    }
+
+    public function test_live_recording_obeys_the_configured_upload_limit(): void
+    {
+        SiteSetting::putValue('max_upload_mb', 1, 'integer');
+        $user = $this->user();
+        $stream = LiveStream::create([
+            'user_id' => $user->id,
+            'title' => 'Limited recording',
+            'visibility' => 'public',
+            'status' => 'live',
+            'started_at' => now(),
+        ]);
+
+        $this->actingAs($user)->postJson("/live/{$stream->id}/finish", [
+            'recording' => UploadedFile::fake()->create('recording.mp4', 1025, 'video/mp4'),
+        ])->assertUnprocessable()->assertJsonValidationErrors('recording');
+
+        $this->assertSame('live', $stream->fresh()->status);
     }
 }

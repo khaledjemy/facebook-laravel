@@ -9,6 +9,7 @@ use App\Photocommente;
 use App\User;
 use App\Video;
 use App\Services\MediaVisibilityService;
+use App\SiteSetting;
 use Exception;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +29,7 @@ class PhotoController extends Controller
             'image/jpeg','image/jpg','image/png','image/gif','image/webp','video/mp4','video/avi','video/x-msvideo',
             'video/mkv','video/x-matroska','video/mov','video/quicktime','video/wmv','video/flv','video/webm','video/mpeg','video/3gpp',
         ];
-        $maxSizeInBytes = 200 * 1024 * 1024;
+        $maxSizeInBytes = min(500, max(1, (int) SiteSetting::getValue('max_upload_mb', 200))) * 1024 * 1024;
 
 
         if(is_array($photos)){
@@ -45,7 +46,7 @@ class PhotoController extends Controller
                 }else if($photo->getSize() > $maxSizeInBytes){
                     return response()->json([
                         'error' => 'failed',
-                        'details' => $photo->getClientOriginalName().' exceeds the maximum allowed size of 200 MB'
+                        'details' => $photo->getClientOriginalName().' exceeds the configured maximum upload size.'
                     ]);
                 }else{
                     if(strpos($photo->getMimeType(), 'video') !== false ){
@@ -82,7 +83,7 @@ class PhotoController extends Controller
             }else if($photos->getSize() > $maxSizeInBytes){
                 return response()->json([
                     'error' => 'failed',
-                        'details' => $photos->getClientOriginalName().' exceeds the maximum allowed size of 200 MB'
+                        'details' => $photos->getClientOriginalName().' exceeds the configured maximum upload size.'
                 ]);
             }else{
                 $arr['name']    =   $photos->getClientOriginalName();
@@ -189,7 +190,7 @@ class PhotoController extends Controller
     {
         $validated = $request->validate([
             'files' => 'required|array|min:1|max:10',
-            'files.*' => 'required|file|mimes:jpg,jpeg,png,gif,webp,mp4,avi,mkv,mov,wmv,flv,webm,mpeg,3gp|max:204800',
+            'files.*' => 'required|file|mimes:jpg,jpeg,png,gif,webp,mp4,avi,mkv,mov,wmv,flv,webm,mpeg,3gp|max:'.(min(500, max(1, (int) SiteSetting::getValue('max_upload_mb', 200))) * 1024),
         ]);
 
         $result = $this->img($validated['files']);

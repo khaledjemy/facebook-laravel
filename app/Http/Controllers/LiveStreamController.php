@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\LiveStream;
+use App\SiteSetting;
 use App\Services\MediaUploadService;
 use App\Video;
 use Illuminate\Http\Request;
@@ -63,7 +64,8 @@ class LiveStreamController extends Controller
     public function finish(Request $request, LiveStream $stream, MediaUploadService $uploads)
     {
         $this->owner($stream);
-        $request->validate(['recording' => 'nullable|file|max:512000|mimetypes:video/webm,video/mp4,video/x-matroska']);
+        $maxUploadKb = min(500, max(1, (int) SiteSetting::getValue('max_upload_mb', 200))) * 1024;
+        $request->validate(['recording' => 'nullable|file|max:'.$maxUploadKb.'|mimetypes:video/webm,video/mp4,video/x-matroska']);
         $stream->update(['status' => 'processing', 'viewer_count' => 0, 'ended_at' => now()]);
         if ($request->hasFile('recording')) {
             $encoded = $uploads->uploadVideos([$request->file('recording')], [

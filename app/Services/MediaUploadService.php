@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\ProcessVideoJob;
+use App\SiteSetting;
 use App\photo as Photo;
 use App\Video;
 use Illuminate\Http\UploadedFile;
@@ -17,13 +18,13 @@ class MediaUploadService
         'video/mpeg', 'video/3gpp',
     ];
 
-    protected int $maxSizeBytes = 209715200; // 200 MB
-
     public function processUploads(array|UploadedFile $files, array $videoMetadata = []): array
     {
         $fileList = is_array($files) ? $files : [$files];
         $photoFiles = [];
         $videoFiles = [];
+        $maxSizeMb = min(500, max(1, (int) SiteSetting::getValue('max_upload_mb', 200)));
+        $maxSizeBytes = $maxSizeMb * 1024 * 1024;
 
         foreach ($fileList as $file) {
             if (!$file instanceof UploadedFile) {
@@ -38,11 +39,11 @@ class MediaUploadService
                 ];
             }
 
-            if ($file->getSize() > $this->maxSizeBytes) {
+            if ($file->getSize() > $maxSizeBytes) {
                 return [
                     'status' => 'error',
                     'error' => 'failed',
-                    'details' => $file->getClientOriginalName() . ' exceeds the maximum allowed size of 200 MB.',
+                    'details' => $file->getClientOriginalName() . " exceeds the maximum allowed size of {$maxSizeMb} MB.",
                 ];
             }
 

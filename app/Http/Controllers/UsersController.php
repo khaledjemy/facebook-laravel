@@ -7,6 +7,7 @@ use App\Notifications\FriendAcceptedNotification;
 use App\Notifications\FriendRequestNotification;
 use App\Post;
 use App\Services\MediaVisibilityService;
+use App\SiteSetting;
 use App\User;
 use App\photo;
 use App\Video;
@@ -88,7 +89,9 @@ class UsersController extends Controller
 
         $profile = auth()->check() ? auth()->user()->loadMissing('photopro', 'coverpro') : null;
 
-        return view("profile", compact('profile_page', 'p_postes', 'friends', 'profileFriends', 'imges', 'videos', 'allphoto', 'allvideo', 'profile'));
+        $maxUploadMb = min(500, max(1, (int) SiteSetting::getValue('max_upload_mb', 200)));
+
+        return view("profile", compact('profile_page', 'p_postes', 'friends', 'profileFriends', 'imges', 'videos', 'allphoto', 'allvideo', 'profile', 'maxUploadMb'));
     }
     public function profilenav()
     {
