@@ -31,7 +31,7 @@ class ProductionHealthCommand extends Command
             'FFprobe' => fn () => $this->binaryWorks((string) config('media.ffprobe')),
             'WebSocket secret' => fn () => filled(config('services.websocket_secret')),
             'Secure WebSocket URL' => fn () => str_starts_with((string) config('services.websocket_url'), 'wss://'),
-            'Background queue' => fn () => config('queue.default') !== 'sync',
+            'Background queue configured' => fn () => $this->backgroundQueueConfigured(),
         ];
 
         $failed = false;
@@ -103,6 +103,21 @@ class ProductionHealthCommand extends Command
         $binary = strtok($path, ' ');
 
         return $binary !== false && is_executable($binary);
+    }
+
+    private function backgroundQueueConfigured(): bool
+    {
+        $connection = (string) config('queue.default');
+        $configuration = config('queue.connections.'.$connection);
+
+        if (!is_array($configuration)) {
+            return false;
+        }
+
+        return match ($configuration['driver'] ?? $connection) {
+            'database', 'redis', 'sqs', 'beanstalkd' => true,
+            default => false,
+        };
     }
 
     private function uploadLimitsSupportConfiguredMaximum(): bool

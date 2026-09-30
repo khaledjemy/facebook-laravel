@@ -7,6 +7,30 @@ use Tests\TestCase;
 
 class ProductionHealthTest extends TestCase
 {
+    public function test_health_check_rejects_a_queue_that_does_not_persist_jobs(): void
+    {
+        config([
+            'queue.default' => 'null',
+            'queue.connections.null.driver' => 'null',
+        ]);
+
+        Artisan::call('app:health');
+
+        $this->assertStringContainsString('FAIL  Background queue configured', Artisan::output());
+    }
+
+    public function test_health_check_accepts_a_persistent_database_queue(): void
+    {
+        config([
+            'queue.default' => 'database',
+            'queue.connections.database.driver' => 'database',
+        ]);
+
+        Artisan::call('app:health');
+
+        $this->assertStringContainsString('PASS  Background queue configured', Artisan::output());
+    }
+
     public function test_health_check_rejects_a_mail_transport_without_real_delivery_settings(): void
     {
         config([
