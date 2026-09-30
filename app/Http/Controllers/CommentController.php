@@ -236,18 +236,14 @@ class CommentController extends Controller
         ]);
         $userId =   auth()->id();
         $comment = Commente::where('id', $validatedData['comment_id'])->where('user_id', $userId)->first();
-        if ($comment) {
-            $comment->delete();
-            return response()->json([
-                'status'  => 'ok',
-                'details' => $comment
-            ]);
-        } else {
-            return response()->json([
-                'status'  => 'error',
-                'details' => 'Comment not found or you do not have permission to delete it'
-            ]);
-        }
+        abort_unless($comment, 403, 'You do not have permission to delete this comment.');
+
+        $comment->delete();
+
+        return response()->json([
+            'status'  => 'ok',
+            'details' => $comment,
+        ]);
     }
     public function delete_reply(Request  $request)
     {
@@ -295,19 +291,15 @@ class CommentController extends Controller
             'comment_id' => 'required|integer|exists:photocommentes,id',
         ]);
         $userId =   auth()->id();
-        $comment = Photocommente::where('id', $validatedData['comment_id'])->where('user_id', $userId)->first();;
-        if ($comment) {
-            $comment->delete();
-            return response()->json([
-                'status'  => 'ok',
-                'details' => $comment
-            ]);
-        } else {
-            return response()->json([
-                'status'  => 'error',
-                'details' => 'Comment not found or you do not have permission to delete it'
-            ]);
-        }
+        $comment = Photocommente::where('id', $validatedData['comment_id'])->where('user_id', $userId)->first();
+        abort_unless($comment, 403, 'You do not have permission to delete this photo comment.');
+
+        $comment->delete();
+
+        return response()->json([
+            'status'  => 'ok',
+            'details' => $comment,
+        ]);
     }
 
 

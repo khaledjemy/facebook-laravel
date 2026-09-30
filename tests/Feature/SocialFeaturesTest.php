@@ -593,6 +593,37 @@ class SocialFeaturesTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors('media');
     }
 
+    public function test_users_cannot_delete_another_users_post_or_comments(): void
+    {
+        $author = $this->user('delete-author@example.com');
+        $stranger = $this->user('delete-stranger@example.com');
+        $post = Post::create(['user_id' => $author->id, 'post_text' => 'Protected post', 'status' => true]);
+        $comment = \App\Commente::create([
+            'post_id' => $post->id,
+            'user_id' => $author->id,
+            'text_co' => 'Protected comment',
+        ]);
+        $photo = Photo::create([
+            'user_id' => $author->id,
+            'path' => 'private/media/images/users/'.$author->id.'/',
+            'type' => '.jpg',
+            'album_id' => 0,
+        ]);
+        $photoComment = \App\Photocommente::create([
+            'photo_id' => $photo->id,
+            'user_id' => $author->id,
+            'comment' => 'Protected photo comment',
+        ]);
+
+        $this->actingAs($stranger)->postJson('/postdelete', ['id' => $post->id])->assertForbidden();
+        $this->postJson('/commentdelete', ['comment_id' => $comment->id])->assertForbidden();
+        $this->postJson('/photocommentdelete', ['comment_id' => $photoComment->id])->assertForbidden();
+
+        $this->assertDatabaseHas('posts', ['id' => $post->id]);
+        $this->assertDatabaseHas('commentes', ['id' => $comment->id]);
+        $this->assertDatabaseHas('photocommentes', ['id' => $photoComment->id]);
+    }
+
     public function test_user_can_update_profile_and_cover_images(): void
     {
         $user = User::forceCreate([
